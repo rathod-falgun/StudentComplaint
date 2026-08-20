@@ -59,7 +59,6 @@ frontend/*.pem
 # macOS
 frontend/.DS_Store
 
-
 # =========================================================
 # BACKEND - Java / Maven / Spring Boot
 # =========================================================
@@ -78,6 +77,7 @@ backend/.project
 backend/.settings/
 backend/.springBeans
 backend/.sts4-cache
+backend/src/main/resources/application.properties
 
 # IntelliJ IDEA
 backend/.idea/
