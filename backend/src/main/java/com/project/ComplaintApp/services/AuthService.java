@@ -7,9 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.project.ComplaintApp.Enums.Role;
 import com.project.ComplaintApp.dto.LoginRequest;
 import com.project.ComplaintApp.dto.RegisterRequest;
-import com.project.ComplaintApp.entities.Role;
 import com.project.ComplaintApp.entities.User;
 import com.project.ComplaintApp.repository.UserRepository;
 
@@ -43,7 +43,7 @@ public class AuthService {
         User user = userRepository.findByEmail(req.getEmail())
                 .orElseThrow(() -> new RuntimeException("User is not Registered"));
         if (!encoder.matches(req.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new RuntimeException("Invalid password");
         }
         Map<String, String> response = new HashMap<>();
         response.put("message", "Login Successful");

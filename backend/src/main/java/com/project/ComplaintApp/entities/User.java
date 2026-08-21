@@ -2,6 +2,8 @@ package com.project.ComplaintApp.entities;
 
 import java.time.LocalDateTime;
 
+import com.project.ComplaintApp.Enums.Role;
+
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
