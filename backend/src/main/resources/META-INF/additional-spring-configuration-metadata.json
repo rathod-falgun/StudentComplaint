@@ -1,0 +1,57 @@
+{"properties": [
+  {
+    "name": "password",
+    "type": "java.lang.String",
+    "description": "A description for 'password'"
+  },
+  {
+    "name": "username",
+    "type": "java.lang.String",
+    "description": "A description for 'username'"
+  },
+  {
+    "name": "datasource",
+    "type": "java.lang.String",
+    "description": "A description for 'datasource'"
+  },
+  {
+    "name": "url",
+    "type": "java.lang.String",
+    "description": "A description for 'url'"
+  },
+  {
+    "name": "jpa",
+    "type": "java.lang.String",
+    "description": "A description for 'jpa'"
+  },
+  {
+    "name": "hibernate",
+    "type": "java.lang.String",
+    "description": "A description for 'hibernate'"
+  },
+  {
+    "name": "ddl-auto",
+    "type": "java.lang.String",
+    "description": "A description for 'ddl-auto'"
+  },
+  {
+    "name": "show-sql",
+    "type": "java.lang.String",
+    "description": "A description for 'show-sql'"
+  },
+  {
+    "name": "name",
+    "type": "java.lang.String",
+    "description": "A description for 'name'"
+  },
+  {
+    "name": "application",
+    "type": "java.lang.String",
+    "description": "A description for 'application'"
+  },
+  {
+    "name": "spring",
+    "type": "java.lang.String",
+    "description": "A description for 'spring'"
+  }
+]}

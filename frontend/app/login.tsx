@@ -1,7 +1,41 @@
 import { router } from 'expo-router';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 
 export default function Login() {
+
+  const [email,setemail] = useState('');
+  const [password,setPassword] = useState('');
+  const [loading,setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if(!email || !password){
+      Alert.alert('Error',"All Fields are Required");
+      return;
+    }
+    try{
+      setLoading(true);
+      const response = await fetch("http://10.122.90.235:8081/api/auth/login",
+      {
+        method : 'POST',
+        headers:{ 'Content-Type' : 'application/json'},
+        body : JSON.stringify({email:email.trim(),password}),
+      });
+      const data = await response.json(); 
+      if(response.ok){
+        router.replace({
+          pathname:'/dashboard',
+          params:{name:data.name},
+        });
+      }else{
+        Alert.alert('Login Failed',data.message || "Please Register YourSelf");
+      }
+    }catch(error){
+      Alert.alert('Connection Error','Unable to Connect to server.');
+    }finally{
+      setLoading(false);
+    }
+  };
   return (
     <View style={styles.container}>
 
@@ -17,6 +51,9 @@ export default function Login() {
         style={styles.input}
         placeholder="Student ID / Email"
         placeholderTextColor="#777"
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setemail}
       />
 
       <TextInput
@@ -24,10 +61,12 @@ export default function Login() {
         placeholder="Password"
         placeholderTextColor="#777"
         secureTextEntry={true}
+        value={password}
+        onChangeText={setPassword}
       />
 
-      <TouchableOpacity style={styles.loginButton}>
-        <Text style={styles.loginButtonText}>
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+        <Text style={styles.loginButtonText} >
           Login
         </Text>
       </TouchableOpacity>

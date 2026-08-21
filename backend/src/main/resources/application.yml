@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: ComplaintApp
+  datasource:
+    url: jdbc:mysql://localhost:3306/college_complaint_db
+    username: root
+    password: FalgunR05@
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+server:
+  port: 8081
