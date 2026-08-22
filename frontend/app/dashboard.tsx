@@ -1,14 +1,18 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 export default function Default() {
     const [name, setname] = ('')
-
+    const {userId} = useLocalSearchParams();
     return (
         <View style={styles.container}>
             <Text style={styles.text}> Welcome to DashBoard </Text>
 
-            <TouchableOpacity style={styles.button} onPress={() => router.push('/addComplaint')}>
+            <TouchableOpacity style={styles.button} onPress={() => router.push({
+                pathname:'/addComplaint',
+                params:{userId},
+            })
+            }>
 
                 <Text style={styles.buttonText}>Make an Complaint </Text>
             </TouchableOpacity>

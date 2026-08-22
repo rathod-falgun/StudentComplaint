@@ -48,6 +48,7 @@ public class AuthService {
         Map<String, String> response = new HashMap<>();
         response.put("message", "Login Successful");
         response.put("name", user.getName());
+        response.put("userId", String.valueOf(user.getId()));
         return response;
     }
 }

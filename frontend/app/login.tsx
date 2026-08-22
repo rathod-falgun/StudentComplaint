@@ -25,7 +25,7 @@ export default function Login() {
       if(response.ok){
         router.replace({
           pathname:'/dashboard',
-          params:{name:data.name},
+          params:{name:data.name , userId:data.userId },
         });
       }else{
         Alert.alert('Login Failed',data.message || "Please Register YourSelf");
