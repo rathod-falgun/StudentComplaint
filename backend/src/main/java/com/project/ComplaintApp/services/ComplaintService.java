@@ -1,10 +1,12 @@
 package com.project.ComplaintApp.services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.project.ComplaintApp.dto.ComplaintRequest;
+import com.project.ComplaintApp.dto.ComplaintResponse;
 import com.project.ComplaintApp.entities.Category;
 import com.project.ComplaintApp.entities.Complaint;
 import com.project.ComplaintApp.entities.User;
@@ -26,7 +28,7 @@ public class ComplaintService {
         this.categoryRepository = categoryRepository;
     }
 
-    public Complaint submitComplaint(Long userId, ComplaintRequest req) {
+    public ComplaintResponse submitComplaint(Long userId, ComplaintRequest req) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
         Category category = categoryRepository.findById(req.getCategoryId())
@@ -40,10 +42,17 @@ public class ComplaintService {
         if (req.getPriority() != null) {
             complaint.setPriority(req.getPriority());
         }
-        return complaintRepository.save(complaint);
+        Complaint saved = complaintRepository.save(complaint);
+        return ComplaintResponse.fromEntity(saved);
     }
 
-    public List<Complaint> getMyComplaints(Long userId) {
-        return complaintRepository.findByUserId(userId);
+    public List<ComplaintResponse> getMyComplaints(Long userId) {
+        List<Complaint> complaints = complaintRepository.findByUserId(userId);
+
+        List<ComplaintResponse> response = new ArrayList<>();
+        for(Complaint c : complaints){
+            response.add(ComplaintResponse.fromEntity(c));
+        }
+        return response;
     }
 }

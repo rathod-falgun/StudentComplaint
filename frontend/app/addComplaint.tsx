@@ -106,8 +106,6 @@ export default function AddComplaint() {
                     }),
                 }
             );
-
-            // Temporary delay for testing UI
             const data = await response.json();
             console.log(data);
             if (response.ok) {

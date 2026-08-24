@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.ComplaintApp.dto.ComplaintRequest;
+import com.project.ComplaintApp.dto.ComplaintResponse;
 import com.project.ComplaintApp.entities.Complaint;
 import com.project.ComplaintApp.repository.CategoryRepository;
 import com.project.ComplaintApp.services.ComplaintService;
@@ -29,12 +30,12 @@ public class ComplaintController {
 
     @PostMapping("/{userId}")
     public ResponseEntity<?> submit(@PathVariable Long userId, @RequestBody ComplaintRequest req) {
-        Complaint complaint = complaintService.submitComplaint(userId, req);
+        ComplaintResponse complaint = complaintService.submitComplaint(userId, req);
         return ResponseEntity.ok(complaint);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Complaint>> myComplaints(@PathVariable Long userId) {
+    @GetMapping("/getMyComplaint/{userId}")
+    public ResponseEntity<List<ComplaintResponse>> myComplaints(@PathVariable Long userId) {
         return ResponseEntity.ok(complaintService.getMyComplaints(userId));
     }
 
