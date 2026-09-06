@@ -7,6 +7,7 @@ import {
     FlatList,
     ActivityIndicator,
     RefreshControl,
+    Image
 } from "react-native";
 
 type Complaint = {
@@ -18,6 +19,7 @@ type Complaint = {
     status: "PENDING" | "IN_PROGRESS" | "RESOLVED";
     createdAt: string;
     updatedAt: string;
+    imageUrl: string;
 };
 
 export default function MyComplaints() {
@@ -31,6 +33,8 @@ export default function MyComplaints() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(false);
+    const [image, SetImage] = useState(null);
+    const [showImageId , setShowImageId] = useState<number | null>(null);
 
     const fetchComplaints = async () => {
         try {
@@ -148,7 +152,7 @@ export default function MyComplaints() {
                         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                     }
                     renderItem={({ item }) => {
-
+                        console.log('Complaint image field:', item.imageUrl);   // ADD THIS LINE
                         const status = statusColor(item.status);
                         const priority = priorityColor(item.priority);
 
@@ -195,6 +199,39 @@ export default function MyComplaints() {
                                         </Text>
                                     </View>
                                 </View>
+                                <Text style={{ fontSize: 10, color: 'red' }}>DEBUG: {item.imageUrl} </Text>
+                               
+                             {/* Image Button */}
+{item.imageUrl && (
+    <>
+        <Text
+            style={styles.buttonText}
+            onPress={() => {
+                setShowImageId(
+                    showImageId === item.id ? null : item.id
+                );
+            }}
+        >
+            {showImageId === item.id ? "Hide Image" : "View Image"}
+        </Text>
+
+        {/* Show image only when button is pressed */}
+        {showImageId === item.id && (
+            <Image
+                source={{
+                    uri: `http://10.122.90.235:8081/uploads/${item.imageUrl}`,
+                }}
+                style={{
+                    width: "100%",
+                    height: 200,
+                    borderRadius: 12,
+                    marginTop: 12,
+                }}
+                resizeMode="cover"
+            />
+        )}
+    </>
+)}
 
                             </View>
                         );
@@ -239,26 +276,44 @@ const styles = StyleSheet.create({
     statusPill: { flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 },
     statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
     statusPillText: { fontSize: 10.5, fontWeight: "800" },
+    buttonText: {
+        height: 20,
+        marginTop: 17,
+        backgroundColor: '#01050d',
+        borderRadius: 15,
+        color: '#f5efef',
+        alignSelf: 'center',
+        textAlign: 'center',
+        width: '15%',
+        shadowColor: '#2563EB',
+        shadowOffset: {
+            width: 5,
+            height: 6,
+        },
+        shadowOpacity: 0.20,
+        shadowRadius: 5,
+        elevation: 5,
+    },
     header: {
-    paddingHorizontal: 22,
-    paddingTop: 20,
-    paddingBottom: 20,
-    backgroundColor: "#aeb7dd",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    shadowColor: "#18243A",
-    shadowOffset: { width: 10, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 2,
-    alignItems: "flex-start",   // ensures left alignment
-},
+        paddingHorizontal: 22,
+        paddingTop: 20,
+        paddingBottom: 20,
+        backgroundColor: "#aeb7dd",
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+        shadowColor: "#18243A",
+        shadowOffset: { width: 10, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+        elevation: 2,
+        alignItems: "flex-start",   // ensures left alignment
+    },
 
-pageTitle: {
-    fontSize: 40,              // bigger
-    fontWeight: "800",
-    color: "#082668",
-    letterSpacing: -0.5,
-    textAlign: "left",
-},
+    pageTitle: {
+        fontSize: 40,              // bigger
+        fontWeight: "800",
+        color: "#082668",
+        letterSpacing: -0.5,
+        textAlign: "left",
+    },
 });

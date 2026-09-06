@@ -14,6 +14,8 @@ import {
     Pressable,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 
 // =====================================================
 // COMPONENT
@@ -36,7 +38,38 @@ export default function AddComplaint() {
     const [showCategories, setShowCategories] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    const [imageUrl, SetImageUrl] = useState<string | null>(null);
+
     const { userId } = useLocalSearchParams();
+
+    const pickImage = async () => {
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) {
+            Alert.alert("Permission needed", 'Allow photo access to attach an Image');
+            return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            quality: 0.7,
+        });
+        if (!result.canceled) {
+            SetImageUrl(result.assets[0].uri);
+        }
+    }
+
+    const takePhoto = async () => {
+        const permission = await ImagePicker.requestCameraPermissionsAsync();
+        if (!permission.granted) {
+            Alert.alert("Permission is required", 'Allow camera permission to take an photo');
+            return;
+        }
+        const result = await ImagePicker.launchCameraAsync({
+            quality: 0.7,
+        });
+        if (!result.canceled) {
+            SetImageUrl(result.assets[0].uri);
+        }
+    }
 
     useEffect(() => {
         fetch('http://10.122.90.235:8081/api/complaints/categories').
@@ -50,7 +83,6 @@ export default function AddComplaint() {
     // =================================================
     // SUBMIT
     // =================================================
-
     const handleSubmit = async () => {
         console.log('categoryId at submit:', categoryId);
 
@@ -90,20 +122,33 @@ export default function AddComplaint() {
         }
 
         try {
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('categoryId', String(categoryId));
+            formData.append('priority', priority);
+            if (imageUrl) {
+
+                const fileName = imageUrl.split('/').pop() || `photo_${Date.now()}.jpg`;
+                const match = /\.(\w+)$/.exec(fileName);
+                const ext = match ? match[1].toLocaleLowerCase() : 'jpg';
+                const mimeType = ext === 'png' ? 'image/png' : 'image/'+ext;
+
+                formData.append('imageFile', {
+                    uri: imageUrl,
+                    name: fileName,
+                    type: mimeType,
+                } as any);
+            }
             setLoading(true);
             const response = await fetch(
                 `http://10.122.90.235:8081/api/complaints/${userId}`,
                 {
                     method: 'post',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'multipart/form-data'
                     },
-                    body: JSON.stringify({
-                        title,
-                        description,
-                        categoryId,
-                        priority
-                    }),
+                    body: formData,
                 }
             );
             const data = await response.json();
@@ -476,6 +521,33 @@ export default function AddComplaint() {
 
                         </View>
 
+                    </View>
+                    {/* ================================= */}
+                    {/* IMAGE UPLOAD */}
+                    {/* ================================= */}
+
+                    <View style={styles.sectionLast}>
+                        <View style={styles.labelRow}>
+                            <Text style={styles.label}>Attach Photo</Text>
+                            <Text style={styles.optional}>Optional</Text>
+                        </View>
+
+                        <View style={{ flexDirection: 'row', gap: 10 }}>
+                            <TouchableOpacity onPress={takePhoto} style={[styles.dropdown, { flex: 1 }]}>
+                                <Text style={styles.dropdownText}>📷 Camera</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity onPress={pickImage} style={[styles.dropdown, { flex: 1 }]}>
+                                <Text style={styles.dropdownText}>🖼️ Gallery</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {imageUrl && (
+                            <Image
+                                source={{ uri: imageUrl }}
+                                style={{ width: '100%', height: 250, borderRadius: 12, marginTop: 10 }}
+                            />
+                        )}
                     </View>
 
                 </View>

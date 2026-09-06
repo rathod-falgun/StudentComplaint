@@ -22,10 +22,11 @@ public class ComplaintResponse {
     private String category;
     private String priority;
     private String status;
+    private String imageUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static ComplaintResponse fromEntity(Complaint complaint){
+    public static ComplaintResponse fromEntity(Complaint complaint) {
         ComplaintResponse res = new ComplaintResponse();
         res.setId(complaint.getId());
         res.setTitle(complaint.getTitle());
@@ -35,6 +36,7 @@ public class ComplaintResponse {
         res.setStatus(complaint.getStatus().name());
         res.setCreatedAt(complaint.getCreatedAt());
         res.setUpdatedAt(complaint.getUpdatedAt());
+        res.setImageUrl(complaint.getImagePath());
         return res;
     }
 }

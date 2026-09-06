@@ -66,6 +66,9 @@ public class Complaint {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "imagePath")
+    private String imagePath;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

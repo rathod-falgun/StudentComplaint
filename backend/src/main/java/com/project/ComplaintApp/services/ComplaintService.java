@@ -1,9 +1,12 @@
 package com.project.ComplaintApp.services;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.project.ComplaintApp.dto.ComplaintRequest;
 import com.project.ComplaintApp.dto.ComplaintResponse;
@@ -13,6 +16,8 @@ import com.project.ComplaintApp.entities.User;
 import com.project.ComplaintApp.repository.ComplaintRepository;
 import com.project.ComplaintApp.repository.CategoryRepository;
 import com.project.ComplaintApp.repository.UserRepository;
+
+import jakarta.persistence.criteria.Path;
 
 @Service
 public class ComplaintService {
@@ -42,6 +47,26 @@ public class ComplaintService {
         if (req.getPriority() != null) {
             complaint.setPriority(req.getPriority());
         }
+
+        MultipartFile image = req.getImageFile();
+        if (image != null && !image.isEmpty()) {
+
+            String uploadDir = System.getProperty("user.dir") + "/uploads/complaints/";
+            File dir = new File(uploadDir);
+            try {
+                if (!dir.exists())
+                    dir.mkdirs();
+
+                String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
+                String path = uploadDir + fileName;
+                image.transferTo(new File(path));
+                complaint.setImagePath(fileName);
+                System.out.println("Image is saved into complaint");
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException("Failed to save Images");
+            }
+        }
         Complaint saved = complaintRepository.save(complaint);
         return ComplaintResponse.fromEntity(saved);
     }
@@ -50,7 +75,7 @@ public class ComplaintService {
         List<Complaint> complaints = complaintRepository.findByUserId(userId);
 
         List<ComplaintResponse> response = new ArrayList<>();
-        for(Complaint c : complaints){
+        for (Complaint c : complaints) {
             response.add(ComplaintResponse.fromEntity(c));
         }
         return response;

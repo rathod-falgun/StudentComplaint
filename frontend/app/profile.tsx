@@ -84,7 +84,7 @@ export default function Profile() {
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: '#2a52a2', padding: 20 },
     Center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    header: { alignItems: 'center', marginTop: 40, marginBottom: 30 },
+    header: { alignItems: 'center', marginTop: 40, marginBottom: 30,borderColor:'black' },
     avatar: {
         width: 80, height: 80, borderRadius: 40, backgroundColor: '#2563EB',
         justifyContent: 'center', alignItems: 'center', marginBottom: 12,
