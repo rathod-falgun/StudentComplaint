@@ -51,7 +51,7 @@ export default function RegisterScreen() {
       setLoading(true);
 
       const response = await fetch(
-        'http://10.122.90.235:8081/api/auth/register',
+        'http://10.99.239.235:8081/api/auth/register',
         {
         method: 'POST',
         headers: {
@@ -107,7 +107,7 @@ export default function RegisterScreen() {
       <TextInput
         style={styles.input}
         placeholder="Full Name"
-        placeholderTextColor="#777"
+        placeholderTextColor="#f1e7e7"
         value={name}
         onChangeText={setName}
       />
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   container: { flexGrow: 1, backgroundColor: '#382525', justifyContent: 'center', padding: 25 },
   title: { fontSize: 28, fontWeight: 'bold', color: '#f2eded', textAlign: 'center', marginBottom: 10 },
   subtitle: { fontSize: 16, color: '#a19898', textAlign: 'center', marginBottom: 30 },
-  input: { height: 50, borderWidth: 1, borderColor: '#fef8f8', borderRadius: 8, paddingHorizontal: 15, color: '#0f0e0e', marginBottom: 15 },
+  input: { height: 50, borderWidth: 1, borderColor: '#fef8f8', borderRadius: 8, paddingHorizontal: 15, color: '#f2ebeb', marginBottom: 15 },
   registerButton: { height: 50, backgroundColor: '#007AFF', borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginTop: 10 },
   registerButtonText: { color: '#b3a7a7', fontSize: 18, fontWeight: 'bold' },
   loginText: { color: '#007AFF', textAlign: 'center', marginTop: 20, fontSize: 15 },

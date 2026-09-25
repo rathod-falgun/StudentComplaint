@@ -26,17 +26,30 @@ public class ComplaintResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    // Student Information
+    private Long userId;
+    private String studentName;
+    private String studentEmail;
+    private String studentDepartment;
+
     public static ComplaintResponse fromEntity(Complaint complaint) {
         ComplaintResponse res = new ComplaintResponse();
         res.setId(complaint.getId());
         res.setTitle(complaint.getTitle());
         res.setDescription(complaint.getDescription());
-        res.setCategory(complaint.getCategory().getName());
-        res.setPriority(complaint.getPriority().name());
-        res.setStatus(complaint.getStatus().name());
+        res.setCategory(complaint.getCategory() != null ? complaint.getCategory().getName() : "General");
+        res.setPriority(complaint.getPriority() != null ? complaint.getPriority().name() : "MEDIUM");
+        res.setStatus(complaint.getStatus() != null ? complaint.getStatus().name() : "PENDING");
         res.setCreatedAt(complaint.getCreatedAt());
         res.setUpdatedAt(complaint.getUpdatedAt());
         res.setImageUrl(complaint.getImagePath());
+
+        if (complaint.getUser() != null) {
+            res.setUserId(complaint.getUser().getId());
+            res.setStudentName(complaint.getUser().getName());
+            res.setStudentEmail(complaint.getUser().getEmail());
+            res.setStudentDepartment(complaint.getUser().getDepartment());
+        }
         return res;
     }
 }

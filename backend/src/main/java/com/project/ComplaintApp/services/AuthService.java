@@ -3,11 +3,11 @@ package com.project.ComplaintApp.services;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.project.ComplaintApp.Enums.Role;
+import com.project.ComplaintApp.config.JwtUtil;
 import com.project.ComplaintApp.dto.LoginRequest;
 import com.project.ComplaintApp.dto.RegisterRequest;
 import com.project.ComplaintApp.entities.User;
@@ -16,10 +16,13 @@ import com.project.ComplaintApp.repository.UserRepository;
 @Service
 public class AuthService {
 
+    private final JwtUtil jwtUtil;
+
     private final UserRepository userRepository;
 
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
     }
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
@@ -39,16 +42,23 @@ public class AuthService {
         }
     }
 
-    public Map<String, String> login(LoginRequest req) {
+    public Map<String, Object> login(LoginRequest req) {
         User user = userRepository.findByEmail(req.getEmail())
                 .orElseThrow(() -> new RuntimeException("User is not Registered"));
         if (!encoder.matches(req.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
-        Map<String, String> response = new HashMap<>();
+        String generetedToken = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().toString());
+        System.out.println(generetedToken);
+
+        Map<String, Object> response = new HashMap<>();
+
         response.put("message", "Login Successful");
+        response.put("token", generetedToken);
         response.put("name", user.getName());
         response.put("userId", String.valueOf(user.getId()));
+        response.put("email", user.getEmail());
+        response.put("role", user.getRole());
         return response;
     }
 }

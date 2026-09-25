@@ -41,6 +41,7 @@ export default function AddComplaint() {
     const [imageUrl, SetImageUrl] = useState<string | null>(null);
 
     const { userId } = useLocalSearchParams();
+    console.log("PARAMS RECEIVED:", userId);
 
     const pickImage = async () => {
         const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -72,7 +73,7 @@ export default function AddComplaint() {
     }
 
     useEffect(() => {
-        fetch('http://10.122.90.235:8081/api/complaints/categories').
+        fetch('http://172.22.245.235:8081/api/complaints/categories').
             then(res => res.json())
             .then(data => setCategories(data))
             .catch(() => Alert.alert('Error', 'Could not load Categories'))
@@ -84,110 +85,107 @@ export default function AddComplaint() {
     // SUBMIT
     // =================================================
     const handleSubmit = async () => {
-        console.log('categoryId at submit:', categoryId);
+    console.log("STEP 1: SUBMIT PRESSED");
+if (!userId) { 
+    console.log("FAILED: no userId"); 
+    Alert.alert('Login Required', '...'); 
+    return; 
+}
+if (!title.trim()) { 
+    console.log("FAILED: no title"); 
+    Alert.alert('Missing Title', 'Please enter a complaint title.'); 
+    return; 
+}
+if (!categoryId) { 
+    console.log("FAILED: no categoryId, value is:", categoryId); 
+    Alert.alert('Missing Category', 'Please select a complaint category.'); 
+    return; 
+}
+if (!description.trim()) { 
+    console.log("FAILED: no description"); 
+    Alert.alert('Missing Description', 'Please describe your complaint.'); 
+    return; 
+}
+if (description.trim().length < 10) { 
+    console.log("FAILED: description too short, length:", description.trim().length); 
+    Alert.alert('Description Too Short', '...'); 
+    return; 
+}
 
+console.log("STEP 2: ALL VALIDATION PASSED");
 
-        if (!userId) { Alert.alert('Login Required', '...'); return; }
+    try {
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('description', description);
+        formData.append('categoryId', String(categoryId));
+        formData.append('priority', priority);
 
-        if (!title.trim()) {
-            Alert.alert(
-                'Missing Title',
-                'Please enter a complaint title.'
-            );
-            return;
+        console.log("STEP 3: TEXT FIELDS ADDED TO FORMDATA");
+
+        if (imageUrl) {
+            console.log("STEP 4: IMAGE URI EXISTS:", imageUrl);
+
+            const fileName = imageUrl.split('/').pop() || `photo_${Date.now()}.jpg`;
+            const match = /\.(\w+)$/.exec(fileName);
+            const ext = match ? match[1].toLowerCase() : 'jpg';
+            const mimeType = ext === 'png' ? 'image/png' : 'image/' + ext;
+
+            console.log("STEP 5: FILENAME:", fileName, "MIME:", mimeType);
+
+            formData.append('imageFile', {
+                uri: imageUrl,
+                name: fileName,
+                type: mimeType,
+            } as any);
+
+            console.log("STEP 6: IMAGE APPENDED TO FORMDATA");
+        } else {
+            console.log("STEP 4-ALT: NO IMAGE SELECTED");
         }
 
-        if (!categoryId) {
-            Alert.alert(
-                'Missing Category',
-                'Please select a complaint category.'
-            );
-            return;
-        }
+        console.log("STEP 7: ABOUT TO CALL setLoading(true)");
+        setLoading(true);
 
-        if (!description.trim()) {
-            Alert.alert(
-                'Missing Description',
-                'Please describe your complaint.'
-            );
-            return;
-        }
-
-        if (description.trim().length < 10) {
-            Alert.alert(
-                'Description Too Short',
-                'Please provide a little more detail about your complaint.'
-            );
-            return;
-        }
-
-        try {
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('description', description);
-            formData.append('categoryId', String(categoryId));
-            formData.append('priority', priority);
-            if (imageUrl) {
-
-                const fileName = imageUrl.split('/').pop() || `photo_${Date.now()}.jpg`;
-                const match = /\.(\w+)$/.exec(fileName);
-                const ext = match ? match[1].toLocaleLowerCase() : 'jpg';
-                const mimeType = ext === 'png' ? 'image/png' : 'image/'+ext;
-
-                formData.append('imageFile', {
-                    uri: imageUrl,
-                    name: fileName,
-                    type: mimeType,
-                } as any);
+        console.log("STEP 8: ABOUT TO FETCH");
+        const response = await fetch(
+            `http://172.22.245.235:8081/api/complaints/${userId}`,
+            {
+                method: 'POST',
+                body: formData,
             }
-            setLoading(true);
-            const response = await fetch(
-                `http://10.122.90.235:8081/api/complaints/${userId}`,
-                {
-                    method: 'post',
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    },
-                    body: formData,
-                }
-            );
-            const data = await response.json();
-            console.log(data);
-            if (response.ok) {
-                Alert.alert(
-                    'Complaint Submitted',
-                    'Your complaint has been submitted successfully.',
-                    [
-                        {
-                            text: 'OK',
-                            onPress: () => router.back(),
-                        },
-                    ]
-                );
-            } else {
-                Alert.alert("Complaint is not Submitted ", "Something went wrong");
+        );
+
+        console.log("STEP 9: FETCH RETURNED, status:", response.status);
+
+        const data = await response.json();
+        console.log("STEP 10: JSON PARSED:", data);
+
+        if (response.ok) {
+            if(Platform.OS === 'web'){
+                window.alert("Your Application is submitted..");
+                router.back();
+            }else{
+                  Alert.alert('Complaint Submitted', 'Your complaint has been submitted successfully.', [
+                { text: 'OK', onPress: () => router.back() },
+            ]);
             }
-
-        } catch (error) {
-
-            console.log(
-                'Complaint submission error:',
-                error
-            );
-
-            Alert.alert(
-                'Submission Failed',
-                'Unable to submit your complaint. Please try again.'
-            );
-
-        } finally {
-
-            setLoading(false);
+          
+        } else {
+            Alert.alert("Complaint is not Submitted", "Something went wrong");
         }
-    };
+
+    } catch (error) {
+        console.log("CAUGHT ERROR:", error);
+        Alert.alert('Submission Failed', 'Unable to submit your complaint. Please try again.');
+    } finally {
+        console.log("FINALLY BLOCK");
+        setLoading(false);
+    }
+};
 
 
-    // =================================================
+    // ============================ =====================
     // CATEGORY ICON
     // =================================================
 

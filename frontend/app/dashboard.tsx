@@ -8,6 +8,7 @@ const handleLogout = () => {
 
 export default function Default() {
     const { userId , name } = useLocalSearchParams();
+console.log("DASHBOARD RECEIVED:", userId, name);
     const handleLogout = () => {
         router.replace('/login');
     };
@@ -27,7 +28,7 @@ export default function Default() {
             <TouchableOpacity style={styles.button} onPress={() =>
                 router.push({
                     pathname: '/myComplaints',
-                    params: { userId },
+                    params: { userId ,name},
                 })
             }>
                 <Text style={styles.buttonText}>View My Complaints </Text>

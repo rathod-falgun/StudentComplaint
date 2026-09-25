@@ -7,7 +7,8 @@ import {
     FlatList,
     ActivityIndicator,
     RefreshControl,
-    Image
+    Image,
+    TouchableOpacity
 } from "react-native";
 
 type Complaint = {
@@ -26,7 +27,7 @@ export default function MyComplaints() {
 
     const { userId, name } = useLocalSearchParams();
 
-    const API_BASE = `http://10.122.90.235:8081/api/complaints/getMyComplaint/${userId}`;
+    const API_BASE = `http://172.22.245.235:8081/api/complaints/getMyComplaint/${userId}`;
 
 
     const [complaints, setComplaints] = useState<Complaint[]>([]);
@@ -34,7 +35,7 @@ export default function MyComplaints() {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(false);
     const [image, SetImage] = useState(null);
-    const [showImageId , setShowImageId] = useState<number | null>(null);
+    const [showImageId, setShowImageId] = useState<number | null>(null);
 
     const fetchComplaints = async () => {
         try {
@@ -134,6 +135,15 @@ export default function MyComplaints() {
                 </Text>
             </View>
 
+            {/* <View>
+                <TouchableOpacity style={styles.dashboardText} onPress={() => {
+                    router.replace("/dashboard")}
+                }>
+                    
+                    <Text>DashBoard</Text>
+                    </TouchableOpacity>   
+            </View> */}
+
             {complaints.length === 0 ? (
                 <View style={styles.centerScreen}>
                     <Text style={styles.emptyIcon}>📭</Text>
@@ -199,46 +209,48 @@ export default function MyComplaints() {
                                         </Text>
                                     </View>
                                 </View>
-                                <Text style={{ fontSize: 10, color: 'red' }}>DEBUG: {item.imageUrl} </Text>
-                               
-                             {/* Image Button */}
-{item.imageUrl && (
-    <>
-        <Text
-            style={styles.buttonText}
-            onPress={() => {
-                setShowImageId(
-                    showImageId === item.id ? null : item.id
-                );
-            }}
-        >
-            {showImageId === item.id ? "Hide Image" : "View Image"}
-        </Text>
 
-        {/* Show image only when button is pressed */}
-        {showImageId === item.id && (
-            <Image
-                source={{
-                    uri: `http://10.122.90.235:8081/uploads/${item.imageUrl}`,
-                }}
-                style={{
-                    width: "100%",
-                    height: 200,
-                    borderRadius: 12,
-                    marginTop: 12,
-                }}
-                resizeMode="cover"
-            />
-        )}
-    </>
-)}
+
+
+                                {/* Image Button */}
+                                {item.imageUrl && (
+                                    <>
+                                        <Text
+                                            style={styles.buttonText}
+                                            onPress={() => {
+                                                setShowImageId(
+                                                    showImageId === item.id ? null : item.id
+                                                );
+                                            }}
+                                        >
+                                            {showImageId === item.id ? "Hide Image" : "View Image"}
+                                        </Text>
+
+                                        {/* Show image only when button is pressed */}
+                                        {showImageId === item.id && (
+                                            <Image
+                                                source={{
+                                                    uri: `http://10.99.239.235:8081/uploads/${item.imageUrl}`,
+                                                }}
+                                                style={{
+                                                    width: "100%",
+                                                    height: 200,
+                                                    borderRadius: 12,
+                                                    marginTop: 12,
+                                                }}
+                                                resizeMode="cover"
+                                            />
+                                        )}
+                                    </>
+                                )}
 
                             </View>
+
                         );
                     }}
                 />
             )}
-
+           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}> <Text style={styles.backButtonText}>← Back</Text> </TouchableOpacity>
         </View>
     );
 }
@@ -256,6 +268,21 @@ const styles = StyleSheet.create({
     greeting: { fontSize: 13, color: "#f9fbf6", marginBottom: 4, fontWeight: "600" },
     pageSubtitle: { fontSize: 13, color: "#310ab1", marginTop: 4 },
     listContent: { padding: 18, paddingBottom: 40 },
+    backButton: {
+    justifyContent : 'center',
+    alignSelf: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E2E7EF',
+    marginVertical : 20
+},
+
+backButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2563EB',
+},
     card: {
         backgroundColor: "#FFFFFF", borderRadius: 18, padding: 16, marginBottom: 14,
         borderWidth: 1, borderColor: "#EEF1F5",
@@ -316,4 +343,14 @@ const styles = StyleSheet.create({
         letterSpacing: -0.5,
         textAlign: "left",
     },
+    dashboardText: {
+        backgroundColor: "#f0e8e8",
+        color: "#0c0101",
+        alignItems: "center",
+        justifyContent: "center",
+        shadowColor: "#18243A",
+        borderRadius: 15,
+
+
+    }
 });

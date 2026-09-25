@@ -15,7 +15,7 @@ export default function Login() {
     }
     try{
       setLoading(true);
-      const response = await fetch("http://10.122.90.235:8081/api/auth/login",
+      const response = await fetch("http://172.22.245.235:8081/api/auth/login",
       {
         method : 'POST',
         headers:{ 'Content-Type' : 'application/json'},
@@ -23,10 +23,19 @@ export default function Login() {
       });
       const data = await response.json(); 
       if(response.ok){
-        router.replace({
-          pathname:'/dashboard',
-          params:{name:data.name , userId:data.userId },
-        });
+        console.log("LOGIN SUCCESS - data.userId:", data.userId, "data.name:", data.name, "data.role:", data.role);
+
+        if (data.role === 'ADMIN') {
+          router.replace({
+            pathname: '/admin/dashboard' as any,
+            params: { name: data.name, userId: data.userId, email: data.email, role: data.role },
+          });
+        } else {
+          router.replace({
+            pathname: '/dashboard',
+            params: { name: data.name, userId: data.userId, email: data.email, role: data.role },
+          });
+        }
       }else{
         Alert.alert('Login Failed',data.message || "Please Register YourSelf");
       }

@@ -3,7 +3,7 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { View,Text, ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
 
-const API_BASE = 'http://10.122.90.235:8081';
+const API_BASE = 'http://172.22.245.235:8081';
 
 type UserProfile = {
     id: number;
