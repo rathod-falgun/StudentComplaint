@@ -3,7 +3,8 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { View,Text, ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
 
-const API_BASE = 'http://172.22.245.235:8081';
+  const API_URL = process.env.EXPO_PUBLIC_API_BASE;
+
 
 type UserProfile = {
     id: number;
@@ -21,12 +22,14 @@ export default function Profile() {
     const [loading, setloading] = useState(true);
 
     useEffect(() => {
-        fetch(`${API_BASE}/api/users/getProfile/${userId}`)
+        console.log("api is hit");
+        fetch(`${API_URL}/api/users/getProfile/${userId}`)
             .then(res => res.json())
             .then(data => setProfile(data))
             .catch(() => setProfile(null))
             .finally(() => setloading(false));
     }, [userId])
+    console.log(profile);
     if (loading) {
         return (
             <View style={styles.Center}>
@@ -73,7 +76,7 @@ export default function Profile() {
                 </View>
             </View>
 
-            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.replace("/dashboard")}>
                 <Text style={styles.backButtonText}>← Back to Dashboard</Text>
             </TouchableOpacity>
 

@@ -27,8 +27,15 @@ export default function MyComplaints() {
 
     const { userId, name } = useLocalSearchParams();
 
-    const API_BASE = `http://172.22.245.235:8081/api/complaints/getMyComplaint/${userId}`;
+    console.log("userid and name : " , userId , name);
 
+      const API_URL = process.env.EXPO_PUBLIC_API_BASE;
+
+      console.log("\n api url : " , API_URL)
+
+    const API_BASE = `${API_URL}/api/complaints/getMyComplaint/${userId}`;
+    
+console.log("\napi base : " , API_BASE);
 
     const [complaints, setComplaints] = useState<Complaint[]>([]);
     const [loading, setLoading] = useState(true);
@@ -36,6 +43,8 @@ export default function MyComplaints() {
     const [error, setError] = useState(false);
     const [image, SetImage] = useState(null);
     const [showImageId, setShowImageId] = useState<number | null>(null);
+
+
 
     const fetchComplaints = async () => {
         try {
@@ -230,7 +239,7 @@ export default function MyComplaints() {
                                         {showImageId === item.id && (
                                             <Image
                                                 source={{
-                                                    uri: `http://10.99.239.235:8081/uploads/${item.imageUrl}`,
+                                                    uri: `${API_URL}/uploads/${item.imageUrl}`,
                                                 }}
                                                 style={{
                                                     width: "100%",
@@ -250,7 +259,7 @@ export default function MyComplaints() {
                     }}
                 />
             )}
-           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}> <Text style={styles.backButtonText}>← Back</Text> </TouchableOpacity>
+           <TouchableOpacity style={styles.backButton} onPress={() => router.replace("/dashboard")}> <Text style={styles.backButtonText}>← Back</Text> </TouchableOpacity>
         </View>
     );
 }

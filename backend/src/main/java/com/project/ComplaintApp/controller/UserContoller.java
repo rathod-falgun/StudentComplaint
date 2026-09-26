@@ -16,7 +16,7 @@ public class UserContoller {
 
     private final UserRepository userRepository;
 
-    public UserContoller(UserRepository userRepository){
+    public UserContoller(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

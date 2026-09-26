@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { router, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { API_BASE_URL } from '@/constants/api';
 import {
   View,
   Text,
@@ -33,6 +34,7 @@ type Complaint = {
   studentDepartment?: string;
 };
 
+const API_URL = process.env.EXPO_PUBLIC_API_BASE;
 export default function AdminDashboard() {
   const { name, userId, email, role } = useLocalSearchParams();
 
@@ -48,13 +50,14 @@ export default function AdminDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(false);
 
-  const API_BASE = 'http://172.22.245.235:8081/api/admin';
+  const API_ADMIN = `${API_URL}/api/admin`;
 
   const fetchData = async () => {
     try {
+      console.log("Fetching admin data from:", API_ADMIN);
       const [statsRes, complaintsRes] = await Promise.all([
-        fetch(`${API_BASE}/dashboard`),
-        fetch(`${API_BASE}/complaints`),
+        fetch(`${API_ADMIN}/dashboard`),
+        fetch(`${API_ADMIN}/complaints`),
       ]);
 
       if (!statsRes.ok || !complaintsRes.ok) {
@@ -76,9 +79,11 @@ export default function AdminDashboard() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);

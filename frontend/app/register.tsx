@@ -15,6 +15,9 @@ export default function RegisterScreen() {
   const [department, setDepartment] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
 
+    const API_URL = process.env.EXPO_PUBLIC_API_BASE;
+
+
   const departmentData = [
     { label: 'Computer Engineering (CO)', value: 'CO' },
     { label: 'Information Technology (IT)', value: 'IT' },
@@ -51,7 +54,7 @@ export default function RegisterScreen() {
       setLoading(true);
 
       const response = await fetch(
-        'http://10.99.239.235:8081/api/auth/register',
+        '${API_URL}/api/auth/register',
         {
         method: 'POST',
         headers: {

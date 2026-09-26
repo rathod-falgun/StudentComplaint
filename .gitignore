@@ -160,3 +160,8 @@ Thumbs.db
 *.temp
 *.swp
 *.swo
+
+.env
+
+api.ts
+constants/api.ts

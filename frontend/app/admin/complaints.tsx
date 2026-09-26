@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { router, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { API_BASE_URL } from '@/constants/api';
 import {
   View,
   Text,
@@ -44,7 +45,7 @@ export default function AdminComplaints() {
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
-  const API_URL = 'http://172.22.245.235:8081/api/admin/complaints';
+  const API_URL = `${API_BASE_URL}/api/admin/complaints`;
 
   const fetchComplaints = async () => {
     try {
@@ -71,9 +72,11 @@ export default function AdminComplaints() {
     }
   };
 
-  useEffect(() => {
-    fetchComplaints();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchComplaints();
+    }, [])
+  );
 
   // Filter and Search logic
   useEffect(() => {

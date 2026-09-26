@@ -41,10 +41,16 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         try {
+            System.out.println("========== LOGIN REQUEST RECEIVED ==========");
+            System.out.println("Email: " + (req != null ? req.getEmail() : "null"));
             Map<String, Object> result = authService.login(req);
+            System.out.println("LOGIN SUCCESSFUL for: " + req.getEmail());
+            System.out.println("=============================================");
             return ResponseEntity.ok(result);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(401).body(Map.of("message", e.getMessage()));
+            System.err.println("LOGIN FAILED for Email: " + (req != null ? req.getEmail() : "null") + " | Reason: " + e.getMessage());
+            System.err.println("=============================================");
+            return ResponseEntity.status(401).body(Map.of("message", e.getMessage(), "error", e.getMessage()));
         }
     }
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
+import { API_BASE_URL } from '@/constants/api';
 import {
   View,
   Text,
@@ -31,12 +32,13 @@ export default function AdminComplaintDetails() {
   const { complaintId } = useLocalSearchParams();
 
   const [complaint, setComplaint] = useState<ComplaintDetail | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState(false);
   const [showImage, setShowImage] = useState(false);
 
-  const API_BASE = 'http://172.22.245.235:8081';
+  const API_BASE = API_BASE_URL;
 
   const fetchComplaintDetails = async () => {
     if (!complaintId) return;
@@ -48,6 +50,7 @@ export default function AdminComplaintDetails() {
       }
       const data: ComplaintDetail = await response.json();
       setComplaint(data);
+      setSelectedStatus(data.status);
       setError(false);
     } catch (err) {
       console.log('Error fetching complaint details:', err);
@@ -61,8 +64,8 @@ export default function AdminComplaintDetails() {
     fetchComplaintDetails();
   }, [complaintId]);
 
-  const handleStatusChange = async (newStatus: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED') => {
-    if (!complaint || complaint.status === newStatus) return;
+  const handleUpdateStatus = async () => {
+    if (!complaint || !selectedStatus || complaint.status === selectedStatus) return;
 
     try {
       setUpdating(true);
@@ -71,7 +74,7 @@ export default function AdminComplaintDetails() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: selectedStatus }),
       });
 
       if (!response.ok) {
@@ -80,10 +83,11 @@ export default function AdminComplaintDetails() {
 
       const updatedData: ComplaintDetail = await response.json();
 
-      // Update UI state immediately
+      // Update UI state immediately without page refresh
       setComplaint(updatedData);
+      setSelectedStatus(updatedData.status);
 
-      Alert.alert('Success', `Status updated to ${newStatus.replace('_', ' ')} successfully!`);
+      Alert.alert('Success', `Status updated to ${selectedStatus.replace('_', ' ')} successfully!`);
     } catch (err) {
       console.log('Status update error:', err);
       Alert.alert('Error', 'Failed to update complaint status on server.');
@@ -153,6 +157,9 @@ export default function AdminComplaintDetails() {
 
   const status = statusColor(complaint.status);
   const priority = priorityColor(complaint.priority);
+
+  const activeStatusSelection = selectedStatus ?? complaint.status;
+  const isStatusChanged = selectedStatus !== null && selectedStatus !== complaint.status;
 
   return (
     <ScrollView style={styles.screen}>
@@ -255,23 +262,21 @@ export default function AdminComplaintDetails() {
             </View>
           </View>
 
-          <Text style={styles.selectStatusLabel}>Change status to:</Text>
-
-          {updating && <ActivityIndicator size="small" color="#007AFF" style={{ marginBottom: 10 }} />}
+          <Text style={styles.selectStatusLabel}>Select new status:</Text>
 
           <View style={styles.statusButtonsContainer}>
             <TouchableOpacity
               style={[
                 styles.statusOptionBtn,
-                complaint.status === 'PENDING' && styles.activePendingBtn,
+                activeStatusSelection === 'PENDING' && styles.activePendingBtn,
               ]}
               disabled={updating}
-              onPress={() => handleStatusChange('PENDING')}
+              onPress={() => setSelectedStatus('PENDING')}
             >
               <Text
                 style={[
                   styles.statusOptionText,
-                  complaint.status === 'PENDING' && styles.activeStatusOptionText,
+                  activeStatusSelection === 'PENDING' && styles.activeStatusOptionText,
                 ]}
               >
                 PENDING
@@ -281,15 +286,15 @@ export default function AdminComplaintDetails() {
             <TouchableOpacity
               style={[
                 styles.statusOptionBtn,
-                complaint.status === 'IN_PROGRESS' && styles.activeInProgressBtn,
+                activeStatusSelection === 'IN_PROGRESS' && styles.activeInProgressBtn,
               ]}
               disabled={updating}
-              onPress={() => handleStatusChange('IN_PROGRESS')}
+              onPress={() => setSelectedStatus('IN_PROGRESS')}
             >
               <Text
                 style={[
                   styles.statusOptionText,
-                  complaint.status === 'IN_PROGRESS' && styles.activeStatusOptionText,
+                  activeStatusSelection === 'IN_PROGRESS' && styles.activeStatusOptionText,
                 ]}
               >
                 IN PROGRESS
@@ -299,21 +304,38 @@ export default function AdminComplaintDetails() {
             <TouchableOpacity
               style={[
                 styles.statusOptionBtn,
-                complaint.status === 'RESOLVED' && styles.activeResolvedBtn,
+                activeStatusSelection === 'RESOLVED' && styles.activeResolvedBtn,
               ]}
               disabled={updating}
-              onPress={() => handleStatusChange('RESOLVED')}
+              onPress={() => setSelectedStatus('RESOLVED')}
             >
               <Text
                 style={[
                   styles.statusOptionText,
-                  complaint.status === 'RESOLVED' && styles.activeStatusOptionText,
+                  activeStatusSelection === 'RESOLVED' && styles.activeStatusOptionText,
                 ]}
               >
                 RESOLVED
               </Text>
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity
+            style={[
+              styles.updateStatusButton,
+              (!isStatusChanged || updating) && styles.disabledUpdateButton,
+            ]}
+            disabled={!isStatusChanged || updating}
+            onPress={handleUpdateStatus}
+          >
+            {updating ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.updateStatusButtonText}>
+                {isStatusChanged ? 'Update Status' : 'Select a Status to Update'}
+              </Text>
+            )}
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -365,4 +387,20 @@ const styles = StyleSheet.create({
   activeResolvedBtn: { backgroundColor: '#E7F8EE', borderColor: '#1D9A5C' },
   statusOptionText: { fontSize: 14, fontWeight: 'bold', color: '#475569' },
   activeStatusOptionText: { color: '#0F172A' },
+  updateStatusButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  disabledUpdateButton: {
+    backgroundColor: '#94A3B8',
+    opacity: 0.6,
+  },
+  updateStatusButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

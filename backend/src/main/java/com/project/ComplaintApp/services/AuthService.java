@@ -44,9 +44,9 @@ public class AuthService {
 
     public Map<String, Object> login(LoginRequest req) {
         User user = userRepository.findByEmail(req.getEmail())
-                .orElseThrow(() -> new RuntimeException("User is not Registered"));
+                .orElseThrow(() -> new RuntimeException("Email '" + req.getEmail() + "' is not registered in database."));
         if (!encoder.matches(req.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid password");
+            throw new RuntimeException("Incorrect password for account '" + req.getEmail() + "'.");
         }
         String generetedToken = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().toString());
         System.out.println(generetedToken);

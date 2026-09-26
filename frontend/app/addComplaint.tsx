@@ -43,6 +43,9 @@ export default function AddComplaint() {
     const { userId } = useLocalSearchParams();
     console.log("PARAMS RECEIVED:", userId);
 
+      const API_URL = process.env.EXPO_PUBLIC_API_BASE;
+
+
     const pickImage = async () => {
         const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (!permission.granted) {
@@ -73,7 +76,7 @@ export default function AddComplaint() {
     }
 
     useEffect(() => {
-        fetch('http://172.22.245.235:8081/api/complaints/categories').
+        fetch(`${API_URL}/api/complaints/categories`).
             then(res => res.json())
             .then(data => setCategories(data))
             .catch(() => Alert.alert('Error', 'Could not load Categories'))
@@ -127,7 +130,7 @@ console.log("STEP 2: ALL VALIDATION PASSED");
             console.log("STEP 4: IMAGE URI EXISTS:", imageUrl);
 
             const fileName = imageUrl.split('/').pop() || `photo_${Date.now()}.jpg`;
-            const match = /\.(\w+)$/.exec(fileName);
+            const match = /\.(\w+)$/.exec(fileName);    
             const ext = match ? match[1].toLowerCase() : 'jpg';
             const mimeType = ext === 'png' ? 'image/png' : 'image/' + ext;
 
@@ -149,7 +152,7 @@ console.log("STEP 2: ALL VALIDATION PASSED");
 
         console.log("STEP 8: ABOUT TO FETCH");
         const response = await fetch(
-            `http://172.22.245.235:8081/api/complaints/${userId}`,
+            `${API_URL}/api/complaints/${userId}`,
             {
                 method: 'POST',
                 body: formData,

@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { API_BASE_URL } from '@/constants/api';
 
 export default function Login() {
 
@@ -14,33 +15,47 @@ export default function Login() {
       return;
     }
     try{
+
+      console.log("base api url : " , API_BASE_URL);
+
       setLoading(true);
-      const response = await fetch("http://172.22.245.235:8081/api/auth/login",
+
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`,
       {
         method : 'POST',
         headers:{ 'Content-Type' : 'application/json'},
         body : JSON.stringify({email:email.trim(),password}),
       });
-      const data = await response.json(); 
-      if(response.ok){
-        console.log("LOGIN SUCCESS - data.userId:", data.userId, "data.name:", data.name, "data.role:", data.role);
 
-        if (data.role === 'ADMIN') {
+      const data = await response.json(); 
+
+      console.log("\n Full Login Response : " , data);
+
+      if(response.ok){
+        const userRole = data.role ? String(data.role).trim().toUpperCase() : 'STUDENT';
+        console.log("LOGIN SUCCESS - userId:", data.userId, "name:", data.name, "role:", userRole);
+
+        if (userRole === 'ADMIN') {
+          console.log("Navigating to Admin Dashboard (/admin/dashboard)...");
           router.replace({
             pathname: '/admin/dashboard' as any,
-            params: { name: data.name, userId: data.userId, email: data.email, role: data.role },
+            params: { name: data.name, userId: data.userId, email: data.email, role: userRole },
           });
         } else {
+          console.log("Navigating to Student Dashboard (/dashboard)...");
           router.replace({
             pathname: '/dashboard',
-            params: { name: data.name, userId: data.userId, email: data.email, role: data.role },
+            params: { name: data.name, userId: data.userId, email: data.email, role: userRole },
           });
         }
       }else{
-        Alert.alert('Login Failed',data.message || "Please Register YourSelf");
+        const failureMsg = data.message || data.error || "Login Failed: Invalid credentials";
+        console.error("LOGIN FAILED DETAILS:", failureMsg);
+        Alert.alert('Login Failed', failureMsg);
       }
-    }catch(error){
-      Alert.alert('Connection Error','Unable to Connect to server.');
+    }catch(error: any){
+      console.error("LOGIN CONNECTION ERROR DETAILS:", error);
+      Alert.alert('Connection Error', `Unable to connect to server: ${error?.message || error}`);
     }finally{
       setLoading(false);
     }

@@ -5,6 +5,8 @@ import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 const handleLogout = () => {
   router.replace('/login');
 };
+  const API_URL = process.env.EXPO_PUBLIC_API_BASE;
+
 
 export default function Default() {
     const { userId , name } = useLocalSearchParams();
