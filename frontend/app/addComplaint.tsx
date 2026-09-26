@@ -41,9 +41,12 @@ export default function AddComplaint() {
     const [imageUrl, SetImageUrl] = useState<string | null>(null);
 
     const { userId } = useLocalSearchParams();
-    console.log("PARAMS RECEIVED:", userId);
+    useEffect( () => {
+        console.log("PARAMS RECEIVED:", userId);
+    } , [userId]);
+    
 
-      const API_URL = process.env.EXPO_PUBLIC_API_BASE;
+    const API_URL = process.env.EXPO_PUBLIC_API_BASE;
 
 
     const pickImage = async () => {
@@ -88,104 +91,124 @@ export default function AddComplaint() {
     // SUBMIT
     // =================================================
     const handleSubmit = async () => {
-    console.log("STEP 1: SUBMIT PRESSED");
-if (!userId) { 
-    console.log("FAILED: no userId"); 
-    Alert.alert('Login Required', '...'); 
-    return; 
-}
-if (!title.trim()) { 
-    console.log("FAILED: no title"); 
-    Alert.alert('Missing Title', 'Please enter a complaint title.'); 
-    return; 
-}
-if (!categoryId) { 
-    console.log("FAILED: no categoryId, value is:", categoryId); 
-    Alert.alert('Missing Category', 'Please select a complaint category.'); 
-    return; 
-}
-if (!description.trim()) { 
-    console.log("FAILED: no description"); 
-    Alert.alert('Missing Description', 'Please describe your complaint.'); 
-    return; 
-}
-if (description.trim().length < 10) { 
-    console.log("FAILED: description too short, length:", description.trim().length); 
-    Alert.alert('Description Too Short', '...'); 
-    return; 
-}
-
-console.log("STEP 2: ALL VALIDATION PASSED");
-
-    try {
-        const formData = new FormData();
-        formData.append('title', title);
-        formData.append('description', description);
-        formData.append('categoryId', String(categoryId));
-        formData.append('priority', priority);
-
-        console.log("STEP 3: TEXT FIELDS ADDED TO FORMDATA");
-
-        if (imageUrl) {
-            console.log("STEP 4: IMAGE URI EXISTS:", imageUrl);
-
-            const fileName = imageUrl.split('/').pop() || `photo_${Date.now()}.jpg`;
-            const match = /\.(\w+)$/.exec(fileName);    
-            const ext = match ? match[1].toLowerCase() : 'jpg';
-            const mimeType = ext === 'png' ? 'image/png' : 'image/' + ext;
-
-            console.log("STEP 5: FILENAME:", fileName, "MIME:", mimeType);
-
-            formData.append('imageFile', {
-                uri: imageUrl,
-                name: fileName,
-                type: mimeType,
-            } as any);
-
-            console.log("STEP 6: IMAGE APPENDED TO FORMDATA");
-        } else {
-            console.log("STEP 4-ALT: NO IMAGE SELECTED");
+        console.log("STEP 1: SUBMIT PRESSED");
+        if (!userId) {
+            console.log("FAILED: no userId");
+            Alert.alert('Login Required', '...');
+            return;
+        }
+        if (!title.trim()) {
+            console.log("FAILED: no title");
+            Alert.alert('Missing Title', 'Please enter a complaint title.');
+            return;
+        }
+        if (!categoryId) {
+            console.log("FAILED: no categoryId, value is:", categoryId);
+            Alert.alert('Missing Category', 'Please select a complaint category.');
+            return;
+        }
+        if (!description.trim()) {
+            console.log("FAILED: no description");
+            Alert.alert('Missing Description', 'Please describe your complaint.');
+            return;
+        }
+        if (description.trim().length < 10) {
+            console.log("FAILED: description too short, length:", description.trim().length);
+            Alert.alert('Description Too Short', '...');
+            return;
         }
 
-        console.log("STEP 7: ABOUT TO CALL setLoading(true)");
-        setLoading(true);
+        console.log("STEP 2: ALL VALIDATION PASSED");
 
-        console.log("STEP 8: ABOUT TO FETCH");
-        const response = await fetch(
-            `${API_URL}/api/complaints/${userId}`,
-            {
-                method: 'POST',
-                body: formData,
+        try {
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('categoryId', String(categoryId));
+            formData.append('priority', priority);
+
+            console.log("STEP 3: TEXT FIELDS ADDED TO FORMDATA");
+
+            if (imageUrl) {
+                console.log("STEP 4: IMAGE URI EXISTS:", imageUrl);
+
+                const fileName = imageUrl.split('/').pop() || `photo_${Date.now()}.jpg`;
+
+                const match = /\.(\w+)$/.exec(fileName);
+                const ext = match ? match[1].toLowerCase() : 'jpg';
+
+                const mimeType = ext === 'png' ? 'image/png' : 'image/' + ext;
+
+                console.log("STEP 5: FILENAME:", fileName, "MIME:", mimeType);
+
+                if (Platform.OS === 'web') {
+                    // web 
+                    const iamgeResponse = await fetch(imageUrl);
+                    const blob = await iamgeResponse.blob();
+
+                    const file = new File([blob], fileName, {
+                        type: mimeType,
+                    });
+
+                    formData.append('imageFile', file);
+
+                    console.log("STEP 6: WEB FILE APPENDED TO FORMDATA");
+
+                } else {
+                    // androin and ios
+                    formData.append('imageFile', {
+                        uri: imageUrl,
+                        name: fileName,
+                        type: mimeType,
+                    } as any);
+                    console.log("STEP 6: MOBILE FILE APPENDED TO FORMDATA");
+
+                }
+
+
+            } else {
+                console.log("STEP 4-ALT: NO IMAGE SELECTED");
             }
-        );
 
-        console.log("STEP 9: FETCH RETURNED, status:", response.status);
+            console.log("STEP 7: ABOUT TO CALL setLoading(true)");
+            setLoading(true);
 
-        const data = await response.json();
-        console.log("STEP 10: JSON PARSED:", data);
+            console.log("STEP 8: ABOUT TO FETCH");
+            const response = await fetch(
+                `${API_URL}/api/complaints/${userId}`,
+                {
+                    method: 'POST',
+                    body: formData,
+                }
+            );
 
-        if (response.ok) {
-            if(Platform.OS === 'web'){
-                window.alert("Your Application is submitted..");
-                router.back();
-            }else{
-                  Alert.alert('Complaint Submitted', 'Your complaint has been submitted successfully.', [
-                { text: 'OK', onPress: () => router.back() },
-            ]);
+            console.log("STEP 9: FETCH RETURNED, status:", response.status);
+
+            const data = await response.json();
+            console.log("STEP 10: JSON PARSED:", data);
+
+            if (response.ok) {
+                if (Platform.OS === 'web') {
+                    window.alert("Your Application is submitted..");
+                    router.back();
+                } else {
+                    Alert.alert('Complaint Submitted', 'Your complaint has been submitted successfully.', [
+                        { text: 'OK', onPress: () => router.back() },
+                    ]);
+                }
+
+            } else {
+                Alert.alert("Complaint is not Submitted", "Something went wrong");
             }
-          
-        } else {
-            Alert.alert("Complaint is not Submitted", "Something went wrong");
+
+        } catch (error) {
+            console.log("CAUGHT ERROR:", error);
+            Alert.alert('Submission Failed', 'Unable to submit your complaint. Please try again.');
+        } finally {
+            console.log("FINALLY BLOCK");
+            setLoading(false);
         }
-
-    } catch (error) {
-        console.log("CAUGHT ERROR:", error);
-        Alert.alert('Submission Failed', 'Unable to submit your complaint. Please try again.');
-    } finally {
-        console.log("FINALLY BLOCK");
-        setLoading(false);
-    }
-};
+    };
 
 
     // ============================ =====================

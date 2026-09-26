@@ -27,15 +27,15 @@ export default function MyComplaints() {
 
     const { userId, name } = useLocalSearchParams();
 
-    console.log("userid and name : " , userId , name);
+    console.log("userid and name : ", userId, name);
 
-      const API_URL = process.env.EXPO_PUBLIC_API_BASE;
+    const API_URL = process.env.EXPO_PUBLIC_API_BASE;
 
-      console.log("\n api url : " , API_URL)
+    console.log("\n api url : ", API_URL)
 
     const API_BASE = `${API_URL}/api/complaints/getMyComplaint/${userId}`;
-    
-console.log("\napi base : " , API_BASE);
+
+    console.log("\napi base : ", API_BASE);
 
     const [complaints, setComplaints] = useState<Complaint[]>([]);
     const [loading, setLoading] = useState(true);
@@ -143,6 +143,7 @@ console.log("\napi base : " , API_BASE);
                     {complaints.length} complaint{complaints.length !== 1 ? "s" : ""} submitted
                 </Text>
             </View>
+
 
             {/* <View>
                 <TouchableOpacity style={styles.dashboardText} onPress={() => {
@@ -259,7 +260,10 @@ console.log("\napi base : " , API_BASE);
                     }}
                 />
             )}
-           <TouchableOpacity style={styles.backButton} onPress={() => router.replace("/dashboard")}> <Text style={styles.backButtonText}>← Back</Text> </TouchableOpacity>
+            <TouchableOpacity style={styles.backButton} onPress={() =>
+                router.replace({ pathname: "/dashboard", params: { userId  , name} })
+
+            }> <Text style={styles.backButtonText}>← Back</Text> </TouchableOpacity>
         </View>
     );
 }
@@ -278,20 +282,20 @@ const styles = StyleSheet.create({
     pageSubtitle: { fontSize: 13, color: "#310ab1", marginTop: 4 },
     listContent: { padding: 18, paddingBottom: 40 },
     backButton: {
-    justifyContent : 'center',
-    alignSelf: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E2E7EF',
-    marginVertical : 20
-},
+        justifyContent: 'center',
+        alignSelf: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#E2E7EF',
+        marginVertical: 20
+    },
 
-backButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#2563EB',
-},
+    backButtonText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#2563EB',
+    },
     card: {
         backgroundColor: "#FFFFFF", borderRadius: 18, padding: 16, marginBottom: 14,
         borderWidth: 1, borderColor: "#EEF1F5",

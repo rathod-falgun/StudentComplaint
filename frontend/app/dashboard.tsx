@@ -3,14 +3,23 @@ import React, { useState } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 
 const handleLogout = () => {
-  router.replace('/login');
+    router.replace('/login');
 };
-  const API_URL = process.env.EXPO_PUBLIC_API_BASE;
+const API_URL = process.env.EXPO_PUBLIC_API_BASE;
 
 
 export default function Default() {
-    const { userId , name } = useLocalSearchParams();
-console.log("DASHBOARD RECEIVED:", userId, name);
+
+    const params = useLocalSearchParams();
+
+    console.log("DASHBOARD ALL PARAMS:", params);
+
+    const { userId, name } = params;
+
+    console.log("DASHBOARD USER ID:", userId);
+    console.log("DASHBOARD NAME:", name);
+
+    console.log("DASHBOARD RECEIVED:", userId, name);
     const handleLogout = () => {
         router.replace('/login');
     };
@@ -20,7 +29,7 @@ console.log("DASHBOARD RECEIVED:", userId, name);
 
             <TouchableOpacity style={styles.button} onPress={() => router.push({
                 pathname: '/addComplaint',
-                params: { userId , name},
+                params: { userId, name },
             })
             }>
 
@@ -30,7 +39,7 @@ console.log("DASHBOARD RECEIVED:", userId, name);
             <TouchableOpacity style={styles.button} onPress={() =>
                 router.push({
                     pathname: '/myComplaints',
-                    params: { userId ,name},
+                    params: { userId:userId, name:name },
                 })
             }>
                 <Text style={styles.buttonText}>View My Complaints </Text>
@@ -40,12 +49,12 @@ console.log("DASHBOARD RECEIVED:", userId, name);
                 <Text style={styles.logoutButtonText}>Logout</Text>
             </TouchableOpacity>
 
-             <TouchableOpacity style={styles.button} onPress={() => 
+            <TouchableOpacity style={styles.button} onPress={() =>
                 router.push({
                     pathname: '/profile',
-                    params : {userId},
+                    params: { userId },
                 })
-             }>
+            }>
                 <Text style={styles.buttonText}> Profile </Text>
             </TouchableOpacity>
 
@@ -61,7 +70,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         borderRadius: 10,
         marginBottom: 15,
-        marginTop:10,
+        marginTop: 10,
         alignItems: 'center',
 
         // slight shadow
@@ -74,17 +83,17 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     logoutButton: {
-    width: '85%',
-    backgroundColor: '#FF3B30',
-    paddingVertical: 15,
-    borderRadius: 10,
-    marginTop: 10,
-    alignItems: 'center',
-},
+        width: '85%',
+        backgroundColor: '#FF3B30',
+        paddingVertical: 15,
+        borderRadius: 10,
+        marginTop: 10,
+        alignItems: 'center',
+    },
 
-logoutButtonText: {
-    color: '#ffffff',
-    fontSize: 17,
-    fontWeight: 'bold',
-},
+    logoutButtonText: {
+        color: '#ffffff',
+        fontSize: 17,
+        fontWeight: 'bold',
+    },
 });

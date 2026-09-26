@@ -33,7 +33,13 @@ public class ComplaintController {
 
     @PostMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> submit(@PathVariable Long userId, @ModelAttribute ComplaintRequest complaintRequest) {
+
         ComplaintResponse complaint = complaintService.submitComplaint(userId, complaintRequest);
+
+        System.out.println("========== SUBMIT COMPLAINT CONTROLLER ==========");
+        System.out.println("USER ID: " + userId);
+        System.out.println("TITLE: " + complaintRequest.getTitle());
+
         System.out.println("-------------------------------------");
         System.out.println("Title: " + complaintRequest.getTitle());
         System.out.println("Priority Enum: " + complaintRequest.getPriority());
