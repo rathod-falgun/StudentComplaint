@@ -16,7 +16,7 @@ public class JwtUtil {
     private final SecretKey secretKey = Keys.hmacShaKeyFor(
             "college-complaint-app-jwt-secret-key-2026".getBytes());
 
-    private final long EXPIRATION_TIME = 24; // 24 hours
+    private final long EXPIRATION_TIME = 60 * 60 * 1000; // 24 hours
 
     // Generate a token when user logs in
     public String generateToken(Long userId, String email, String role) {

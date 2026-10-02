@@ -58,7 +58,7 @@ public class Complaint {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ComplaintStatus status = ComplaintStatus.PENDING;
+    private ComplaintStatus status = ComplaintStatus.ASSIGNED;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

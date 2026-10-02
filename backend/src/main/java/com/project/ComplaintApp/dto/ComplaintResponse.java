@@ -37,9 +37,9 @@ public class ComplaintResponse {
         res.setId(complaint.getId());
         res.setTitle(complaint.getTitle());
         res.setDescription(complaint.getDescription());
-        res.setCategory(complaint.getCategory() != null ? complaint.getCategory().getName() : "General");
-        res.setPriority(complaint.getPriority() != null ? complaint.getPriority().name() : "MEDIUM");
-        res.setStatus(complaint.getStatus() != null ? complaint.getStatus().name() : "PENDING");
+        res.setCategory(complaint.getCategory().getName());
+        res.setPriority(complaint.getPriority().name());
+        res.setStatus(complaint.getStatus().name());
         res.setCreatedAt(complaint.getCreatedAt());
         res.setUpdatedAt(complaint.getUpdatedAt());
         res.setImageUrl(complaint.getImagePath());

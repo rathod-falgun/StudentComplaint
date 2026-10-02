@@ -1,6 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { API_BASE_URL } from '@/constants/api';
+import { API_BASE_URL, apiFetch } from '@/constants/api';
 import {
   View,
   Text,
@@ -10,11 +10,14 @@ import {
   ActivityIndicator,
   RefreshControl,
   FlatList,
+  Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Stats = {
   totalComplaints: number;
-  pendingComplaints: number;
+  submittedComplaints: number;
+  assignedComplaints: number;
   inProgressComplaints: number;
   resolvedComplaints: number;
 };
@@ -25,7 +28,7 @@ type Complaint = {
   description: string;
   category: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED';
+  status: 'SUBMITTED' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED';
   createdAt: string;
   updatedAt: string;
   imageUrl: string;
@@ -40,7 +43,8 @@ export default function AdminDashboard() {
 
   const [stats, setStats] = useState<Stats>({
     totalComplaints: 0,
-    pendingComplaints: 0,
+    submittedComplaints: 0,
+    assignedComplaints: 0,
     inProgressComplaints: 0,
     resolvedComplaints: 0,
   });
@@ -50,25 +54,35 @@ export default function AdminDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(false);
 
-  const API_ADMIN = `${API_URL}/api/admin`;
-
   const fetchData = async () => {
+
     try {
-      console.log("Fetching admin data from:", API_ADMIN);
-      const [statsRes, complaintsRes] = await Promise.all([
-        fetch(`${API_ADMIN}/dashboard`),
-        fetch(`${API_ADMIN}/complaints`),
-      ]);
+      const token = await AsyncStorage.getItem('token');
+      console.log("\n admin token : ", token);
+      console.log("Fetching admin dashboard : \n");
 
-      if (!statsRes.ok || !complaintsRes.ok) {
-        throw new Error('Failed to fetch admin data');
-      }
+      const stats = await apiFetch('/api/admin/dashboard');
 
-      const statsData = await statsRes.json();
-      const complaintsData: Complaint[] = await complaintsRes.json();
+      console.log("===== AFTER Comlaints API FETCH =====");
+      console.log("Response received:", stats);
+      console.log("Response status:", stats?.status);
+      console.log("Response ok:", stats?.ok);
 
-      setStats(statsData);
-      setRecentComplaints(complaintsData);
+      const dashboardData = await stats.json();
+
+      console.log("===== DASHBOARD DATA =====");
+      console.log(dashboardData);
+
+      // Set dashboard statistics
+      setStats({
+        totalComplaints: dashboardData.totalComplaints,
+        submittedComplaints: dashboardData.submittedComplaints,
+        assignedComplaints: dashboardData.assignedComplaints,
+        inProgressComplaints: dashboardData.inProgressComplaints,
+        resolvedComplaints: dashboardData.resolvedComplaints,
+      });
+
+      setRecentComplaints(dashboardData.recentComplaints || []);
       setError(false);
     } catch (err) {
       console.log('Error loading admin dashboard:', err);
@@ -90,8 +104,19 @@ export default function AdminDashboard() {
     fetchData();
   };
 
-  const handleLogout = () => {
-    router.replace('/login');
+  const handleLogout = async () => {
+    console.log("Logout started");
+
+    try {
+      await AsyncStorage.removeItem("token");
+
+      console.log("Token removed");
+
+      router.replace("/login");
+
+    } catch (error) {
+      console.log("Logout failed:", error);
+    }
   };
 
   const statusColor = (status: string) => {
@@ -163,10 +188,17 @@ export default function AdminDashboard() {
             </Text>
           </View>
 
-          <View style={[styles.statCard, { borderLeftColor: '#D97706' }]}>
-            <Text style={styles.statLabel}>Pending</Text>
-            <Text style={[styles.statNumber, { color: '#D97706' }]}>
-              {stats.pendingComplaints}
+          <View style={[styles.statCard, { borderLeftColor: '#0ee2f5' }]}>
+            <Text style={styles.statLabel}>Submitted </Text>
+            <Text style={[styles.statNumber, { color: '#09cedc' }]}>
+              {stats.submittedComplaints}
+            </Text>
+          </View>
+
+          <View style={[styles.statCard, { borderLeftColor: '#360fd4' }]}>
+            <Text style={styles.statLabel}>Assigned</Text>
+            <Text style={[styles.statNumber, { color: '#1806d9' }]}>
+              {stats.assignedComplaints}
             </Text>
           </View>
 
@@ -177,9 +209,9 @@ export default function AdminDashboard() {
             </Text>
           </View>
 
-          <View style={[styles.statCard, { borderLeftColor: '#1D9A5C' }]}>
+          <View style={[styles.statCard, { borderLeftColor: '#0af129' }]}>
             <Text style={styles.statLabel}>Resolved</Text>
-            <Text style={[styles.statNumber, { color: '#1D9A5C' }]}>
+            <Text style={[styles.statNumber, { color: '#0cf508' }]}>
               {stats.resolvedComplaints}
             </Text>
           </View>
@@ -273,7 +305,13 @@ export default function AdminDashboard() {
         )}
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={() => {
+            console.log("LOGOUT BUTTON PRESSED");
+            handleLogout();
+          }}
+        >
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
       </View>

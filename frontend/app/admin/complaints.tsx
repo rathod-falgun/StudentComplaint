@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { API_BASE_URL } from '@/constants/api';
+import { API_BASE_URL, apiFetch } from '@/constants/api';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ type Complaint = {
   description: string;
   category: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED';
+  status: 'SUBMITTED' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED';
   createdAt: string;
   updatedAt: string;
   imageUrl: string;
@@ -45,20 +45,33 @@ export default function AdminComplaints() {
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
+  const [currentPage, setCurrentPage] = useState(0);
+const [totalPages, setTotalPages] = useState(0);
+const [totalComplaints, setTotalComplaints] = useState(0);
+
   const API_URL = `${API_BASE_URL}/api/admin/complaints`;
 
-  const fetchComplaints = async () => {
+  const fetchComplaints = async (page = 0) => {
     try {
-      const response = await fetch(API_URL);
+      const response = await apiFetch(`/api/admin/complaints?page=${page}&size=5`);
+
       if (!response.ok) {
         throw new Error('Failed to fetch complaints');
       }
-      const data: Complaint[] = await response.json();
+      const data = await response.json();
       setComplaints(data);
+
+      console.log('===== PAGINATION DATA =====');
+    console.log(data);
+
+    setCurrentPage(data.content || []);
+      setCurrentPage(data.number || 0);
+    setTotalPages(data.totalPages || 0);
+    setTotalComplaints(data.totalElements || 0);
 
       // Extract unique categories
       const categoriesSet = new Set<string>();
-      data.forEach((item) => {
+      (data.content || [] ).forEach((item : Complaint) => {
         if (item.category) categoriesSet.add(item.category);
       });
       setAvailableCategories(Array.from(categoriesSet));
@@ -118,7 +131,7 @@ export default function AdminComplaints() {
 
   const statusColor = (status: string) => {
     switch (status) {
-      case 'PENDING':
+      case 'SUBMITTED':
         return { bg: '#FFF4E5', text: '#B8710A' };
       case 'IN_PROGRESS':
         return { bg: '#E8F0FF', text: '#2563EB' };
@@ -167,7 +180,7 @@ export default function AdminComplaints() {
         <Text style={styles.errorIcon}>⚠️</Text>
         <Text style={styles.errorTitle}>Failed to load complaints</Text>
         <Text style={styles.errorSubtitle}>Please check your connection and pull down to retry.</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchComplaints}>
+        <TouchableOpacity style={styles.retryButton} onPress={ () => {fetchComplaints(0)}}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>

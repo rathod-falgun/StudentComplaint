@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: ComplaintApp
+  datasource:
+    url: jdbc:mysql://localhost:3306/college_complaint_db
+    username: root
+    password: FalgunR05@
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 6MB
+        
+        
+
+server:
+  address: 0.0.0.0
+  port: 8081

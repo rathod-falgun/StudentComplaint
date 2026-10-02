@@ -1,7 +1,8 @@
 package com.project.ComplaintApp.Enums;
 
 public enum ComplaintStatus {
-     PENDING,
+    SUBMITTED,
+    ASSIGNED,
     IN_PROGRESS,
     RESOLVED
 }

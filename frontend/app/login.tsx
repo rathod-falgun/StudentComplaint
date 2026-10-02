@@ -2,37 +2,53 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { API_BASE_URL } from '@/constants/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 export default function Login() {
 
-  const [email,setemail] = useState('');
-  const [password,setPassword] = useState('');
-  const [loading,setLoading] = useState(false);
+  const [email, setemail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if(!email || !password){
-      Alert.alert('Error',"All Fields are Required");
+    if (!email || !password) {
+      Alert.alert('Error', "All Fields are Required");
       return;
     }
-    try{
+    try {
 
-      console.log("base api url : " , API_BASE_URL);
+      console.log("base api url : ", API_BASE_URL);
 
       setLoading(true);
-
       const response = await fetch(`${API_BASE_URL}/api/auth/login`,
-      {
-        method : 'POST',
-        headers:{ 'Content-Type' : 'application/json'},
-        body : JSON.stringify({email:email.trim(),password}),
-      });
+        {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json' 
+          },
+          body: JSON.stringify({ email: email.trim(), password }),
+        });
+        
+      const data = await response.json();
+      // save the jwt token
+      await AsyncStorage.setItem("token" , data.token);
+      await AsyncStorage.setItem("userId" , data.userId);
 
-      const data = await response.json(); 
+      const token = await AsyncStorage.getItem("token");
+      
+      console.log("Saved JWT:", token);
 
-      console.log("\n Full Login Response : " , data);
+      console.log("\n Full Login Response : ", data);
 
-      if(response.ok){
-        const userRole = data.role ? String(data.role).trim().toUpperCase() : 'STUDENT';
+      if (response.ok) {
+        const userRole = data.role ? String(data.role).trim().toUpperCase() : null;
+
+        if (!userRole) {
+          Alert.alert('Login Failed', 'User role was not provided by the server');
+          return;
+        }
+
         console.log("LOGIN SUCCESS - userId:", data.userId, "name:", data.name, "role:", userRole);
 
         if (userRole === 'ADMIN') {
@@ -41,22 +57,34 @@ export default function Login() {
             pathname: '/admin/dashboard' as any,
             params: { name: data.name, userId: data.userId, email: data.email, role: userRole },
           });
-        } else {
+        }
+        else if (userRole === 'STUDENT') {
+          router.replace({
+            pathname: '/dashboard',
+            params: {
+              name: data.name,
+              userId: data.userId,
+              email: data.email,
+              role: userRole,
+            },
+          });
+        }
+        else {
           console.log("Navigating to Student Dashboard (/dashboard)...");
           router.replace({
             pathname: '/dashboard',
             params: { name: data.name, userId: data.userId, email: data.email, role: userRole },
           });
         }
-      }else{
+      } else {
         const failureMsg = data.message || data.error || "Login Failed: Invalid credentials";
         console.error("LOGIN FAILED DETAILS:", failureMsg);
         Alert.alert('Login Failed', failureMsg);
       }
-    }catch(error: any){
+    } catch (error: any) {
       console.error("LOGIN CONNECTION ERROR DETAILS:", error);
       Alert.alert('Connection Error', `Unable to connect to server: ${error?.message || error}`);
-    }finally{
+    } finally {
       setLoading(false);
     }
   };

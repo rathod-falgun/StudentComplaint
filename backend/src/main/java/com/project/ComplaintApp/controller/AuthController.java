@@ -15,6 +15,7 @@ import com.project.ComplaintApp.services.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @RequestMapping("api/auth")
@@ -38,15 +39,23 @@ public class AuthController {
         }
     }
 
+     @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        return ResponseEntity.ok("Backend is working");
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         try {
             System.out.println("========== LOGIN REQUEST RECEIVED ==========");
             System.out.println("Email: " + (req != null ? req.getEmail() : "null"));
+
             Map<String, Object> result = authService.login(req);
             System.out.println("LOGIN SUCCESSFUL for: " + req.getEmail());
             System.out.println("=============================================");
+
             return ResponseEntity.ok(result);
+            
         } catch (RuntimeException e) {
             System.err.println("LOGIN FAILED for Email: " + (req != null ? req.getEmail() : "null") + " | Reason: " + e.getMessage());
             System.err.println("=============================================");

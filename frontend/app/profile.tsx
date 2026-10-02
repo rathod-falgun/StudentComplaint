@@ -1,9 +1,11 @@
+import { apiFetch } from "@/constants/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
 import { useEffect, useState } from "react";
-import { View,Text, ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
 
-  const API_URL = process.env.EXPO_PUBLIC_API_BASE;
+const API_URL = process.env.EXPO_PUBLIC_API_BASE;
 
 
 type UserProfile = {
@@ -17,19 +19,36 @@ type UserProfile = {
 
 export default function Profile() {
 
-    const { userId } = useLocalSearchParams();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setloading] = useState(true);
 
+    const getProfile = async () => {
+        const userId = await AsyncStorage.getItem("userId");
+        try {
+            console.log("Fetching profile for user:", userId);
+            const response = await apiFetch(`/api/users/getProfile/${userId}`);
+            console.log("Profile response status:", response.status);
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.log("Profile Api Error : ", errorData);
+                throw new Error(errorData.message || "Failed to Load Profile");
+            }
+            const data = await response.json();
+            console.log("Profile data:", data);
+
+            setProfile(data);
+
+        } catch (error) {
+            console.log("Fetch profile error : ", error);
+        } finally {
+            setloading(false);
+        }
+
+
+    };
     useEffect(() => {
-        console.log("api is hit");
-        fetch(`${API_URL}/api/users/getProfile/${userId}`)
-            .then(res => res.json())
-            .then(data => setProfile(data))
-            .catch(() => setProfile(null))
-            .finally(() => setloading(false));
-    }, [userId])
-    console.log(profile);
+        getProfile();
+    }, []);
     if (loading) {
         return (
             <View style={styles.Center}>
@@ -52,9 +71,9 @@ export default function Profile() {
         <View style={styles.screen}>
 
             <View style={styles.header}>
-<Text style={styles.avatarText}>
-    {profile?.name ? profile.name.charAt(0).toUpperCase() : "?"}
-</Text>  
+                <Text style={styles.avatarText}>
+                    {profile?.name ? profile.name.charAt(0).toUpperCase() : "?"}
+                </Text>
                 <Text style={styles.name}>{profile.name}</Text>
                 <Text style={styles.role}>{profile.role}</Text>
             </View>
@@ -87,7 +106,7 @@ export default function Profile() {
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: '#2a52a2', padding: 20 },
     Center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    header: { alignItems: 'center', marginTop: 40, marginBottom: 30,borderColor:'black' },
+    header: { alignItems: 'center', marginTop: 40, marginBottom: 30, borderColor: 'black' },
     avatar: {
         width: 80, height: 80, borderRadius: 40, backgroundColor: '#2563EB',
         justifyContent: 'center', alignItems: 'center', marginBottom: 12,

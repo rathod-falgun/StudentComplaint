@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { API_BASE_URL } from '@/constants/api';
+import { API_BASE_URL, apiFetch } from '@/constants/api';
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ type ComplaintDetail = {
   description: string;
   category: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED';
+  status: 'SUBMITTED' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED';
   createdAt: string;
   updatedAt: string;
   imageUrl: string;
@@ -32,31 +32,78 @@ export default function AdminComplaintDetails() {
   const { complaintId } = useLocalSearchParams();
 
   const [complaint, setComplaint] = useState<ComplaintDetail | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<'SUBMITTED' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED' | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState(false);
   const [showImage, setShowImage] = useState(false);
 
-  const API_BASE = API_BASE_URL;
+  const [currentPage, setCurrentPage] = useState(0);
+const [totalPages, setTotalPages] = useState(0);
+const [totalComplaints, setTotalComplaints] = useState(0);
+
+  const API_BASE = `${API_BASE_URL}/api/admin/complaints`;
 
   const fetchComplaintDetails = async () => {
-    if (!complaintId) return;
+    console.log("========== FETCH COMPLAINT DETAILS ==========");
+    console.log("complaintId:", complaintId);
+
+    if (!complaintId) {
+      console.log("complaintId is missing!");
+      return;
+    }
+
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE}/api/admin/complaints/${complaintId}`);
+
+      const response = await apiFetch(
+        `/api/admin/complaints/${complaintId}`
+      );
+
+      console.log("Response status:", response.status);
+      console.log("Response OK:", response.ok);
+
+      const responseText = await response.text();
+
+      console.log("Backend response:", responseText);
+
       if (!response.ok) {
-        throw new Error('Failed to fetch complaint details');
+        throw new Error(
+          `Failed to fetch complaint details: ${response.status}`
+        );
       }
-      const data: ComplaintDetail = await response.json();
+
+      const data: ComplaintDetail = JSON.parse(responseText);
+
+      console.log("Complaint data:", data);
+
       setComplaint(data);
       setSelectedStatus(data.status);
       setError(false);
+
     } catch (err) {
-      console.log('Error fetching complaint details:', err);
+      console.log("Error fetching complaint details:", err);
       setError(true);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const nextStatus = (currentStatus: ComplaintDetail['status']) => {
+    switch (currentStatus) {
+      case "SUBMITTED":
+        return "ASSIGNED";
+
+      case "ASSIGNED":
+        return "IN_PROGRESS";
+
+      case "IN_PROGRESS":
+        return "RESOLVED";
+
+      case "RESOLVED":
+       return "RESOLVED";
+      default:
+        return null;
     }
   };
 
@@ -69,13 +116,14 @@ export default function AdminComplaintDetails() {
 
     try {
       setUpdating(true);
-      const response = await fetch(`${API_BASE}/api/admin/complaints/${complaint.id}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: selectedStatus }),
-      });
+      const response = await apiFetch(`/api/admin/complaints/${complaint.id}/status` ,
+        {
+          method : "PUT",
+          body : JSON.stringify({
+            status : selectedStatus,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to update status in MySQL');
@@ -98,12 +146,18 @@ export default function AdminComplaintDetails() {
 
   const statusColor = (status: string) => {
     switch (status) {
-      case 'PENDING':
+      case 'SUBMITTED':
         return { bg: '#FFF4E5', text: '#B8710A' };
+
+      case 'ASSIGNED':
+        return { bg: '#F3E8FF', text: '#7E22CE' };
+
       case 'IN_PROGRESS':
         return { bg: '#E8F0FF', text: '#2563EB' };
+
       case 'RESOLVED':
         return { bg: '#E7F8EE', text: '#1D9A5C' };
+
       default:
         return { bg: '#F0F2F6', text: '#465267' };
     }
@@ -157,6 +211,8 @@ export default function AdminComplaintDetails() {
 
   const status = statusColor(complaint.status);
   const priority = priorityColor(complaint.priority);
+
+  const next = nextStatus(complaint.status);
 
   const activeStatusSelection = selectedStatus ?? complaint.status;
   const isStatusChanged = selectedStatus !== null && selectedStatus !== complaint.status;
@@ -264,78 +320,55 @@ export default function AdminComplaintDetails() {
 
           <Text style={styles.selectStatusLabel}>Select new status:</Text>
 
-          <View style={styles.statusButtonsContainer}>
-            <TouchableOpacity
-              style={[
-                styles.statusOptionBtn,
-                activeStatusSelection === 'PENDING' && styles.activePendingBtn,
-              ]}
-              disabled={updating}
-              onPress={() => setSelectedStatus('PENDING')}
-            >
-              <Text
-                style={[
-                  styles.statusOptionText,
-                  activeStatusSelection === 'PENDING' && styles.activeStatusOptionText,
-                ]}
-              >
-                PENDING
-              </Text>
-            </TouchableOpacity>
+          <Text style={styles.selectStatusLabel}>
+            {next ? 'Next Status:' : 'Status Workflow Complete'}
+          </Text>
 
-            <TouchableOpacity
-              style={[
-                styles.statusOptionBtn,
-                activeStatusSelection === 'IN_PROGRESS' && styles.activeInProgressBtn,
-              ]}
-              disabled={updating}
-              onPress={() => setSelectedStatus('IN_PROGRESS')}
-            >
-              <Text
+          {next ? (
+            <>
+              <TouchableOpacity
                 style={[
-                  styles.statusOptionText,
-                  activeStatusSelection === 'IN_PROGRESS' && styles.activeStatusOptionText,
+                  styles.statusOptionBtn,
+                  activeStatusSelection === next && styles.activeStatusOptionBtn,
                 ]}
+                disabled={updating}
+                onPress={() => setSelectedStatus(next)}
               >
-                IN PROGRESS
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={[
+                    styles.statusOptionText,
+                    activeStatusSelection === next &&
+                    styles.activeStatusOptionText,
+                  ]}
+                >
+                  {next.replace('_', ' ')}
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[
-                styles.statusOptionBtn,
-                activeStatusSelection === 'RESOLVED' && styles.activeResolvedBtn,
-              ]}
-              disabled={updating}
-              onPress={() => setSelectedStatus('RESOLVED')}
-            >
-              <Text
+              <TouchableOpacity
                 style={[
-                  styles.statusOptionText,
-                  activeStatusSelection === 'RESOLVED' && styles.activeStatusOptionText,
+                  styles.updateStatusButton,
+                  (!isStatusChanged || updating) && styles.disabledUpdateButton,
                 ]}
+                disabled={!isStatusChanged || updating}
+                onPress={handleUpdateStatus}
               >
-                RESOLVED
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity
-            style={[
-              styles.updateStatusButton,
-              (!isStatusChanged || updating) && styles.disabledUpdateButton,
-            ]}
-            disabled={!isStatusChanged || updating}
-            onPress={handleUpdateStatus}
-          >
-            {updating ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Text style={styles.updateStatusButtonText}>
-                {isStatusChanged ? 'Update Status' : 'Select a Status to Update'}
-              </Text>
-            )}
-          </TouchableOpacity>
+                {updating ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.updateStatusButtonText}>
+                    {isStatusChanged
+                      ? 'Update Status'
+                      : 'Select a Status to Update'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </>
+          ) : (
+            <Text style={styles.workflowCompleteText}>
+              This complaint has completed the status workflow.
+            </Text>
+          )}
         </View>
       </View>
     </ScrollView>
@@ -382,9 +415,6 @@ const styles = StyleSheet.create({
   selectStatusLabel: { fontSize: 13, fontWeight: '700', color: '#64748B', marginBottom: 10 },
   statusButtonsContainer: { flexDirection: 'column', gap: 10 },
   statusOptionBtn: { backgroundColor: '#F1F5F9', paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#CBD5E1' },
-  activePendingBtn: { backgroundColor: '#FFF4E5', borderColor: '#D97706' },
-  activeInProgressBtn: { backgroundColor: '#E8F0FF', borderColor: '#2563EB' },
-  activeResolvedBtn: { backgroundColor: '#E7F8EE', borderColor: '#1D9A5C' },
   statusOptionText: { fontSize: 14, fontWeight: 'bold', color: '#475569' },
   activeStatusOptionText: { color: '#0F172A' },
   updateStatusButton: {
@@ -402,5 +432,17 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  activeStatusOptionBtn: {
+    backgroundColor: '#E8F0FF',
+    borderColor: '#2563EB',
+  },
+
+  workflowCompleteText: {
+    color: '#64748B',
+    fontSize: 14,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    paddingVertical: 10,
   },
 });

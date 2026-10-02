@@ -15,6 +15,11 @@ import com.project.ComplaintApp.dto.ComplaintResponse;
 import com.project.ComplaintApp.dto.StatusUpdateRequest;
 import com.project.ComplaintApp.services.AdminService;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
@@ -31,7 +36,13 @@ public class AdminController {
     }
 
     @GetMapping("/complaints")
-    public ResponseEntity<List<ComplaintResponse>> getAllComplaints() {
+    public ResponseEntity<Page<ComplaintResponse>> getComplaints(
+        @PageableDefault(size = 5 ,sort = "createdAt" , direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(adminService.getComplaints(pageable));
+    }
+
+    @GetMapping("/Allcomplaints")
+    public ResponseEntity<List<ComplaintResponse>> getAllComplaints(){
         return ResponseEntity.ok(adminService.getAllComplaints());
     }
 

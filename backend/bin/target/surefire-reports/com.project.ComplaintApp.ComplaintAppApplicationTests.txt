@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.project.ComplaintApp.ComplaintAppApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 27.42 s -- in com.project.ComplaintApp.ComplaintAppApplicationTests

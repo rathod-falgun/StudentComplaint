@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.project.ComplaintApp.config.AuthorizationUtil;
+
 @RestController
 @RequestMapping("api/users")
 public class UserContoller {
@@ -22,6 +24,7 @@ public class UserContoller {
 
     @GetMapping("/getProfile/{userId}")
     public ResponseEntity<?> getProfile(@PathVariable Long userId) {
+        AuthorizationUtil.checkUserAccess(userId);
         return userRepository.findById(userId).map(user -> ResponseEntity.ok(UserResponse.fromEntity(user)))
                 .orElse(ResponseEntity.status(404).build());
     }

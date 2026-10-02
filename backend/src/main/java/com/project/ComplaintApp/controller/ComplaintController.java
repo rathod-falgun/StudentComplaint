@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.project.ComplaintApp.config.AuthorizationUtil;
 import com.project.ComplaintApp.dto.ComplaintRequest;
 import com.project.ComplaintApp.dto.ComplaintResponse;
 import com.project.ComplaintApp.entities.Complaint;
@@ -33,7 +34,7 @@ public class ComplaintController {
 
     @PostMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> submit(@PathVariable Long userId, @ModelAttribute ComplaintRequest complaintRequest) {
-
+        AuthorizationUtil.checkUserAccess(userId);
         ComplaintResponse complaint = complaintService.submitComplaint(userId, complaintRequest);
 
         System.out.println("========== SUBMIT COMPLAINT CONTROLLER ==========");

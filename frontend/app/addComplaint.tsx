@@ -16,12 +16,16 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
+import { useResponsive } from '@/constants/responsive';
+import { apiFetch } from '@/constants/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // =====================================================
 // COMPONENT
 // =====================================================
 
 export default function AddComplaint() {
+    const { width, isMobile, isTablet, isDesktop } = useResponsive();
 
     const [categories, setCategories] = useState<{ cid: number; name: string }[]>([]);
     const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -40,10 +44,23 @@ export default function AddComplaint() {
 
     const [imageUrl, SetImageUrl] = useState<string | null>(null);
 
-    const { userId } = useLocalSearchParams();
+    const [userId , setuserId] = useState<String | null>(null);
+        const [name , setname] = useState<String | null>(null);
+
     useEffect( () => {
-        console.log("PARAMS RECEIVED:", userId);
-    } , [userId]);
+           const loadUser = async() => {
+               const userId = await AsyncStorage.getItem("userId");
+               const name = await AsyncStorage.getItem("name");
+   
+                 console.log("Global User ID:", userId);
+           console.log("Global Name:", name);
+   
+           setuserId(userId);
+           setname(name);
+           };
+           loadUser();
+       } , [userId]);
+   
     
 
     const API_URL = process.env.EXPO_PUBLIC_API_BASE;
@@ -79,12 +96,17 @@ export default function AddComplaint() {
     }
 
     useEffect(() => {
-        fetch(`${API_URL}/api/complaints/categories`).
-            then(res => res.json())
+        apiFetch(`/api/complaints/categories`).
+            then(res =>{
+                 if(!res.ok){
+                    console.log("Failed to load categories");   
+                }
+                return res.json();
+            })
             .then(data => setCategories(data))
             .catch(() => Alert.alert('Error', 'Could not load Categories'))
             .finally(() => setCategoriesLoading(false));
-    }, []);
+    }, [userId]);
 
 
     // =================================================
@@ -95,6 +117,7 @@ export default function AddComplaint() {
         if (!userId) {
             console.log("FAILED: no userId");
             Alert.alert('Login Required', '...');
+            window.alert("Login required...");
             return;
         }
         if (!title.trim()) {
@@ -174,23 +197,34 @@ export default function AddComplaint() {
             setLoading(true);
 
             console.log("STEP 8: ABOUT TO FETCH");
-            const response = await fetch(
-                `${API_URL}/api/complaints/${userId}`,
-                {
-                    method: 'POST',
-                    body: formData,
-                }
-            );
+            const response = await apiFetch(
+    `/api/complaints/${userId}`,
+    {
+        method: "POST",
+        body: formData,
+    }
+);
+
 
             console.log("STEP 9: FETCH RETURNED, status:", response.status);
 
+            if (!response.ok) {
+    const errorText = await response.text();
+
+    console.log("API ERROR STATUS:", response.status);
+    console.log("API ERROR BODY:", errorText);
+
+    throw new Error(
+        errorText || `Failed to submit complaint (${response.status})`
+    );
+}
             const data = await response.json();
             console.log("STEP 10: JSON PARSED:", data);
 
             if (response.ok) {
                 if (Platform.OS === 'web') {
                     window.alert("Your Application is submitted..");
-                    router.back();
+                    router.replace('/dashboard');
                 } else {
                     Alert.alert('Complaint Submitted', 'Your complaint has been submitted successfully.', [
                         { text: 'OK', onPress: () => router.back() },
@@ -260,10 +294,15 @@ export default function AddComplaint() {
         >
 
             <ScrollView
-                contentContainerStyle={styles.container}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-            >
+    contentContainerStyle={[
+        styles.container,
+        isMobile && styles.mobileContainer,
+        isTablet && styles.tabletContainer,
+        isDesktop && styles.desktopContainer,
+    ]}
+    keyboardShouldPersistTaps="handled"
+    showsVerticalScrollIndicator={false}
+>
 
                 {/* ===================================== */}
                 {/* HEADER */}
@@ -281,8 +320,13 @@ export default function AddComplaint() {
 
                     <View style={styles.headerContent}>
 
-                        <Text style={styles.headerTitle}>
-                            Submit a Complaint
+<Text
+    style={[
+        styles.headerTitle,
+        isMobile && styles.mobileHeaderTitle,
+        isDesktop && styles.desktopHeaderTitle,
+    ]}
+>                            Submit a Complaint
                         </Text>
 
                         <Text style={styles.headerSubtitle}>
@@ -326,8 +370,14 @@ export default function AddComplaint() {
                 {/* FORM CARD */}
                 {/* ===================================== */}
 
-                <View style={styles.formCard}>
-
+<View
+    style={[
+        styles.formCard,
+        isMobile && styles.mobileFormCard,
+        isTablet && styles.tabletFormCard,
+        isDesktop && styles.desktopFormCard,
+    ]}
+>
 
                     {/* ================================= */}
                     {/* TITLE */}
@@ -556,22 +606,44 @@ export default function AddComplaint() {
                             <Text style={styles.optional}>Optional</Text>
                         </View>
 
-                        <View style={{ flexDirection: 'row', gap: 10 }}>
-                            <TouchableOpacity onPress={takePhoto} style={[styles.dropdown, { flex: 1 }]}>
-                                <Text style={styles.dropdownText}>📷 Camera</Text>
-                            </TouchableOpacity>
+                       <View
+    style={[
+        styles.imageButtons,
+        isMobile && styles.mobileImageButtons,
+    ]}
+>
+    <TouchableOpacity
+        onPress={takePhoto}
+        style={[
+            styles.dropdown,
+            styles.imageButton,
+        ]}
+    >
+        <Text style={styles.dropdownText}>📷 Camera</Text>
+    </TouchableOpacity>
 
-                            <TouchableOpacity onPress={pickImage} style={[styles.dropdown, { flex: 1 }]}>
-                                <Text style={styles.dropdownText}>🖼️ Gallery</Text>
-                            </TouchableOpacity>
-                        </View>
+    <TouchableOpacity
+        onPress={pickImage}
+        style={[
+            styles.dropdown,
+            styles.imageButton,
+        ]}
+    >
+        <Text style={styles.dropdownText}>🖼️ Gallery</Text>
+    </TouchableOpacity>
+</View>
 
-                        {imageUrl && (
-                            <Image
-                                source={{ uri: imageUrl }}
-                                style={{ width: '100%', height: 250, borderRadius: 12, marginTop: 10 }}
-                            />
-                        )}
+                      {imageUrl && (
+    <Image
+        source={{ uri: imageUrl }}
+        style={[
+            styles.previewImage,
+            isMobile && styles.mobilePreviewImage,
+            isDesktop && styles.desktopPreviewImage,
+        ]}
+        contentFit="cover"
+    />
+)}
                     </View>
 
                 </View>
@@ -581,16 +653,16 @@ export default function AddComplaint() {
                 {/* SUBMIT BUTTON */}
                 {/* ===================================== */}
 
-                <TouchableOpacity
-                    activeOpacity={0.85}
-                    style={[
-                        styles.submitButton,
-                        loading &&
-                        styles.submitButtonDisabled,
-                    ]}
-                    onPress={handleSubmit}
-                    disabled={loading}
-                >
+               <TouchableOpacity
+    activeOpacity={0.85}
+    onPress={handleSubmit}
+    style={[
+        styles.submitButton,
+        isMobile && styles.mobileSubmitButton,
+        isTablet && styles.tabletSubmitButton,
+        isDesktop && styles.desktopSubmitButton,
+        loading && styles.submitButtonDisabled,
+    ]}>
 
                     {loading ? (
 
@@ -1387,6 +1459,143 @@ const styles = StyleSheet.create({
         height: 11,
         borderRadius: 6,
         backgroundColor: '#24169f',
+    },
+        // ================================================
+    // RESPONSIVE CONTAINER
+    // ================================================
+
+    mobileContainer: {
+        paddingHorizontal: 12,
+        paddingTop: 12,
+        paddingBottom: 30,
+    },
+
+    tabletContainer: {
+        paddingHorizontal: 35,
+        paddingTop: 20,
+        paddingBottom: 40,
+    },
+
+    desktopContainer: {
+        width: '100%',
+        maxWidth: 850,
+        alignSelf: 'center',
+        paddingHorizontal: 25,
+        paddingTop: 25,
+        paddingBottom: 45,
+    },
+
+    // ================================================
+    // RESPONSIVE HEADER
+    // ================================================
+
+    mobileHeader: {
+        marginBottom: 16,
+    },
+
+    desktopHeader: {
+        marginBottom: 28,
+    },
+
+    mobileHeaderTitle: {
+        fontSize: 21,
+    },
+
+    desktopHeaderTitle: {
+        fontSize: 28,
+    },
+
+    // ================================================
+    // RESPONSIVE INFO CARD
+    // ================================================
+
+    mobileInfoCard: {
+        padding: 12,
+        borderRadius: 15,
+        marginBottom: 14,
+    },
+
+    desktopInfoCard: {
+        padding: 18,
+        borderRadius: 20,
+        marginBottom: 22,
+    },
+
+    // ================================================
+    // RESPONSIVE FORM CARD
+    // ================================================
+
+    mobileFormCard: {
+        padding: 14,
+        borderRadius: 16,
+    },
+
+    tabletFormCard: {
+        padding: 22,
+        borderRadius: 20,
+    },
+
+    desktopFormCard: {
+        padding: 25,
+        borderRadius: 22,
+    },
+
+    // ================================================
+    // IMAGE BUTTONS
+    // ================================================
+
+    imageButtons: {
+        flexDirection: 'row',
+        gap: 10,
+    },
+
+    mobileImageButtons: {
+        flexDirection: 'column',
+        gap: 8,
+    },
+
+    imageButton: {
+        flex: 1,
+    },
+
+    // ================================================
+    // IMAGE PREVIEW
+    // ================================================
+
+    previewImage: {
+        width: '100%',
+        height: 250,
+        borderRadius: 12,
+        marginTop: 10,
+    },
+
+    mobilePreviewImage: {
+        height: 200,
+    },
+
+    desktopPreviewImage: {
+        height: 350,
+    },
+
+    // ================================================
+    // RESPONSIVE SUBMIT BUTTON
+    // ================================================
+
+    mobileSubmitButton: {
+        width: '100%',
+        height: 54,
+        borderRadius: 14,
+    },
+
+    tabletSubmitButton: {
+        width: '100%',
+        height: 58,
+    },
+
+    desktopSubmitButton: {
+        width: '100%',
+        height: 60,
+        borderRadius: 16,
     },
 
 });

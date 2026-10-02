@@ -5,9 +5,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.project.ComplaintApp.config.AuthorizationUtil;
 import com.project.ComplaintApp.dto.ComplaintRequest;
 import com.project.ComplaintApp.dto.ComplaintResponse;
 import com.project.ComplaintApp.entities.Category;
@@ -72,6 +75,7 @@ public class ComplaintService {
     }
 
     public List<ComplaintResponse> getMyComplaints(Long userId) {
+        AuthorizationUtil.checkUserAccess(userId);
         List<Complaint> complaints = complaintRepository.findByUserId(userId);
 
         List<ComplaintResponse> response = new ArrayList<>();
