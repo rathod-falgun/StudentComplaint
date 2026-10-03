@@ -62,6 +62,7 @@ public class ComplaintService {
 
                 String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
                 String path = uploadDir + fileName;
+                System.out.println(path);
                 image.transferTo(new File(path));
                 complaint.setImagePath(fileName);
                 System.out.println("Image is saved into complaint");

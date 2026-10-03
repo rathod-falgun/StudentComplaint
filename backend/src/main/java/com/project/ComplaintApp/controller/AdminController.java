@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -36,7 +37,7 @@ public class AdminController {
     }
 
     @GetMapping("/complaints")
-    public ResponseEntity<Page<ComplaintResponse>> getComplaints(
+    public ResponseEntity<PagedModel<ComplaintResponse>> getComplaints(
         @PageableDefault(size = 5 ,sort = "createdAt" , direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(adminService.getComplaints(pageable));
     }

@@ -1,64 +1,128 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { API_BASE_URL } from '@/constants/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 
+import { API_BASE_URL } from '@/constants/api';
+import { saveAuthData } from '@/utils/authStorage';
 
 export default function Login() {
-
-  const [email, setemail] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', "All Fields are Required");
+    if (!email.trim() || !password) {
+      Alert.alert('Error', 'All Fields are Required');
       return;
     }
-    try {
 
-      console.log("base api url : ", API_BASE_URL);
+    try {
+      console.log('Base API URL:', API_BASE_URL);
 
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`,
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/auth/login`,
         {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json' 
+          headers: {
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ email: email.trim(), password }),
-        });
-        
+          body: JSON.stringify({
+            email: email.trim(),
+            password: password,
+          }),
+        }
+      );
+
       const data = await response.json();
-      // save the jwt token
-      await AsyncStorage.setItem("token" , data.token);
-      await AsyncStorage.setItem("userId" , data.userId);
 
-      const token = await AsyncStorage.getItem("token");
-      
-      console.log("Saved JWT:", token);
+      console.log('Full Login Response:', data);
 
-      console.log("\n Full Login Response : ", data);
-
+      // ==========================================
+      // LOGIN SUCCESS
+      // ==========================================
       if (response.ok) {
-        const userRole = data.role ? String(data.role).trim().toUpperCase() : null;
+        const userRole = data.role
+          ? String(data.role).trim().toUpperCase()
+          : null;
 
-        if (!userRole) {
-          Alert.alert('Login Failed', 'User role was not provided by the server');
+        // Check token
+        if (!data.token) {
+          Alert.alert(
+            'Login Failed',
+            'JWT token was not provided by the server.'
+          );
           return;
         }
 
-        console.log("LOGIN SUCCESS - userId:", data.userId, "name:", data.name, "role:", userRole);
+        // Check role
+        if (!userRole) {
+          Alert.alert(
+            'Login Failed',
+            'User role was not provided by the server.'
+          );
+          return;
+        }
 
+        console.log(
+          'LOGIN SUCCESS - userId:',
+          data.userId,
+          'name:',
+          data.name,
+          'role:',
+          userRole
+        );
+
+        // ==========================================
+        // SAVE AUTH DATA SECURELY
+        // ==========================================
+        await saveAuthData(
+          data.token,
+          data.userId,
+          {
+            name: data.name,
+            email: data.email,
+            role: userRole,
+          }
+        );
+
+        console.log('JWT saved securely in SecureStore');
+
+        // ==========================================
+        // ADMIN
+        // ==========================================
         if (userRole === 'ADMIN') {
-          console.log("Navigating to Admin Dashboard (/admin/dashboard)...");
+          console.log(
+            'Navigating to Admin Dashboard...'
+          );
+
           router.replace({
             pathname: '/admin/dashboard' as any,
-            params: { name: data.name, userId: data.userId, email: data.email, role: userRole },
+            params: {
+              name: data.name,
+              userId: data.userId,
+              email: data.email,
+              role: userRole,
+            },
           });
         }
+
+        // ==========================================
+        // STUDENT
+        // ==========================================
         else if (userRole === 'STUDENT') {
+          console.log(
+            'Navigating to Student Dashboard...'
+          );
+
           router.replace({
             pathname: '/dashboard',
             params: {
@@ -69,25 +133,63 @@ export default function Login() {
             },
           });
         }
+
+        // ==========================================
+        // UNKNOWN ROLE
+        // ==========================================
         else {
-          console.log("Navigating to Student Dashboard (/dashboard)...");
+          console.log(
+            'Unknown role. Going to Student Dashboard...'
+          );
+
           router.replace({
             pathname: '/dashboard',
-            params: { name: data.name, userId: data.userId, email: data.email, role: userRole },
+            params: {
+              name: data.name,
+              userId: data.userId,
+              email: data.email,
+              role: userRole,
+            },
           });
         }
-      } else {
-        const failureMsg = data.message || data.error || "Login Failed: Invalid credentials";
-        console.error("LOGIN FAILED DETAILS:", failureMsg);
-        Alert.alert('Login Failed', failureMsg);
+      }
+
+      // ==========================================
+      // LOGIN FAILED
+      // ==========================================
+      else {
+        const failureMsg =
+          data.message ||
+          data.error ||
+          'Login Failed: Invalid credentials';
+
+        console.error(
+          'LOGIN FAILED DETAILS:',
+          failureMsg
+        );
+
+        Alert.alert(
+          'Login Failed',
+          failureMsg
+        );
       }
     } catch (error: any) {
-      console.error("LOGIN CONNECTION ERROR DETAILS:", error);
-      Alert.alert('Connection Error', `Unable to connect to server: ${error?.message || error}`);
+      console.error(
+        'LOGIN CONNECTION ERROR DETAILS:',
+        error
+      );
+
+      Alert.alert(
+        'Connection Error',
+        `Unable to connect to server: ${
+          error?.message || error
+        }`
+      );
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <View style={styles.container}>
 
@@ -104,8 +206,9 @@ export default function Login() {
         placeholder="Student ID / Email"
         placeholderTextColor="#777"
         autoCapitalize="none"
+        keyboardType="email-address"
         value={email}
-        onChangeText={setemail}
+        onChangeText={setEmail}
       />
 
       <TextInput
@@ -117,9 +220,13 @@ export default function Login() {
         onChangeText={setPassword}
       />
 
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginButtonText} >
-          Login
+      <TouchableOpacity
+        style={styles.loginButton}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        <Text style={styles.loginButtonText}>
+          {loading ? 'Logging in...' : 'Login'}
         </Text>
       </TouchableOpacity>
 
@@ -138,55 +245,52 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
     justifyContent: 'center',
-    padding: 25,
+    padding: 20,
+    backgroundColor: '#fff',
   },
 
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#000000',
     textAlign: 'center',
     marginBottom: 10,
   },
 
   subtitle: {
     fontSize: 16,
-    color: '#555555',
     textAlign: 'center',
+    color: '#666',
     marginBottom: 30,
   },
 
   input: {
-    height: 50,
     borderWidth: 1,
-    borderColor: '#cccccc',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    color: '#000000',
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 14,
     marginBottom: 15,
+    fontSize: 16,
   },
 
   loginButton: {
-    height: 50,
     backgroundColor: '#007AFF',
-    borderRadius: 8,
-    justifyContent: 'center',
+    padding: 15,
+    borderRadius: 10,
     alignItems: 'center',
     marginTop: 10,
   },
 
   loginButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
+    color: '#fff',
+    fontSize: 17,
     fontWeight: 'bold',
   },
 
   registerText: {
-    color: '#007AFF',
     textAlign: 'center',
     marginTop: 20,
+    color: '#007AFF',
     fontSize: 15,
   },
 });

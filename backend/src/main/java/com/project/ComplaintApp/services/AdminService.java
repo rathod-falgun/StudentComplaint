@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 
 import com.project.ComplaintApp.Enums.ComplaintStatus;
 import com.project.ComplaintApp.dto.AdminDashboardResponse;
@@ -43,9 +44,9 @@ public class AdminService {
         return new AdminDashboardResponse(total, submitted, assigned, inProgress, resolved, finalComplaints);
     }
 
-    public Page<ComplaintResponse> getComplaints(Pageable pageable) {
+    public PagedModel<ComplaintResponse> getComplaints(Pageable pageable) {
         Page<Complaint> complaints = complaintRepository.findAll(pageable);
-        return complaints.map(ComplaintResponse::fromEntity);
+        return new PagedModel<>(complaints.map(ComplaintResponse::fromEntity));
     }
 
     public List<ComplaintResponse> getAllComplaints(){

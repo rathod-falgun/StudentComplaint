@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import { useResponsive } from '../constants/responsive';
+import { clearAuthToken } from '@/utils/authStorage';
 
 export default function Default() {
 
@@ -22,7 +23,8 @@ export default function Default() {
 
     const { isMobile, isTablet, isDesktop } = useResponsive();
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await clearAuthToken();
         router.replace('/login');
     };
 

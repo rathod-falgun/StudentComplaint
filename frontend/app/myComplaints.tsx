@@ -13,7 +13,7 @@ import {
 
 import { useResponsive } from "@/constants/responsive";
 import { apiFetch } from "@/constants/api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getUserData, getUserId } from "@/utils/authStorage";
 
 type Complaint = {
     id: number;
@@ -46,11 +46,8 @@ export default function MyComplaints() {
 
     useEffect( () => {
         const loadUser = async() => {
-            const userId = await AsyncStorage.getItem("userId");
-            const name = await AsyncStorage.getItem("name");
-
+            const userId = await getUserId();
               console.log("Global User ID:", userId);
-        console.log("Global Name:", name);
 
         setuserId(userId);
         setname(name);

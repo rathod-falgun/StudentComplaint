@@ -1,5 +1,5 @@
 import { apiFetch } from "@/constants/api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getUserId } from "@/utils/authStorage";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
 import { useEffect, useState } from "react";
@@ -23,7 +23,7 @@ export default function Profile() {
     const [loading, setloading] = useState(true);
 
     const getProfile = async () => {
-        const userId = await AsyncStorage.getItem("userId");
+        const userId = await getUserId();
         try {
             console.log("Fetching profile for user:", userId);
             const response = await apiFetch(`/api/users/getProfile/${userId}`);

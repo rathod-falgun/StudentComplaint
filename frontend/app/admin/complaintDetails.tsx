@@ -42,7 +42,7 @@ export default function AdminComplaintDetails() {
 const [totalPages, setTotalPages] = useState(0);
 const [totalComplaints, setTotalComplaints] = useState(0);
 
-  const API_BASE = `${API_BASE_URL}/api/admin/complaints`;
+  const API_BASE = `${API_BASE_URL}`;
 
   const fetchComplaintDetails = async () => {
     console.log("========== FETCH COMPLAINT DETAILS ==========");
@@ -147,16 +147,16 @@ const [totalComplaints, setTotalComplaints] = useState(0);
   const statusColor = (status: string) => {
     switch (status) {
       case 'SUBMITTED':
-        return { bg: '#FFF4E5', text: '#B8710A' };
+        return { bg: '#d88919', text: '#B8710A' };
 
       case 'ASSIGNED':
-        return { bg: '#F3E8FF', text: '#7E22CE' };
+        return { bg: '#2f13e4', text: '#7E22CE' };
 
       case 'IN_PROGRESS':
-        return { bg: '#E8F0FF', text: '#2563EB' };
+        return { bg: '#dceb11', text: '#2563EB' };
 
       case 'RESOLVED':
-        return { bg: '#E7F8EE', text: '#1D9A5C' };
+        return { bg: '#1a6e07', text: '#1D9A5C' };
 
       default:
         return { bg: '#F0F2F6', text: '#465267' };
@@ -166,9 +166,9 @@ const [totalComplaints, setTotalComplaints] = useState(0);
   const priorityColor = (priority: string) => {
     switch (priority) {
       case 'LOW':
-        return { bg: '#EEF6FF', text: '#3B82F6' };
+        return { bg: '#afb4b5', text: '#3B82F6' };
       case 'MEDIUM':
-        return { bg: '#FFF7E5', text: '#D97706' };
+        return { bg: '#474747', text: '#D97706' };
       case 'HIGH':
         return { bg: '#FDECEC', text: '#DC2626' };
       default:
@@ -293,6 +293,7 @@ const [totalComplaints, setTotalComplaints] = useState(0);
 
               {showImage && (
                 <Image
+                
                   source={{ uri: `${API_BASE}/uploads/${complaint.imageUrl}` }}
                   style={styles.attachedImage}
                   resizeMode="cover"

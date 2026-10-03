@@ -1,10 +1,20 @@
+import { apiFetch } from '@/constants/api';
 import { router } from 'expo-router';
-import React from 'react';
-import { useState } from 'react';
-// @ts-ignore React Native types may be unavailable in the current TypeScript setup.
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { Dropdown } from 'react-native-element-dropdown';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
+import { Dropdown } from 'react-native-element-dropdown';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
@@ -15,8 +25,7 @@ export default function RegisterScreen() {
   const [department, setDepartment] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
 
-    const API_URL = process.env.EXPO_PUBLIC_API_BASE;
-
+  const API_URL = process.env.EXPO_PUBLIC_API_BASE;
 
   const departmentData = [
     { label: 'Computer Engineering (CO)', value: 'CO' },
@@ -28,51 +37,62 @@ export default function RegisterScreen() {
     { label: 'Electrical Engineering', value: 'EE' },
   ];
 
-
   const handleRegister = async () => {
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'All fields are required');
       return;
     }
 
+    if (!department) {
+      Alert.alert('Error', 'Please select your department');
+      return;
+    }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!emailRegex.test(email)) {
       Alert.alert('Error', 'Enter a valid email');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      Alert.alert(
+        'Error',
+        'Password must be at least 6 characters'
+      );
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert(
+        'Error',
+        'Passwords do not match'
+      );
       return;
     }
+
     try {
       setLoading(true);
 
-      const response = await fetch(
-        '${API_URL}/api/auth/register',
+      const response = await apiFetch(
+        `/api/auth/register`,
         {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(
-          {
+          method: 'POST',
+
+          body: JSON.stringify({
             name: name.trim(),
             email: email.trim(),
-            password: password
-          }
-        ),
-      }
+            password: password,
+            department: department,
+          }),
+        }
       );
-      const data = await response.json();
-      console.log('Backend response:', data.message);
 
-      if (response.ok && data.message) {
+      const data = await response.json();
+
+      console.log('Backend response:', data);
+
+      if (response.ok) {
         Alert.alert(
           'Registration Successful',
           'Your account has been created successfully.',
@@ -85,10 +105,11 @@ export default function RegisterScreen() {
         );
       } else {
         Alert.alert(
-          'Already Registration ',
+          'Registration Failed',
           data.message || 'Something went wrong'
         );
       }
+
     } catch (error) {
       console.log('Registration error:', error);
 
@@ -103,115 +124,468 @@ export default function RegisterScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Create Account</Text>
-      <Text style={styles.subtitle}>Register to get started</Text>
+    <KeyboardAvoidingView
+      style={styles.keyboardContainer}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
 
-      <TextInput
-        style={styles.input}
-        placeholder="Full Name"
-        placeholderTextColor="#f1e7e7"
-        value={name}
-        onChangeText={setName}
-      />
+        {/* ================================
+            HEADER
+        ================================= */}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#777"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
+        <View style={styles.header}>
+          <View style={styles.logoCircle}>
+            <Text style={styles.logoText}>C</Text>
+          </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#777"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+          <Text style={styles.title}>
+            Create Account
+          </Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        placeholderTextColor="#f0e8e8"
-        secureTextEntry
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-      />
+          <Text style={styles.subtitle}>
+            Join the College Complaint App
+          </Text>
+        </View>
 
-       <Dropdown
-        style={[styles.dropdown, isFocus && { borderColor: '#f0e8e8' }]}
-        placeholderStyle={styles.placeholderStyle}
-        selectedTextStyle={styles.selectedTextStyle}
-        inputSearchStyle={styles.inputSearchStyle}
-        iconStyle={styles.iconStyle}
-        data={departmentData}
-        search
-        maxHeight={300}
-        labelField="label"
-        valueField="value"
-        placeholder={!isFocus ? 'Select Department' : '...'}
-        searchPlaceholder="Search department..."
-        value={department}
-        onFocus={() => setIsFocus(true)}
-        onBlur={() => setIsFocus(false)}
-        onChange={item => {
-          setDepartment(item.value);
-          setIsFocus(false);
-        }}
-      />
 
-      <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-        <Text style={styles.registerButtonText}>Register</Text>
-      </TouchableOpacity>
+        {/* ================================
+            REGISTRATION CARD
+        ================================= */}
 
-      <TouchableOpacity onPress={() => router.push('/login')}>
-        <Text style={styles.loginText}>Already have an account? Login</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <View style={styles.card}>
+
+          {/* Full Name */}
+
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>
+              Full Name
+            </Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your full name"
+              placeholderTextColor="#8D8D98"
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+            />
+          </View>
+
+
+          {/* Email */}
+
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>
+              Email Address
+            </Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your email"
+              placeholderTextColor="#8D8D98"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </View>
+
+
+          {/* Password */}
+
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>
+              Password
+            </Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Create a password"
+              placeholderTextColor="#8D8D98"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+          </View>
+
+
+          {/* Confirm Password */}
+
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>
+              Confirm Password
+            </Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Confirm your password"
+              placeholderTextColor="#8D8D98"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+          </View>
+
+
+          {/* Department */}
+
+          <View style={styles.fieldContainer}>
+            <Text style={styles.label}>
+              Department
+            </Text>
+
+            <Dropdown
+              style={[
+                styles.dropdown,
+                isFocus && styles.dropdownFocused,
+              ]}
+              placeholderStyle={styles.placeholderStyle}
+              selectedTextStyle={styles.selectedTextStyle}
+              inputSearchStyle={styles.inputSearchStyle}
+              iconStyle={styles.iconStyle}
+              data={departmentData}
+              search
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              placeholder={
+                !isFocus
+                  ? 'Select your department'
+                  : '...'
+              }
+              searchPlaceholder="Search department..."
+              value={department}
+              onFocus={() => setIsFocus(true)}
+              onBlur={() => setIsFocus(false)}
+              onChange={(item) => {
+                setDepartment(item.value);
+                setIsFocus(false);
+              }}
+              dropdownPosition="top"
+              containerStyle={styles.dropdownContainer}
+            />
+          </View>
+
+
+          {/* Register Button */}
+
+          <TouchableOpacity
+            style={[
+              styles.registerButton,
+              loading && styles.registerButtonDisabled,
+            ]}
+            onPress={handleRegister}
+            disabled={loading}
+            activeOpacity={0.8}
+          >
+
+            {loading ? (
+              <>
+                <ActivityIndicator
+                  size="small"
+                  color="#FFFFFF"
+                />
+
+                <Text style={styles.registerButtonText}>
+                  Creating Account...
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.registerButtonText}>
+                Create Account
+              </Text>
+            )}
+
+          </TouchableOpacity>
+
+        </View>
+
+
+        {/* ================================
+            LOGIN SECTION
+        ================================= */}
+
+        <View style={styles.loginContainer}>
+
+          <Text style={styles.loginQuestion}>
+            Already have an account?
+          </Text>
+
+          <TouchableOpacity
+            onPress={() => router.push('/login')}
+          >
+            <Text style={styles.loginText}>
+              Login
+            </Text>
+          </TouchableOpacity>
+
+        </View>
+
+
+        {/* Footer */}
+
+        <Text style={styles.footerText}>
+          College Complaint Management System
+        </Text>
+
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, backgroundColor: '#382525', justifyContent: 'center', padding: 25 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#f2eded', textAlign: 'center', marginBottom: 10 },
-  subtitle: { fontSize: 16, color: '#a19898', textAlign: 'center', marginBottom: 30 },
-  input: { height: 50, borderWidth: 1, borderColor: '#fef8f8', borderRadius: 8, paddingHorizontal: 15, color: '#f2ebeb', marginBottom: 15 },
-  registerButton: { height: 50, backgroundColor: '#007AFF', borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginTop: 10 },
-  registerButtonText: { color: '#b3a7a7', fontSize: 18, fontWeight: 'bold' },
-  loginText: { color: '#007AFF', textAlign: 'center', marginTop: 20, fontSize: 15 },
-  dropdown: {
-    height: 50,
-    borderColor: '#f0e8e8',
+
+  /* =====================================
+     MAIN CONTAINER
+  ====================================== */
+
+  keyboardContainer: {
+    flex: 1,
+    backgroundColor: '#17171C',
+  },
+
+  container: {
+    flexGrow: 1,
+    backgroundColor: '#17171C',
+    paddingHorizontal: 22,
+    paddingVertical: 35,
+    justifyContent: 'center',
+  },
+
+
+  /* =====================================
+     HEADER
+  ====================================== */
+
+  header: {
+    alignItems: 'center',
+    marginBottom: 28,
+  },
+
+  logoCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+
+    shadowColor: '#007AFF',
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+
+  logoText: {
+    color: '#FFFFFF',
+    fontSize: 32,
+    fontWeight: '800',
+  },
+
+  title: {
+    fontSize: 30,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    letterSpacing: 0.3,
+  },
+
+  subtitle: {
+    marginTop: 8,
+    fontSize: 15,
+    color: '#9B9BA5',
+    textAlign: 'center',
+  },
+
+
+  /* =====================================
+     CARD
+  ====================================== */
+
+  card: {
+    backgroundColor: '#222229',
+    borderRadius: 20,
+    padding: 22,
+
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    backgroundColor: 'transparent', // Match your background color here
+    borderColor: '#303038',
+
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
+    elevation: 8,
   },
+
+
+  /* =====================================
+     FORM FIELDS
+  ====================================== */
+
+  fieldContainer: {
+    marginBottom: 17,
+  },
+
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#E8E8ED',
+    marginBottom: 8,
+  },
+
+  input: {
+    height: 52,
+    borderWidth: 1,
+    borderColor: '#3A3A44',
+    borderRadius: 11,
+
+    backgroundColor: '#1B1B21',
+
+    paddingHorizontal: 15,
+
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+
+
+  /* =====================================
+     DROPDOWN
+  ====================================== */
+
+  dropdown: {
+    height: 52,
+
+    borderWidth: 1,
+    borderColor: '#3A3A44',
+    borderRadius: 11,
+
+    paddingHorizontal: 14,
+
+    backgroundColor: '#1B1B21',
+  },
+
+  dropdownFocused: {
+    borderColor: '#007AFF',
+  },
+
   placeholderStyle: {
-    fontSize: 16,
-    color: '#f0e8e8', // Matches your template text color
+    fontSize: 15,
+    color: '#8D8D98',
   },
+
   selectedTextStyle: {
-    fontSize: 16,
-    color: '#ffffff', // Color of text after selection
+    fontSize: 15,
+    color: '#FFFFFF',
   },
+
+  inputSearchStyle: {
+    height: 42,
+    fontSize: 15,
+    borderRadius: 8,
+    color: '#222222',
+  },
+
   iconStyle: {
     width: 20,
     height: 20,
-    tintColor: '#f0e8e8',
   },
-  inputSearchStyle: {
-    height: 40,
-    fontSize: 16,
-    borderRadius: 8,
-  }
-});
 
-function setLoading(arg0: boolean) {
-  throw new Error('Function not implemented.');
-}
+  dropdownContainer: {
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#DDDDDD',
+  },
+
+
+  /* =====================================
+     REGISTER BUTTON
+  ====================================== */
+
+  registerButton: {
+    height: 53,
+
+    backgroundColor: '#007AFF',
+
+    borderRadius: 11,
+
+    justifyContent: 'center',
+    alignItems: 'center',
+
+    flexDirection: 'row',
+
+    marginTop: 5,
+
+    shadowColor: '#007AFF',
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+
+  registerButtonDisabled: {
+    opacity: 0.7,
+  },
+
+  registerButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+    marginLeft: 8,
+  },
+
+
+  /* =====================================
+     LOGIN
+  ====================================== */
+
+  loginContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+
+    marginTop: 25,
+  },
+
+  loginQuestion: {
+    color: '#8D8D98',
+    fontSize: 14,
+  },
+
+  loginText: {
+    color: '#4DA3FF',
+    fontSize: 14,
+    fontWeight: '700',
+    marginLeft: 5,
+  },
+
+
+  /* =====================================
+     FOOTER
+  ====================================== */
+
+  footerText: {
+    color: '#5E5E68',
+    fontSize: 11,
+    textAlign: 'center',
+    marginTop: 28,
+  },
+
+}); 

@@ -18,7 +18,10 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useResponsive } from '@/constants/responsive';
 import { apiFetch } from '@/constants/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetch as expoFetch } from "expo/fetch";
+import { File } from 'expo-file-system';
+import { getToken, getUserId } from '@/utils/authStorage';
+
 
 // =====================================================
 // COMPONENT
@@ -44,24 +47,22 @@ export default function AddComplaint() {
 
     const [imageUrl, SetImageUrl] = useState<string | null>(null);
 
-    const [userId , setuserId] = useState<String | null>(null);
-        const [name , setname] = useState<String | null>(null);
+    const [userId, setuserId] = useState<String | null>(null);
+    const [name, setname] = useState<String | null>(null);
 
-    useEffect( () => {
-           const loadUser = async() => {
-               const userId = await AsyncStorage.getItem("userId");
-               const name = await AsyncStorage.getItem("name");
-   
-                 console.log("Global User ID:", userId);
-           console.log("Global Name:", name);
-   
-           setuserId(userId);
-           setname(name);
-           };
-           loadUser();
-       } , [userId]);
-   
-    
+    useEffect(() => {
+        const loadUser = async () => {
+            const userId = await getUserId();
+
+            console.log("Global User ID:", userId);
+
+            setuserId(userId);
+            setname(name);
+        };
+        loadUser();
+    }, []);
+
+
 
     const API_URL = process.env.EXPO_PUBLIC_API_BASE;
 
@@ -97,16 +98,16 @@ export default function AddComplaint() {
 
     useEffect(() => {
         apiFetch(`/api/complaints/categories`).
-            then(res =>{
-                 if(!res.ok){
-                    console.log("Failed to load categories");   
+            then(res => {
+                if (!res.ok) {
+                    console.log("Failed to load categories");
                 }
                 return res.json();
             })
             .then(data => setCategories(data))
             .catch(() => Alert.alert('Error', 'Could not load Categories'))
             .finally(() => setCategoriesLoading(false));
-    }, [userId]);
+    }, []);
 
 
     // =================================================
@@ -145,6 +146,7 @@ export default function AddComplaint() {
 
         try {
             const formData = new FormData();
+
             formData.append('title', title);
             formData.append('description', description);
             formData.append('categoryId', String(categoryId));
@@ -153,37 +155,37 @@ export default function AddComplaint() {
             console.log("STEP 3: TEXT FIELDS ADDED TO FORMDATA");
 
             if (imageUrl) {
+
                 console.log("STEP 4: IMAGE URI EXISTS:", imageUrl);
-
-                const fileName = imageUrl.split('/').pop() || `photo_${Date.now()}.jpg`;
-
-                const match = /\.(\w+)$/.exec(fileName);
-                const ext = match ? match[1].toLowerCase() : 'jpg';
-
-                const mimeType = ext === 'png' ? 'image/png' : 'image/' + ext;
-
-                console.log("STEP 5: FILENAME:", fileName, "MIME:", mimeType);
 
                 if (Platform.OS === 'web') {
                     // web 
-                    const iamgeResponse = await fetch(imageUrl);
-                    const blob = await iamgeResponse.blob();
+                    const imageResponse = await fetch(imageUrl);
+        const blob = await imageResponse.blob();
 
-                    const file = new File([blob], fileName, {
-                        type: mimeType,
-                    });
+        const webFile = new globalThis.File(
+            [blob],
+            imageUrl.split('/').pop() || `photo_${Date.now()}.jpg`,
+            {
+                type: blob.type || 'image/jpeg',
+            }
+        );
 
-                    formData.append('imageFile', file);
+        formData.append('imageFile', webFile);
 
-                    console.log("STEP 6: WEB FILE APPENDED TO FORMDATA");
+        console.log("STEP 5: WEB FILE ADDED");
 
                 } else {
                     // androin and ios
-                    formData.append('imageFile', {
-                        uri: imageUrl,
-                        name: fileName,
-                        type: mimeType,
-                    } as any);
+                    const file = new File(imageUrl);
+
+                    console.log("STEP 5: EXPO FILE CREATED");
+                    console.log("File URI:", file.uri);
+                    console.log("File name:", file.name);
+                    console.log("File type:", file.type);
+
+                    formData.append("imageFile", file);
+
                     console.log("STEP 6: MOBILE FILE APPENDED TO FORMDATA");
 
                 }
@@ -195,29 +197,43 @@ export default function AddComplaint() {
 
             console.log("STEP 7: ABOUT TO CALL setLoading(true)");
             setLoading(true);
+             const token = await getToken();
 
-            console.log("STEP 8: ABOUT TO FETCH");
-            const response = await apiFetch(
-    `/api/complaints/${userId}`,
-    {
-        method: "POST",
-        body: formData,
-    }
-);
+        if (!token) {
+            Alert.alert("Session Expired", "Please login again.");
+            return;
+        }
+
+
+            console.log("STEP 8: ABOUT TO CALL API FETCH");
+            const response = await expoFetch(
+                    `${API_URL}/api/complaints/${userId}`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+
+                },
+                body: formData,
+            }
+            );
+
+
 
 
             console.log("STEP 9: FETCH RETURNED, status:", response.status);
+                    console.log("Response status:", response.status);
+
 
             if (!response.ok) {
-    const errorText = await response.text();
+                const errorText = await response.text();
 
-    console.log("API ERROR STATUS:", response.status);
-    console.log("API ERROR BODY:", errorText);
+                console.log("API ERROR STATUS:", response.status);
+                console.log("API ERROR BODY:", errorText);
 
-    throw new Error(
-        errorText || `Failed to submit complaint (${response.status})`
-    );
-}
+                throw new Error(
+                    errorText || `Failed to submit complaint (${response.status})`
+                );
+            }
             const data = await response.json();
             console.log("STEP 10: JSON PARSED:", data);
 
@@ -294,15 +310,15 @@ export default function AddComplaint() {
         >
 
             <ScrollView
-    contentContainerStyle={[
-        styles.container,
-        isMobile && styles.mobileContainer,
-        isTablet && styles.tabletContainer,
-        isDesktop && styles.desktopContainer,
-    ]}
-    keyboardShouldPersistTaps="handled"
-    showsVerticalScrollIndicator={false}
->
+                contentContainerStyle={[
+                    styles.container,
+                    isMobile && styles.mobileContainer,
+                    isTablet && styles.tabletContainer,
+                    isDesktop && styles.desktopContainer,
+                ]}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+            >
 
                 {/* ===================================== */}
                 {/* HEADER */}
@@ -320,13 +336,13 @@ export default function AddComplaint() {
 
                     <View style={styles.headerContent}>
 
-<Text
-    style={[
-        styles.headerTitle,
-        isMobile && styles.mobileHeaderTitle,
-        isDesktop && styles.desktopHeaderTitle,
-    ]}
->                            Submit a Complaint
+                        <Text
+                            style={[
+                                styles.headerTitle,
+                                isMobile && styles.mobileHeaderTitle,
+                                isDesktop && styles.desktopHeaderTitle,
+                            ]}
+                        >                            Submit a Complaint
                         </Text>
 
                         <Text style={styles.headerSubtitle}>
@@ -370,14 +386,14 @@ export default function AddComplaint() {
                 {/* FORM CARD */}
                 {/* ===================================== */}
 
-<View
-    style={[
-        styles.formCard,
-        isMobile && styles.mobileFormCard,
-        isTablet && styles.tabletFormCard,
-        isDesktop && styles.desktopFormCard,
-    ]}
->
+                <View
+                    style={[
+                        styles.formCard,
+                        isMobile && styles.mobileFormCard,
+                        isTablet && styles.tabletFormCard,
+                        isDesktop && styles.desktopFormCard,
+                    ]}
+                >
 
                     {/* ================================= */}
                     {/* TITLE */}
@@ -606,44 +622,44 @@ export default function AddComplaint() {
                             <Text style={styles.optional}>Optional</Text>
                         </View>
 
-                       <View
-    style={[
-        styles.imageButtons,
-        isMobile && styles.mobileImageButtons,
-    ]}
->
-    <TouchableOpacity
-        onPress={takePhoto}
-        style={[
-            styles.dropdown,
-            styles.imageButton,
-        ]}
-    >
-        <Text style={styles.dropdownText}>📷 Camera</Text>
-    </TouchableOpacity>
+                        <View
+                            style={[
+                                styles.imageButtons,
+                                isMobile && styles.mobileImageButtons,
+                            ]}
+                        >
+                            <TouchableOpacity
+                                onPress={takePhoto}
+                                style={[
+                                    styles.dropdown,
+                                    styles.imageButton,
+                                ]}
+                            >
+                                <Text style={styles.dropdownText}>📷 Camera</Text>
+                            </TouchableOpacity>
 
-    <TouchableOpacity
-        onPress={pickImage}
-        style={[
-            styles.dropdown,
-            styles.imageButton,
-        ]}
-    >
-        <Text style={styles.dropdownText}>🖼️ Gallery</Text>
-    </TouchableOpacity>
-</View>
+                            <TouchableOpacity
+                                onPress={pickImage}
+                                style={[
+                                    styles.dropdown,
+                                    styles.imageButton,
+                                ]}
+                            >
+                                <Text style={styles.dropdownText}>🖼️ Gallery</Text>
+                            </TouchableOpacity>
+                        </View>
 
-                      {imageUrl && (
-    <Image
-        source={{ uri: imageUrl }}
-        style={[
-            styles.previewImage,
-            isMobile && styles.mobilePreviewImage,
-            isDesktop && styles.desktopPreviewImage,
-        ]}
-        contentFit="cover"
-    />
-)}
+                        {imageUrl && (
+                            <Image
+                                source={{ uri: imageUrl }}
+                                style={[
+                                    styles.previewImage,
+                                    isMobile && styles.mobilePreviewImage,
+                                    isDesktop && styles.desktopPreviewImage,
+                                ]}
+                                contentFit="cover"
+                            />
+                        )}
                     </View>
 
                 </View>
@@ -653,16 +669,16 @@ export default function AddComplaint() {
                 {/* SUBMIT BUTTON */}
                 {/* ===================================== */}
 
-               <TouchableOpacity
-    activeOpacity={0.85}
-    onPress={handleSubmit}
-    style={[
-        styles.submitButton,
-        isMobile && styles.mobileSubmitButton,
-        isTablet && styles.tabletSubmitButton,
-        isDesktop && styles.desktopSubmitButton,
-        loading && styles.submitButtonDisabled,
-    ]}>
+                <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={handleSubmit}
+                    style={[
+                        styles.submitButton,
+                        isMobile && styles.mobileSubmitButton,
+                        isTablet && styles.tabletSubmitButton,
+                        isDesktop && styles.desktopSubmitButton,
+                        loading && styles.submitButtonDisabled,
+                    ]}>
 
                     {loading ? (
 
@@ -1460,7 +1476,7 @@ const styles = StyleSheet.create({
         borderRadius: 6,
         backgroundColor: '#24169f',
     },
-        // ================================================
+    // ================================================
     // RESPONSIVE CONTAINER
     // ================================================
 

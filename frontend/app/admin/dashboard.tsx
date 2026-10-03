@@ -12,7 +12,7 @@ import {
   FlatList,
   Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { clearAuthToken, getToken } from '@/utils/authStorage';
 
 type Stats = {
   totalComplaints: number;
@@ -57,7 +57,7 @@ export default function AdminDashboard() {
   const fetchData = async () => {
 
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = await getToken();
       console.log("\n admin token : ", token);
       console.log("Fetching admin dashboard : \n");
 
@@ -108,7 +108,7 @@ export default function AdminDashboard() {
     console.log("Logout started");
 
     try {
-      await AsyncStorage.removeItem("token");
+      await clearAuthToken();
 
       console.log("Token removed");
 
