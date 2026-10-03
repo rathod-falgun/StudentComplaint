@@ -135,6 +135,13 @@ export default function RootLayout() {
       <Stack>
 
         <Stack.Screen
+  name="register"
+  options={{
+    headerShown: false,
+  }}
+/>
+
+        <Stack.Screen
           name="login"
           options={{
             headerShown: false,

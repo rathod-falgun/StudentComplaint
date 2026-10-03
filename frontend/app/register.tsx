@@ -126,8 +126,23 @@ export default function RegisterScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'android' ? 'padding' : undefined}
     >
+      <View style={styles.topHeader}>
+  <TouchableOpacity
+    style={styles.backButton}
+    onPress={() => router.back()}
+    activeOpacity={0.7}
+  >
+    <Text style={styles.backArrow}>‹</Text>
+  </TouchableOpacity>
+
+  <Text style={styles.headerTitle}>
+    Register
+  </Text>
+
+  <View style={styles.headerSpacer} />
+</View>
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
@@ -139,9 +154,6 @@ export default function RegisterScreen() {
         ================================= */}
 
         <View style={styles.header}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>C</Text>
-          </View>
 
           <Text style={styles.title}>
             Create Account
@@ -510,7 +522,42 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DDDDDD',
   },
+topHeader: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  height: 55,
+  marginBottom: 10,
+},
 
+backButton: {
+  width: 42,
+  height: 42,
+  borderRadius: 21,
+  backgroundColor: '#222229',
+  borderWidth: 1,
+  borderColor: '#303038',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+
+backArrow: {
+  color: '#FFFFFF',
+  fontSize: 32,
+  fontWeight: '300',
+  lineHeight: 34,
+  marginTop: -3,
+},
+
+headerTitle: {
+  color: '#FFFFFF',
+  fontSize: 18,
+  fontWeight: '700',
+},
+
+headerSpacer: {
+  width: 42,
+},
 
   /* =====================================
      REGISTER BUTTON
