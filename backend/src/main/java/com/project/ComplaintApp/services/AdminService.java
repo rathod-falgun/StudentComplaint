@@ -22,9 +22,11 @@ public class AdminService {
 
     private final ComplaintRepository complaintRepository;
 
+    private final EmailService emailService;
 
-    public AdminService(ComplaintRepository complaintRepository ) {
+    public AdminService(ComplaintRepository complaintRepository, EmailService emailService) {
         this.complaintRepository = complaintRepository;
+        this.emailService = emailService;
     }
 
     public AdminDashboardResponse getDashboardStats() {
@@ -49,8 +51,8 @@ public class AdminService {
         return new PagedModel<>(complaints.map(ComplaintResponse::fromEntity));
     }
 
-    public List<ComplaintResponse> getAllComplaints(){
-       List<Complaint> complaints =  complaintRepository.findAll();
+    public List<ComplaintResponse> getAllComplaints() {
+        List<Complaint> complaints = complaintRepository.findAll();
         return complaints.stream().map(ComplaintResponse::fromEntity).collect(Collectors.toList());
     }
 
@@ -86,6 +88,24 @@ public class AdminService {
         System.out.println("New Status Before Save: " + complaint.getStatus());
 
         Complaint updated = complaintRepository.save(complaint);
+
+        // Send the status update email to the complaint owner
+        try {
+            String studentEmail = updated.getUser().getEmail();
+            String complaintTitle = updated.getTitle();
+
+            boolean emailSent = emailService.sendUpdateStatus(
+                    studentEmail,
+                    newStatus.toString(),
+                    complaintTitle,
+                    currentStatus.toString());
+
+            System.out.println("Status update email result: " + emailSent);
+        } catch (Exception e) {
+            // Do not let an email failure prevent the status update response
+            System.err.println("Failed to process status update email: " + e.getMessage());
+        }
+
         System.out.println("New Status After Save: " + updated.getStatus());
 
         return ComplaintResponse.fromEntity(updated);

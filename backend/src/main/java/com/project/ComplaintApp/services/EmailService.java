@@ -6,6 +6,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import com.project.ComplaintApp.dto.ComplaintResponse;
+
 import jakarta.mail.internet.MimeMessage;
 
 @Service
@@ -66,4 +68,56 @@ public class EmailService {
             return true;
         }
     }
+
+    public boolean sendUpdateStatus(String toEmail, String status, String title, String oldStatus) {
+
+        if (mailSender == null) {
+            System.err.println("Email not sent: JavaMailSender is not configured.");
+            return false;
+        }
+
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
+
+            helper.setFrom(fromEmail, "SCET Complaint Portal");
+            helper.setTo(toEmail);
+            helper.setSubject("Complaint Status Updated: " + status);
+
+            String htmlMsg = "<div style='font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:24px;border:1px solid #E2E8F0;border-radius:12px;'>"
+                    + "<h2 style='color:#2563EB;'>SCET Complaint Management System</h2>"
+                    + "<p>Hello Student,</p>"
+                    + "<p>The status of your complaint has been updated.</p>"
+                    + "<p><strong>Complaint:</strong> " + escapeHtml(title) + "</p>"
+                    + "<p><strong>Previous status:</strong> " + escapeHtml(oldStatus) + "</p>"
+                    + "<p><strong>New status:</strong> " + escapeHtml(status) + "</p>"
+                    + "<p>You can log in to the Complaint Portal to view your complaint details.</p>"
+                    + "<hr style='border:none;border-top:1px solid #E2E8F0;'/>"
+                    + "<p style='font-size:12px;color:#64748B;'>Automated message from SCET Complaint Management System.</p>"
+                    + "</div>";
+
+            helper.setText(htmlMsg, true);
+            mailSender.send(mimeMessage);
+
+            System.out.println("Status update email sent to: " + toEmail);
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("Failed to send status update email: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private String escapeHtml(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+
 }
