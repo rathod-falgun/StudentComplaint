@@ -41,5 +41,10 @@ public class User {
 
     private String department;
 
+    private String division;
+
+    @Column(name = "profile_photo")
+    private String profilePhotoPath;
+
     private LocalDateTime createdAt = LocalDateTime.now();
-}
+} 

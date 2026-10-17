@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { router } from "expo-router";
 import {
     View,
     Text,
@@ -7,13 +7,14 @@ import {
     FlatList,
     ActivityIndicator,
     RefreshControl,
-    Image,
-    TouchableOpacity
+    TouchableOpacity,
+    ScrollView,
 } from "react-native";
+import { Image } from "expo-image";
 
 import { useResponsive } from "@/constants/responsive";
-import { apiFetch } from "@/constants/api";
-import { getUserData, getUserId } from "@/utils/authStorage";
+import { apiFetch, API_BASE_URL } from "@/constants/api";
+import { getUserId } from "@/utils/authStorage";
 
 type Complaint = {
     id: number;
@@ -27,116 +28,317 @@ type Complaint = {
     imageUrl: string;
 };
 
-export default function MyComplaints() {
-
-    const { isMobile, isDesktop, isTablet } = useResponsive();
-
-
-
-    const API_URL = process.env.EXPO_PUBLIC_API_BASE;
-
-    const [complaints, setComplaints] = useState<Complaint[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [error, setError] = useState(false);
-    const [showImageId, setShowImageId] = useState<number | null>(null);
-
-    const [userId , setuserId] = useState<String | null>(null);
-    const [name , setname] = useState<String | null>(null);
-
-    useEffect( () => {
-        const loadUser = async() => {
-            const userId = await getUserId();
-              console.log("Global User ID:", userId);
-
-        setuserId(userId);
-        setname(name);
-        };
-        loadUser();
-    } , [userId]);
-
-    const fetchComplaints = async () => {
-    try {
-
-        const response = await apiFetch(`/api/complaints/getMyComplaint/${userId}`);
-        console.log(response.json);
-        if (!response.ok) {
-            let errorMessage = "Failed to fetch complaints";
-
-            try {
-                const errorData = await response.json();
-                console.log("API ERROR STATUS:", response.status);
-                console.log("API ERROR DATA:", errorData);
-                errorMessage = errorData.message || errorMessage;
-            } catch {
-                console.log("API ERROR STATUS:", response.status);
-            }
-
-            throw new Error(errorMessage);
-        }
-
-        const data = await response.json();
-
-        console.log("Complaints:", data);
-
-        setComplaints(data);
-        setError(false);
-    } catch (err) {
-        console.log("Fetch complaints error:", err);
-        setError(true);
-    } finally {
-        setLoading(false);
-        setRefreshing(false);
+const statusColor = (status: string) => {
+    switch (status) {
+        case "ASSIGNED":
+            return { bg: "#FFF4E5", text: "#B8710A" };
+        case "IN_PROGRESS":
+            return { bg: "#E8F0FF", text: "#2563EB" };
+        case "RESOLVED":
+            return { bg: "#E7F8EE", text: "#1D9A5C" };
+        default:
+            return { bg: "#F0F2F6", text: "#465267" };
     }
 };
 
-useEffect(()  => {
-    fetchComplaints();
-} ,[userId] );
+const priorityColor = (priority: string) => {
+    switch (priority) {
+        case "LOW":
+            return { bg: "#EEF6FF", text: "#3B82F6" };
+        case "MEDIUM":
+            return { bg: "#FFF7E5", text: "#D97706" };
+        case "HIGH":
+            return { bg: "#FDECEC", text: "#DC2626" };
+        default:
+            return { bg: "#F0F2F6", text: "#465267" };
+    }
+};
 
-    const statusColor = (status: string) => {
-        switch (status) {
-            case "ASSIGNED":
-                return { bg: "#FFF4E5", text: "#B8710A" };
+const formatDate = (dateStr: string) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
+};
 
-            case "IN_PROGRESS":
-                return { bg: "#E8F0FF", text: "#2563EB" };
+type ComplaintCardProps = {
+    item: Complaint;
+    isMobile: boolean;
+    isTablet: boolean;
+    isDesktop: boolean;
+};
 
-            case "RESOLVED":
-                return { bg: "#E7F8EE", text: "#1D9A5C" };
+// =====================================================
+// MEMOIZED COMPLAINT CARD
+// Encapsulates its own image toggle state so toggling view/hide
+// does NOT re-render any other complaint in the list.
+// =====================================================
+const ComplaintCard = React.memo(function ComplaintCard({
+    item,
+    isMobile,
+    isTablet,
+    isDesktop,
+}: ComplaintCardProps) {
+    const [showImage, setShowImage] = useState(false);
+    const status = statusColor(item.status);
+    const priority = priorityColor(item.priority);
 
-            default:
-                return { bg: "#F0F2F6", text: "#465267" };
+    return (
+        <View
+            style={[
+                styles.card,
+                isMobile && styles.mobileCard,
+                isTablet && styles.tabletCard,
+                isDesktop && styles.desktopCard,
+            ]}
+        >
+            {/* TOP ROW */}
+            <View
+                style={[
+                    styles.cardTopRow,
+                    isMobile && styles.mobileCardTopRow,
+                ]}
+            >
+                <View style={styles.categoryPill}>
+                    <Text style={styles.categoryPillText}>
+                        {item.category || "General"}
+                    </Text>
+                </View>
+
+                <View
+                    style={[
+                        styles.priorityPill,
+                        {
+                            backgroundColor: priority.bg,
+                        },
+                    ]}
+                >
+                    <Text
+                        style={[
+                            styles.priorityPillText,
+                            {
+                                color: priority.text,
+                            },
+                        ]}
+                    >
+                        {item.priority}
+                    </Text>
+                </View>
+            </View>
+
+            {/* TITLE */}
+            <Text
+                style={[
+                    styles.cardTitle,
+                    isMobile && styles.mobileCardTitle,
+                    isDesktop && styles.desktopCardTitle,
+                ]}
+            >
+                {item.title}
+            </Text>
+
+            {/* DESCRIPTION */}
+            <Text
+                style={[
+                    styles.cardDescription,
+                    isMobile && styles.mobileCardDescription,
+                ]}
+                numberOfLines={3}
+            >
+                {item.description}
+            </Text>
+
+            <View style={styles.divider} />
+
+            {/* BOTTOM INFORMATION */}
+            <View
+                style={[
+                    styles.cardBottomRow,
+                    isMobile && styles.mobileCardBottomRow,
+                    isTablet && styles.tabletCardBottomRow,
+                ]}
+            >
+                <View style={styles.dateBlock}>
+                    <Text style={styles.dateLabel}>Submitted</Text>
+                    <Text style={styles.dateValue}>
+                        {formatDate(item.createdAt)}
+                    </Text>
+                </View>
+
+                <View style={styles.dateBlock}>
+                    <Text style={styles.dateLabel}>Last updated</Text>
+                    <Text style={styles.dateValue}>
+                        {formatDate(item.updatedAt)}
+                    </Text>
+                </View>
+
+                <View
+                    style={[
+                        styles.statusPill,
+                        {
+                            backgroundColor: status.bg,
+                        },
+                    ]}
+                >
+                    <View
+                        style={[
+                            styles.statusDot,
+                            {
+                                backgroundColor: status.text,
+                            },
+                        ]}
+                    />
+
+                    <Text
+                        style={[
+                            styles.statusPillText,
+                            {
+                                color: status.text,
+                            },
+                        ]}
+                    >
+                        {item.status.replace("_", " ")}
+                    </Text>
+                </View>
+            </View>
+
+            {/* IMAGE BUTTON & VIEW */}
+            {item.imageUrl ? (
+                <>
+                    <TouchableOpacity
+                        activeOpacity={0.8}
+                        style={[
+                            styles.imageButton,
+                            isMobile && styles.mobileImageButton,
+                        ]}
+                        onPress={() => setShowImage((prev) => !prev)}
+                    >
+                        <Text style={styles.imageButtonText}>
+                            {showImage ? "Hide Image" : "View Image"}
+                        </Text>
+                    </TouchableOpacity>
+
+                    {/* EXPO IMAGE WITH PERSISTENT DISK/MEMORY CACHE */}
+                    {showImage && (
+                        <Image
+                            source={{
+                                uri: `${API_BASE_URL}/uploads/complaints/${item.imageUrl}`,
+                            }}
+                            style={[
+                                styles.complaintImage,
+                                isMobile && styles.mobileComplaintImage,
+                                isDesktop && styles.desktopComplaintImage,
+                            ]}
+                            contentFit="cover"
+                            cachePolicy="memory-disk"
+                            transition={150}
+                        />
+                    )}
+                </>
+            ) : null}
+        </View>
+    );
+});
+
+const STATUS_FILTERS = [
+    { key: "ALL", label: "All", icon: "📁" },
+    { key: "SUBMITTED", label: "Submitted", icon: "📝" },
+    { key: "ASSIGNED", label: "Assigned", icon: "👤" },
+    { key: "IN_PROGRESS", label: "In Progress", icon: "⏳" },
+    { key: "RESOLVED", label: "Resolved", icon: "✅" },
+] as const;
+
+export default function MyComplaints() {
+    const { isMobile, isDesktop, isTablet } = useResponsive();
+
+    const [complaints, setComplaints] = useState<Complaint[]>([]);
+    const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [error, setError] = useState(false);
+    const [userId, setuserId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const loadUser = async () => {
+            const id = await getUserId();
+            console.log("Global User ID:", id);
+            setuserId(id);
+        };
+        loadUser();
+    }, []);
+
+    const fetchComplaints = async () => {
+        if (!userId) return;
+        try {
+            const response = await apiFetch(`/api/complaints/getMyComplaint/${userId}`);
+            if (!response.ok) {
+                let errorMessage = "Failed to fetch complaints";
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorMessage;
+                } catch {
+                    console.log("API ERROR STATUS:", response.status);
+                }
+                throw new Error(errorMessage);
+            }
+
+            const data = await response.json();
+            setComplaints(data);
+            setError(false);
+        } catch (err) {
+            console.log("Fetch complaints error:", err);
+            setError(true);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
         }
     };
 
-    const priorityColor = (priority: string) => {
-        switch (priority) {
-            case "LOW":
-                return { bg: "#EEF6FF", text: "#3B82F6" };
-
-            case "MEDIUM":
-                return { bg: "#FFF7E5", text: "#D97706" };
-
-            case "HIGH":
-                return { bg: "#FDECEC", text: "#DC2626" };
-
-            default:
-                return { bg: "#F0F2F6", text: "#465267" };
+    useEffect(() => {
+        if (userId) {
+            fetchComplaints();
         }
-    };
+    }, [userId]);
 
-    const formatDate = (dateStr: string) => {
-        if (!dateStr) return "-";
-
-        const d = new Date(dateStr);
-
-        return d.toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
+    // Calculate counts for each status
+    const statusCounts = useMemo(() => {
+        const counts: Record<string, number> = {
+            ALL: complaints.length,
+            SUBMITTED: 0,
+            ASSIGNED: 0,
+            IN_PROGRESS: 0,
+            RESOLVED: 0,
+        };
+        complaints.forEach((c) => {
+            if (counts[c.status] !== undefined) {
+                counts[c.status]++;
+            }
         });
-    };
+        return counts;
+    }, [complaints]);
+
+    // Filter complaints based on selected status tab
+    const filteredComplaints = useMemo(() => {
+        if (selectedStatus === "ALL") {
+            return complaints;
+        }
+        return complaints.filter((c) => c.status === selectedStatus);
+    }, [complaints, selectedStatus]);
+
+    const renderComplaintItem = useCallback(
+        ({ item }: { item: Complaint }) => (
+            <ComplaintCard
+                item={item}
+                isMobile={isMobile}
+                isTablet={isTablet}
+                isDesktop={isDesktop}
+            />
+        ),
+        [isMobile, isTablet, isDesktop]
+    );
 
     if (loading) {
         return (
@@ -205,14 +407,90 @@ useEffect(()  => {
                         isMobile && styles.mobilePageSubtitle,
                     ]}
                 >
-                    {complaints.length} complaint
-                    {complaints.length !== 1 ? "s" : ""} submitted
+                    {selectedStatus === "ALL"
+                        ? `${complaints.length} complaint${complaints.length !== 1 ? "s" : ""} submitted`
+                        : `Showing ${filteredComplaints.length} of ${complaints.length} complaint${complaints.length !== 1 ? "s" : ""}`}
                 </Text>
             </View>
 
-            {/* COMPLAINT LIST */}
-            {complaints.length === 0 ? (
+            {/* STATUS FILTER ROW (IN ONE ROW) */}
+            <View
+                style={[
+                    styles.filterSection,
+                    isMobile && styles.mobileFilterSection,
+                    isTablet && styles.tabletFilterSection,
+                    isDesktop && styles.desktopFilterSection,
+                ]}
+            >
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={[
+                        styles.filterScrollContent,
+                        isMobile && styles.mobileFilterScrollContent,
+                        isTablet && styles.tabletFilterScrollContent,
+                        isDesktop && styles.desktopFilterScrollContent,
+                    ]}
+                >
+                    {STATUS_FILTERS.map((filter) => {
+                        const isSelected = selectedStatus === filter.key;
+                        const count = statusCounts[filter.key] ?? 0;
 
+                        return (
+                            <TouchableOpacity
+                                key={filter.key}
+                                activeOpacity={0.75}
+                                style={[
+                                    styles.filterChip,
+                                    isMobile && styles.mobileFilterChip,
+                                    isDesktop && styles.desktopFilterChip,
+                                    isSelected && styles.filterChipSelected,
+                                ]}
+                                onPress={() => setSelectedStatus(filter.key)}
+                            >
+                                <Text
+                                    style={[
+                                        styles.filterIcon,
+                                        isMobile && styles.mobileFilterIcon,
+                                    ]}
+                                >
+                                    {filter.icon}
+                                </Text>
+                                <Text
+                                    style={[
+                                        styles.filterChipText,
+                                        isMobile && styles.mobileFilterChipText,
+                                        isSelected && styles.filterChipTextSelected,
+                                    ]}
+                                    numberOfLines={1}
+                                >
+                                    {filter.label}
+                                </Text>
+                                <View
+                                    style={[
+                                        styles.filterCountBadge,
+                                        isMobile && styles.mobileFilterCountBadge,
+                                        isSelected && styles.filterCountBadgeSelected,
+                                    ]}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.filterCountText,
+                                            isMobile && styles.mobileFilterCountText,
+                                            isSelected && styles.filterCountTextSelected,
+                                        ]}
+                                    >
+                                        {count}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </ScrollView>
+            </View>
+
+            {/* COMPLAINTS LIST OR EMPTY STATE */}
+            {complaints.length === 0 ? (
                 <View
                     style={[
                         styles.emptyContainer,
@@ -232,213 +510,54 @@ useEffect(()  => {
                         Complaints you submit will show up here.
                     </Text>
                 </View>
+            ) : filteredComplaints.length === 0 ? (
+                <View
+                    style={[
+                        styles.emptyContainer,
+                        isMobile && styles.mobileEmptyContainer,
+                        isDesktop && styles.desktopEmptyContainer,
+                    ]}
+                >
+                    <Text style={styles.emptyIcon}>
+                        🔍
+                    </Text>
 
+                    <Text style={styles.emptyTitle}>
+                        No {selectedStatus.replace("_", " ").toLowerCase()} complaints
+                    </Text>
+
+                    <Text style={styles.emptySubtitle}>
+                        You don't have any complaints with status "{selectedStatus.replace("_", " ")}".
+                    </Text>
+
+                    <TouchableOpacity
+                        style={styles.resetFilterButton}
+                        onPress={() => setSelectedStatus("ALL")}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.resetFilterText}>
+                            View All Complaints ({complaints.length})
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             ) : (
-
                 <FlatList
-                    data={complaints}
+                    data={filteredComplaints}
                     keyExtractor={(item) => String(item.id)}
-
                     contentContainerStyle={[
                         styles.listContent,
                         isMobile && styles.mobileListContent,
                         isTablet && styles.tabletListContent,
                         isDesktop && styles.desktopListContent,
                     ]}
-
                     showsVerticalScrollIndicator={false}
-
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={onRefresh}
                         />
                     }
-
-                    renderItem={({ item }) => {
-
-                        console.log(
-                            "Complaint image field:",
-                            item.imageUrl
-                        );
-
-                        const status = statusColor(item.status);
-                        const priority = priorityColor(item.priority);
-
-                        return (
-                            <View
-                                style={[
-                                    styles.card,
-                                    isMobile && styles.mobileCard,
-                                    isTablet && styles.tabletCard,
-                                    isDesktop && styles.desktopCard,
-                                ]}
-                            >
-
-                                {/* TOP ROW */}
-                                <View
-                                    style={[
-                                        styles.cardTopRow,
-                                        isMobile && styles.mobileCardTopRow,
-                                    ]}
-                                >
-                                    <View style={styles.categoryPill}>
-                                        <Text style={styles.categoryPillText}>
-                                            {item.category || "General"}
-                                        </Text>
-                                    </View>
-
-                                    <View
-                                        style={[
-                                            styles.priorityPill,
-                                            {
-                                                backgroundColor: priority.bg,
-                                            },
-                                        ]}
-                                    >
-                                        <Text
-                                            style={[
-                                                styles.priorityPillText,
-                                                {
-                                                    color: priority.text,
-                                                },
-                                            ]}
-                                        >
-                                            {item.priority}
-                                        </Text>
-                                    </View>
-                                </View>
-
-                                {/* TITLE */}
-                                <Text
-                                    style={[
-                                        styles.cardTitle,
-                                        isMobile && styles.mobileCardTitle,
-                                        isDesktop && styles.desktopCardTitle,
-                                    ]}
-                                >
-                                    {item.title}
-                                </Text>
-
-                                {/* DESCRIPTION */}
-                                <Text
-                                    style={[
-                                        styles.cardDescription,
-                                        isMobile && styles.mobileCardDescription,
-                                    ]}
-                                    numberOfLines={3}
-                                >
-                                    {item.description}
-                                </Text>
-
-                                <View style={styles.divider} />
-
-                                {/* BOTTOM INFORMATION */}
-                                <View
-                                    style={[
-                                        styles.cardBottomRow,
-                                        isMobile && styles.mobileCardBottomRow,
-                                        isTablet && styles.tabletCardBottomRow,
-                                    ]}
-                                >
-
-                                    <View style={styles.dateBlock}>
-                                        <Text style={styles.dateLabel}>
-                                            Submitted
-                                        </Text>
-
-                                        <Text style={styles.dateValue}>
-                                            {formatDate(item.createdAt)}
-                                        </Text>
-                                    </View>
-
-                                    <View style={styles.dateBlock}>
-                                        <Text style={styles.dateLabel}>
-                                            Last updated
-                                        </Text>
-
-                                        <Text style={styles.dateValue}>
-                                            {formatDate(item.updatedAt)}
-                                        </Text>
-                                    </View>
-
-                                    <View
-                                        style={[
-                                            styles.statusPill,
-                                            {
-                                                backgroundColor: status.bg,
-                                            },
-                                        ]}
-                                    >
-                                        <View
-                                            style={[
-                                                styles.statusDot,
-                                                {
-                                                    backgroundColor: status.text,
-                                                },
-                                            ]}
-                                        />
-
-                                        <Text
-                                            style={[
-                                                styles.statusPillText,
-                                                {
-                                                    color: status.text,
-                                                },
-                                            ]}
-                                        >
-                                            {item.status.replace("_", " ")}
-                                        </Text>
-                                    </View>
-
-                                </View>
-
-                                {/* IMAGE BUTTON */}
-                                {item.imageUrl && (
-                                    <>
-
-                                        <TouchableOpacity
-                                            activeOpacity={0.8}
-                                            style={[
-                                                styles.imageButton,
-                                                isMobile && styles.mobileImageButton,
-                                            ]}
-                                            onPress={() => {
-                                                setShowImageId(
-                                                    showImageId === item.id
-                                                        ? null
-                                                        : item.id
-                                                );
-                                            }}
-                                        >
-                                            <Text style={styles.imageButtonText}>
-                                                {showImageId === item.id
-                                                    ? "Hide Image"
-                                                    : "View Image"}
-                                            </Text>
-                                        </TouchableOpacity>
-
-                                        {/* IMAGE */}
-                                        {showImageId === item.id && (
-                                            <Image
-                                                source={{
-                                                    uri: `${API_URL}/uploads/${item.imageUrl}`,
-                                                }}
-                                                style={[
-                                                    styles.complaintImage,
-                                                    isMobile && styles.mobileComplaintImage,
-                                                    isDesktop && styles.desktopComplaintImage,
-                                                ]}
-                                                resizeMode="cover"
-                                            />
-                                        )}
-
-                                    </>
-                                )}
-
-                            </View>
-                        );
-                    }}
+                    renderItem={renderComplaintItem}
                 />
             )}
 
@@ -923,6 +1042,172 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         shadowColor: "#18243A",
         borderRadius: 15,
+    },
+
+    // =====================================================
+    // STATUS FILTERS ROW
+    // =====================================================
+    filterSection: {
+        marginTop: 14,
+        marginBottom: 8,
+        width: "100%",
+    },
+
+    mobileFilterSection: {
+        marginTop: 10,
+        marginBottom: 6,
+    },
+
+    tabletFilterSection: {
+        maxWidth: 700,
+        alignSelf: "center",
+        width: "100%",
+    },
+
+    desktopFilterSection: {
+        maxWidth: 700,
+        alignSelf: "center",
+        width: "100%",
+        paddingHorizontal: 0,
+    },
+
+    filterScrollContent: {
+        paddingHorizontal: 20,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+    },
+
+    mobileFilterScrollContent: {
+        paddingHorizontal: 14,
+        gap: 6,
+    },
+
+    tabletFilterScrollContent: {
+        paddingHorizontal: 28,
+        justifyContent: "space-between",
+        width: "100%",
+    },
+
+    desktopFilterScrollContent: {
+        maxWidth: 700,
+        alignSelf: "center",
+        paddingHorizontal: 0,
+        width: "100%",
+        justifyContent: "space-between",
+        gap: 8,
+    },
+
+    filterChip: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#FFFFFF",
+        paddingVertical: 9,
+        paddingHorizontal: 13,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: "#E2E8F0",
+        shadowColor: "#0F172A",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 4,
+        elevation: 1,
+    },
+
+    mobileFilterChip: {
+        paddingVertical: 7,
+        paddingHorizontal: 10,
+        borderRadius: 16,
+    },
+
+    desktopFilterChip: {
+        flex: 1,
+        justifyContent: "center",
+        paddingVertical: 10,
+        paddingHorizontal: 6,
+    },
+
+    filterChipSelected: {
+        backgroundColor: "#2563EB",
+        borderColor: "#2563EB",
+        shadowColor: "#2563EB",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.22,
+        shadowRadius: 8,
+        elevation: 3,
+    },
+
+    filterIcon: {
+        fontSize: 13,
+        marginRight: 6,
+    },
+
+    mobileFilterIcon: {
+        fontSize: 12,
+        marginRight: 4,
+    },
+
+    filterChipText: {
+        fontSize: 12.5,
+        fontWeight: "700",
+        color: "#475569",
+    },
+
+    mobileFilterChipText: {
+        fontSize: 11.5,
+    },
+
+    filterChipTextSelected: {
+        color: "#FFFFFF",
+    },
+
+    filterCountBadge: {
+        backgroundColor: "#F1F5F9",
+        paddingHorizontal: 7,
+        paddingVertical: 2,
+        borderRadius: 10,
+        marginLeft: 6,
+    },
+
+    mobileFilterCountBadge: {
+        paddingHorizontal: 5,
+        paddingVertical: 1,
+        borderRadius: 8,
+        marginLeft: 4,
+    },
+
+    filterCountBadgeSelected: {
+        backgroundColor: "rgba(255, 255, 255, 0.25)",
+    },
+
+    filterCountText: {
+        fontSize: 11,
+        fontWeight: "800",
+        color: "#64748B",
+    },
+
+    mobileFilterCountText: {
+        fontSize: 10,
+    },
+
+    filterCountTextSelected: {
+        color: "#FFFFFF",
+    },
+
+    resetFilterButton: {
+        marginTop: 14,
+        backgroundColor: "#EFF6FF",
+        paddingVertical: 10,
+        paddingHorizontal: 18,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "#BFDBFE",
+    },
+
+    resetFilterText: {
+        fontSize: 13,
+        fontWeight: "700",
+        color: "#2563EB",
     },
 });
 

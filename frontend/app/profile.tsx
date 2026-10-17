@@ -1,33 +1,34 @@
-import { apiFetch } from "@/constants/api";
+import { apiFetch, API_BASE_URL } from "@/constants/api";
 import { getUserId } from "@/utils/authStorage";
 import { router, useLocalSearchParams } from "expo-router";
-import React from "react";
-import { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
-
-const API_URL = process.env.EXPO_PUBLIC_API_BASE;
-
+import React, { useEffect, useState } from "react";
+import { View, Text, ActivityIndicator, Image, StyleSheet, TouchableOpacity } from "react-native";
 
 type UserProfile = {
     id: number;
     name: string;
     email: string;
     department: string;
+    division?: string;
     role: string;
     createdAt: string;
-}
+    profilePhoto?: string | null;
+    profilePhotoPath?: string | null;
+};
 
 export default function Profile() {
-
     const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [loading, setloading] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [imageError, setImageError] = useState(false);
 
     const getProfile = async () => {
         const userId = await getUserId();
         try {
             console.log("Fetching profile for user:", userId);
             const response = await apiFetch(`/api/users/getProfile/${userId}`);
+
             console.log("Profile response status:", response.status);
+            
             if (!response.ok) {
                 const errorData = await response.json();
                 console.log("Profile Api Error : ", errorData);
@@ -37,43 +38,60 @@ export default function Profile() {
             console.log("Profile data:", data);
 
             setProfile(data);
-
         } catch (error) {
             console.log("Fetch profile error : ", error);
         } finally {
-            setloading(false);
+            setLoading(false);
         }
-
-
     };
+
     useEffect(() => {
         getProfile();
     }, []);
+
     if (loading) {
         return (
-            <View style={styles.Center}>
+            <View style={styles.center}>
                 <ActivityIndicator size="large" color="#2563EB" />
             </View>
         );
     }
+
     if (!profile) {
         return (
-            <View style={styles.Center}>
-                <Text> Could not Load Profile</Text>
-
+            <View style={styles.center}>
+                <Text style={{ color: '#ffffff', fontSize: 16 }}>Could not load profile</Text>
             </View>
         );
     }
+
     const formatDate = (d: string) =>
         new Date(d).toLocaleDateString('en-IN', { day: "2-digit", month: "short", year: "numeric" });
 
+    const photoFileName = profile.profilePhoto || profile.profilePhotoPath;
+
     return (
         <View style={styles.screen}>
-
             <View style={styles.header}>
-                <Text style={styles.avatarText}>
-                    {profile?.name ? profile.name.charAt(0).toUpperCase() : "?"}
-                </Text>
+                <View style={styles.avatar}>
+                    {photoFileName && !imageError ? (
+                        <Image
+                            source={{
+                                uri: `${API_BASE_URL}/uploads/profiles/${photoFileName}`,
+                            }}
+                            style={styles.profileImage}
+                            onError={(e) => {
+                                console.log("Failed to load profile photo:", e.nativeEvent);
+                                setImageError(true);
+                            }}
+                        />
+                    ) : (
+                        <Text style={styles.avatarText}>
+                            {profile?.name ? profile.name.charAt(0).toUpperCase() : "?"}
+                        </Text>
+                    )}
+                </View>
+
                 <Text style={styles.name}>{profile.name}</Text>
                 <Text style={styles.role}>{profile.role}</Text>
             </View>
@@ -88,6 +106,15 @@ export default function Profile() {
                     <Text style={styles.label}>Department</Text>
                     <Text style={styles.value}>{profile.department || '-'}</Text>
                 </View>
+                {profile.division && (
+                    <>
+                        <View style={styles.divider} />
+                        <View style={styles.row}>
+                            <Text style={styles.label}>Division</Text>
+                            <Text style={styles.value}>Division {profile.division}</Text>
+                        </View>
+                    </>
+                )}
                 <View style={styles.divider} />
                 <View style={styles.row}>
                     <Text style={styles.label}>Joined</Text>
@@ -98,33 +125,57 @@ export default function Profile() {
             <TouchableOpacity style={styles.backButton} onPress={() => router.replace("/dashboard")}>
                 <Text style={styles.backButtonText}>← Back to Dashboard</Text>
             </TouchableOpacity>
-
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     screen: { flex: 1, backgroundColor: '#2a52a2', padding: 20 },
-    Center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    header: { alignItems: 'center', marginTop: 40, marginBottom: 30, borderColor: 'black' },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    header: { alignItems: 'center', marginTop: 40, marginBottom: 30 },
     avatar: {
-        width: 80, height: 80, borderRadius: 40, backgroundColor: '#2563EB',
-        justifyContent: 'center', alignItems: 'center', marginBottom: 12,
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: '#e7e9ec',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 12,
+        overflow: 'hidden',
+        borderWidth: 2,
+        borderColor: '#ffffff',
     },
-    avatarText: { color: '#141313', fontSize: 32, fontWeight: '800' },
-    name: { fontSize: 22, fontWeight: '800', color: '#172033' },
-    role: { fontSize: 13, color: '#8A95A6', marginTop: 4, textTransform: 'capitalize' },
+    name: { fontSize: 22, fontWeight: '800', color: '#ffffff' },
+    role: { fontSize: 13, color: '#CBD5E1', marginTop: 4, textTransform: 'capitalize' },
     card: {
-        backgroundColor: '#f9faf5', borderRadius: 16, padding: 18,
-        borderWidth: 1, borderColor: '#EEF1F5',
+        backgroundColor: '#f9faf5',
+        borderRadius: 16,
+        padding: 18,
+        borderWidth: 1,
+        borderColor: '#EEF1F5',
     },
     row: { paddingVertical: 12 },
-    label: { fontSize: 12, color: '#00060e', marginBottom: 4 },
+    label: { fontSize: 12, color: '#475569', marginBottom: 4 },
     value: { fontSize: 15, fontWeight: '700', color: '#172033' },
-    divider: { height: 1, backgroundColor: '#0f0f0f' },
+    divider: { height: 1, backgroundColor: '#E2E8F0' },
     backButton: {
-        marginTop: 30, height: 50, borderRadius: 14, backgroundColor: '#2563EB',
-        justifyContent: 'center', alignItems: 'center',
+        marginTop: 30,
+        height: 50,
+        borderRadius: 14,
+        backgroundColor: '#2563EB',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    backButtonText: { color: '#e3cece', fontSize: 15, fontWeight: '800' },
+    backButtonText: { color: '#ffffff', fontSize: 15, fontWeight: '800' },
+    profileImage: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        resizeMode: 'cover',
+    },
+    avatarText: {
+        color: '#2a52a2',
+        fontSize: 36,
+        fontWeight: '800',
+    },
 });

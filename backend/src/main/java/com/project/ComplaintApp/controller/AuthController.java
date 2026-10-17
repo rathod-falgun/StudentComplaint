@@ -1,5 +1,6 @@
 package com.project.ComplaintApp.controller;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
+
 @RestController
 @RequestMapping("api/auth")
 public class AuthController {
@@ -25,21 +30,54 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest req, HttpServletRequest request) {
-        try {
-            System.out.println("========== REGISTER REQUEST RECEIVED ==========");
-            System.out.println("Name: " + req.getName());
-            System.out.println("Email: " + req.getEmail());
-            System.out.println("===============================================");
-            String result = authService.register(req);
+    public ResponseEntity<?> register(@ModelAttribute RegisterRequest req, HttpServletRequest request , @RequestPart(value = "profilePhotoFile" , required = false) MultipartFile profilePhoto) {
+        System.out.println("========== CONTROLLER START ==========");
+         try {
+        System.out.println("========== REGISTER REQUEST RECEIVED ==========");
+        System.out.println("Name: " + req.getName());
+        System.out.println("Email: " + req.getEmail());
+        System.out.println("Department: " + req.getDepartment());
 
-            return ResponseEntity.ok(Map.of("message", result));
+       if (profilePhoto == null) {
+    System.out.println("Profile Photo is NULL");
+} else {
+    System.out.println("Profile Photo: " + profilePhoto.getOriginalFilename());
+}
+
+
+        System.out.println("===============================================");
+        System.out.println("========== BEFORE SERVICE ==========");
+
+        String result = authService.register(req, profilePhoto);
+        System.out.println("========== AFTER SERVICE ==========");
+
+        return ResponseEntity.ok(Map.of("message", result));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(409).body(Map.of("message", e.getMessage()));
+            e.printStackTrace();
+            int statusCode = (e.getMessage() != null && e.getMessage().toLowerCase().contains("already registered")) ? 409 : 400;
+            return ResponseEntity.status(statusCode).body(Map.of("message", e.getMessage() != null ? e.getMessage() : "Registration failed."));
         }
     }
 
-     @GetMapping("/test")
+    @PostMapping("/send-otp")
+    public ResponseEntity<?> sendOtp(@RequestBody Map<String, String> body) {
+        try {
+            String email = body != null ? body.get("email") : null;
+            String message = authService.sendOtp(email);
+            return ResponseEntity.ok(Map.of("message", message));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (RuntimeException e) {
+            int statusCode = (e.getMessage() != null && e.getMessage().toLowerCase().contains("already registered")) ? 409 : 400;
+            return ResponseEntity.status(statusCode).body(Map.of("message", e.getMessage() != null ? e.getMessage() : "Failed to send OTP."));
+        }
+    }
+
+    @GetMapping("/test")
     public ResponseEntity<String> test() {
         return ResponseEntity.ok("Backend is working");
     }

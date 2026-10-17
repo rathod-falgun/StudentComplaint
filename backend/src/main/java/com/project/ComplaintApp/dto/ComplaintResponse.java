@@ -31,6 +31,7 @@ public class ComplaintResponse {
     private String studentName;
     private String studentEmail;
     private String studentDepartment;
+    private String studentDivision;
 
     public static ComplaintResponse fromEntity(Complaint complaint) {
         ComplaintResponse res = new ComplaintResponse();
@@ -49,6 +50,7 @@ public class ComplaintResponse {
             res.setStudentName(complaint.getUser().getName());
             res.setStudentEmail(complaint.getUser().getEmail());
             res.setStudentDepartment(complaint.getUser().getDepartment());
+            res.setStudentDivision(complaint.getUser().getDivision());
         }
         return res;
     }

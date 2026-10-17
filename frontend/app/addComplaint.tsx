@@ -67,25 +67,10 @@ export default function AddComplaint() {
     const API_URL = process.env.EXPO_PUBLIC_API_BASE;
 
 
-    const pickImage = async () => {
-        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (!permission.granted) {
-            Alert.alert("Permission needed", 'Allow photo access to attach an Image');
-            return;
-        }
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images'],
-            quality: 0.7,
-        });
-        if (!result.canceled) {
-            SetImageUrl(result.assets[0].uri);
-        }
-    }
-
     const takePhoto = async () => {
         const permission = await ImagePicker.requestCameraPermissionsAsync();
         if (!permission.granted) {
-            Alert.alert("Permission is required", 'Allow camera permission to take an photo');
+            Alert.alert("Permission Required", 'Please allow camera permission to capture a photo of the issue.');
             return;
         }
         const result = await ImagePicker.launchCameraAsync({
@@ -94,7 +79,7 @@ export default function AddComplaint() {
         if (!result.canceled) {
             SetImageUrl(result.assets[0].uri);
         }
-    }
+    };
 
     useEffect(() => {
         apiFetch(`/api/complaints/categories`).
@@ -163,9 +148,14 @@ export default function AddComplaint() {
                     const imageResponse = await fetch(imageUrl);
         const blob = await imageResponse.blob();
 
+        let rawFileName = imageUrl.split('/').pop() || `photo_${Date.now()}.jpg`;
+        if (!rawFileName.includes('.')) {
+            const ext = blob.type ? blob.type.split('/')[1] || 'jpg' : 'jpg';
+            rawFileName = `${rawFileName}.${ext}`;
+        }
         const webFile = new globalThis.File(
             [blob],
-            imageUrl.split('/').pop() || `photo_${Date.now()}.jpg`,
+            rawFileName,
             {
                 type: blob.type || 'image/jpeg',
             }
@@ -613,7 +603,7 @@ export default function AddComplaint() {
 
                     </View>
                     {/* ================================= */}
-                    {/* IMAGE UPLOAD */}
+                    {/* IMAGE UPLOAD (CAMERA ONLY) */}
                     {/* ================================= */}
 
                     <View style={styles.sectionLast}>
@@ -622,43 +612,62 @@ export default function AddComplaint() {
                             <Text style={styles.optional}>Optional</Text>
                         </View>
 
-                        <View
-                            style={[
-                                styles.imageButtons,
-                                isMobile && styles.mobileImageButtons,
-                            ]}
-                        >
+                        <Text style={styles.cameraNoteText}>
+                            Live camera capture only to verify the current situation.
+                        </Text>
+
+                        {!imageUrl ? (
                             <TouchableOpacity
                                 onPress={takePhoto}
                                 style={[
                                     styles.dropdown,
-                                    styles.imageButton,
+                                    styles.cameraButton,
                                 ]}
+                                activeOpacity={0.7}
                             >
-                                <Text style={styles.dropdownText}>📷 Camera</Text>
+                                <View style={styles.cameraButtonLeft}>
+                                    <View style={styles.cameraIconContainer}>
+                                        <Text style={styles.cameraIcon}>📷</Text>
+                                    </View>
+                                    <View>
+                                        <Text style={styles.dropdownText}>Take Photo</Text>
+                                        <Text style={styles.cameraButtonSubtext}>Use camera to capture current issue</Text>
+                                    </View>
+                                </View>
+                                <View style={styles.cameraBadge}>
+                                    <Text style={styles.cameraBadgeText}>Live Only</Text>
+                                </View>
                             </TouchableOpacity>
+                        ) : (
+                            <View style={styles.previewContainer}>
+                                <Image
+                                    source={{ uri: imageUrl }}
+                                    style={[
+                                        styles.previewImage,
+                                        isMobile && styles.mobilePreviewImage,
+                                        isDesktop && styles.desktopPreviewImage,
+                                    ]}
+                                    contentFit="cover"
+                                />
 
-                            <TouchableOpacity
-                                onPress={pickImage}
-                                style={[
-                                    styles.dropdown,
-                                    styles.imageButton,
-                                ]}
-                            >
-                                <Text style={styles.dropdownText}>🖼️ Gallery</Text>
-                            </TouchableOpacity>
-                        </View>
+                                <View style={styles.previewActions}>
+                                    <TouchableOpacity
+                                        onPress={takePhoto}
+                                        style={styles.retakeButton}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Text style={styles.retakeButtonText}>🔄 Retake Photo</Text>
+                                    </TouchableOpacity>
 
-                        {imageUrl && (
-                            <Image
-                                source={{ uri: imageUrl }}
-                                style={[
-                                    styles.previewImage,
-                                    isMobile && styles.mobilePreviewImage,
-                                    isDesktop && styles.desktopPreviewImage,
-                                ]}
-                                contentFit="cover"
-                            />
+                                    <TouchableOpacity
+                                        onPress={() => SetImageUrl(null)}
+                                        style={styles.removeButton}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Text style={styles.removeButtonText}>🗑️ Remove</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         )}
                     </View>
 
@@ -1557,21 +1566,114 @@ const styles = StyleSheet.create({
     },
 
     // ================================================
-    // IMAGE BUTTONS
+    // ================================================
+    // CAMERA & IMAGE PREVIEW
     // ================================================
 
-    imageButtons: {
+    cameraNoteText: {
+        fontSize: 12,
+        color: '#64748B',
+        marginBottom: 10,
+        lineHeight: 16,
+    },
+
+    cameraButton: {
+        height: 60,
+        paddingHorizontal: 14,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#FAFBFD',
+        borderRadius: 13,
+        borderWidth: 1,
+        borderColor: '#E2E7EF',
+    },
+
+    cameraButtonLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+
+    cameraIconContainer: {
+        width: 38,
+        height: 38,
+        borderRadius: 11,
+        backgroundColor: '#EEF5FF',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+
+    cameraIcon: {
+        fontSize: 18,
+    },
+
+    cameraButtonSubtext: {
+        fontSize: 11,
+        color: '#8A95A6',
+        marginTop: 2,
+    },
+
+    cameraBadge: {
+        backgroundColor: '#ECFDF5',
+        paddingHorizontal: 9,
+        paddingVertical: 4,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#A7F3D0',
+    },
+
+    cameraBadgeText: {
+        fontSize: 11,
+        fontWeight: '700',
+        color: '#059669',
+    },
+
+    previewContainer: {
+        marginTop: 4,
+    },
+
+    previewActions: {
         flexDirection: 'row',
         gap: 10,
+        marginTop: 10,
     },
 
-    mobileImageButtons: {
-        flexDirection: 'column',
-        gap: 8,
-    },
-
-    imageButton: {
+    retakeButton: {
         flex: 1,
+        height: 44,
+        backgroundColor: '#EEF5FF',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#BFD5FF',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    retakeButtonText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#2563EB',
+    },
+
+    removeButton: {
+        flex: 1,
+        height: 44,
+        backgroundColor: '#FFF0F0',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#FFD1D1',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    removeButtonText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#D14343',
     },
 
     // ================================================

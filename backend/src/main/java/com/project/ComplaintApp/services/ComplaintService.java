@@ -77,7 +77,7 @@ public class ComplaintService {
 
     public List<ComplaintResponse> getMyComplaints(Long userId) {
         AuthorizationUtil.checkUserAccess(userId);
-        List<Complaint> complaints = complaintRepository.findByUserId(userId);
+        List<Complaint> complaints = complaintRepository.findbyUserIdOrederByCreatedAtAndStatus(userId);
 
         List<ComplaintResponse> response = new ArrayList<>();
         for (Complaint c : complaints) {

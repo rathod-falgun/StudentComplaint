@@ -66,7 +66,7 @@ public class Complaint {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(name = "imagePath")
+    @Column(name = "image_path")
     private String imagePath;
 
     @PrePersist

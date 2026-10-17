@@ -1,6 +1,17 @@
 spring:
   application:
     name: ComplaintApp
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: studentcoder131@gmail.com
+    password: sjny gjve nrta qebq
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   datasource:
     url: jdbc:mysql://localhost:3306/college_complaint_db
     username: root
@@ -23,3 +34,7 @@ spring:
 server:
   address: 0.0.0.0
   port: 8081
+
+app:
+  college:
+    allowed-email-domain: scet.ac.in

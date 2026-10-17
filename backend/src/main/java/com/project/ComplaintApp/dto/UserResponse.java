@@ -12,17 +12,34 @@ public class UserResponse {
     private String name;
     private String email;
     private String department;
+    private String division;
     private String role;
     private LocalDate createdAt;
+    private String profilePhotoPath;
+    private String profilePhoto;
 
     public static UserResponse fromEntity(User user) {
+        if (user == null) {
+            return null;
+        }
+
         UserResponse u = new UserResponse();
         u.setId(user.getId());
         u.setName(user.getName());
         u.setEmail(user.getEmail());
         u.setDepartment(user.getDepartment());
-        u.setRole(user.getRole().name());
-        u.setCreatedAt(user.getCreatedAt().toLocalDate());
+        u.setDivision(user.getDivision());
+
+        if (user.getRole() != null) {
+            u.setRole(user.getRole().name());
+        }
+
+        if (user.getCreatedAt() != null) {
+            u.setCreatedAt(user.getCreatedAt().toLocalDate());
+        }
+
+        u.setProfilePhotoPath(user.getProfilePhotoPath());
+        u.setProfilePhoto(user.getProfilePhotoPath());
         return u;
     }
 }

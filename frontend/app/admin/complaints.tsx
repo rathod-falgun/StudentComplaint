@@ -23,10 +23,11 @@ type Complaint = {
   createdAt: string;
   updatedAt: string;
   imageUrl: string;
-  userId?: number;
-  studentName?: string;
-  studentEmail?: string;
+  // userId?: number;
+  // studentName?: string;
+  // studentEmail?: string;
   studentDepartment?: string;
+  studentDivision?: string;
 };
 
 export default function AdminComplaints() {
@@ -160,7 +161,7 @@ export default function AdminComplaints() {
       result = result.filter(
         (c) =>
           c.title?.toLowerCase().includes(term) ||
-          c.studentName?.toLowerCase().includes(term) ||
+  //        c.studentName?.toLowerCase().includes(term) ||
           c.category?.toLowerCase().includes(term)
       );
     }
@@ -432,15 +433,15 @@ export default function AdminComplaints() {
                   </Text>
 
                   <View style={styles.studentBox}>
-                    <Text style={styles.studentLabel}>STUDENT</Text>
-                    <Text style={styles.studentValue}>
+                    <Text style={styles.studentLabel}>DEPARTMENT</Text>
+                    {/* <Text style={styles.studentValue}>
                       {item.studentName || 'Unknown student'}
-                    </Text>
-                    {item.studentEmail ? (
+                    </Text> */}
+                    {/* {item.studentEmail ? (
                       <Text style={styles.deptText}>
                         {item.studentEmail}
                       </Text>
-                    ) : null}
+                    ) : null} */}
                     {item.studentDepartment ? (
                       <Text style={styles.deptText}>
                         {item.studentDepartment}

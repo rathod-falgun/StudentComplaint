@@ -32,8 +32,6 @@ type Complaint = {
   createdAt: string;
   updatedAt: string;
   imageUrl: string;
-  studentName?: string;
-  studentEmail?: string;
   studentDepartment?: string;
 };
 
@@ -268,9 +266,9 @@ export default function AdminDashboard() {
                 </View>
 
                 <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.studentInfo}>
+                {/* <Text style={styles.studentInfo}>
                   Submitted by: <Text style={styles.studentName}>{item.studentName || 'Student'}</Text>
-                </Text>
+                </Text> */}
 
                 <View style={styles.divider} />
 

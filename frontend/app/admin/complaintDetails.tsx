@@ -22,10 +22,8 @@ type ComplaintDetail = {
   createdAt: string;
   updatedAt: string;
   imageUrl: string;
-  userId?: number;
-  studentName?: string;
-  studentEmail?: string;
   studentDepartment?: string;
+  studentDivision?: string;
 };
 
 export default function AdminComplaintDetails() {
@@ -36,7 +34,8 @@ export default function AdminComplaintDetails() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState(false);
-  const [showImage, setShowImage] = useState(false);
+  const [showImage, setShowImage] = useState(true);
+  const [imageLoadError, setImageLoadError] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(0);
 const [totalPages, setTotalPages] = useState(0);
@@ -230,7 +229,7 @@ const [totalComplaints, setTotalComplaints] = useState(0);
 
       <View style={styles.container}>
         {/* Student Information Section */}
-        <View style={styles.card}>
+        {/* <View style={styles.card}>
           <Text style={styles.cardSectionHeader}>👤 Student Information</Text>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Name:</Text>
@@ -244,7 +243,7 @@ const [totalComplaints, setTotalComplaints] = useState(0);
             <Text style={styles.infoLabel}>Department:</Text>
             <Text style={styles.infoValue}>{complaint.studentDepartment || 'N/A'}</Text>
           </View>
-        </View>
+        </View> */}
 
         {/* Complaint Information Section */}
         <View style={styles.card}>
@@ -292,12 +291,22 @@ const [totalComplaints, setTotalComplaints] = useState(0);
               </TouchableOpacity>
 
               {showImage && (
-                <Image
-                
-                  source={{ uri: `${API_BASE}/uploads/${complaint.imageUrl}` }}
-                  style={styles.attachedImage}
-                  resizeMode="cover"
-                />
+                imageLoadError ? (
+                  <View style={styles.imageErrorBox}>
+                    <Text style={styles.imageErrorText}>⚠️ Could not load image from server</Text>
+                    <Text style={styles.imageErrorSubText}>File: {complaint.imageUrl}</Text>
+                  </View>
+                ) : (
+                  <Image
+                    source={{ uri: `${API_BASE}/uploads/complaints/${complaint.imageUrl}` }}
+                    style={styles.attachedImage}
+                    resizeMode="cover"
+                    onError={(e) => {
+                      console.log("Error loading complaint image:", e.nativeEvent);
+                      setImageLoadError(true);
+                    }}
+                  />
+                )
               )}
             </View>
           ) : (
@@ -408,6 +417,18 @@ const styles = StyleSheet.create({
   imageToggleButton: { backgroundColor: '#0F172A', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, width: '100%', alignItems: 'center' },
   imageToggleButtonText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 },
   attachedImage: { width: '100%', height: 250, borderRadius: 12, marginTop: 12 },
+  imageErrorBox: {
+    width: '100%',
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  imageErrorText: { color: '#DC2626', fontWeight: '700', fontSize: 14 },
+  imageErrorSubText: { color: '#991B1B', fontSize: 12, marginTop: 4 },
   noImageText: { color: '#94A3B8', fontStyle: 'italic', fontSize: 14 },
   currentStatusRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
