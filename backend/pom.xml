@@ -120,6 +120,7 @@
 							<goal>compile</goal>
 						</goals>
 						<configuration>
+							<release>${java.version}</release>
 							<annotationProcessorPaths>
 								<path>
 									<groupId>org.projectlombok</groupId>
@@ -135,6 +136,7 @@
 							<goal>testCompile</goal>
 						</goals>
 						<configuration>
+							<release>${java.version}</release>
 							<annotationProcessorPaths>
 								<path>
 									<groupId>org.projectlombok</groupId>
