@@ -225,7 +225,7 @@ const ComplaintCard = React.memo(function ComplaintCard({
                     {showImage && (
                         <Image
                             source={{
-                                uri: `${API_BASE_URL}/uploads/complaints/${item.imageUrl}`,
+                                uri: item.imageUrl, // full Supabase public URL stored in DB
                             }}
                             style={[
                                 styles.complaintImage,

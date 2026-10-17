@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Text,
   View,
@@ -10,7 +10,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '@/constants/responsive';
@@ -71,6 +71,7 @@ export default function Dashboard() {
 
       if (profileRes.status === 'fulfilled' && profileRes.value.ok) {
         const profileData = await profileRes.value.json();
+        console.log("Dashboard profile loaded:", profileData);
         setProfile(profileData);
       }
 
@@ -88,9 +89,12 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [paramUserId]);
+  useFocusEffect(
+    useCallback(() => {
+      setImageError(false);
+      loadDashboardData();
+    }, [paramUserId])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -144,7 +148,12 @@ export default function Dashboard() {
     });
   };
 
-  const photoFileName = profile?.profilePhoto || profile?.profilePhotoPath;
+  const rawPhoto = profile?.profilePhoto || profile?.profilePhotoPath;
+  const photoUrl = rawPhoto
+    ? rawPhoto.startsWith('http://') || rawPhoto.startsWith('https://')
+      ? rawPhoto
+      : `${API_BASE_URL}/uploads/profiles/${rawPhoto}`
+    : null;
   const displayName = profile?.name || paramName || 'Student';
   const displayRole = profile?.role || 'STUDENT';
   const displayEmail = profile?.email || '-';
@@ -236,15 +245,18 @@ export default function Dashboard() {
             onPress={() => router.push('/profile')}
             activeOpacity={0.8}
           >
-            {photoFileName && !imageError ? (
+            {photoUrl && !imageError ? (
               <Image
                 source={{
-                  uri: `${API_BASE_URL}/uploads/profiles/${photoFileName}`,
+                  uri: photoUrl,
                 }}
                 style={styles.headerAvatarImage}
                 contentFit="cover"
                 cachePolicy="memory-disk"
-                onError={() => setImageError(true)}
+                onError={(e) => {
+                  console.log("Failed to load dashboard profile photo:", e);
+                  setImageError(true);
+                }}
               />
             ) : (
               <View style={styles.headerAvatarFallback}>
@@ -511,7 +523,7 @@ export default function Dashboard() {
           onPress={confirmLogout}
         >
           <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-          <Text style={styles.logoutCardText}>Sign Out of Student Account</Text>
+          <Text style={styles.logoutCardText}>Sign Out</Text>
         </TouchableOpacity>
 
         <Text style={styles.footerNote}>

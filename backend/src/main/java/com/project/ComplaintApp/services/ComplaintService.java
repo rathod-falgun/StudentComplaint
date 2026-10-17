@@ -1,16 +1,13 @@
 package com.project.ComplaintApp.services;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.project.ComplaintApp.config.AuthorizationUtil;
+import com.project.ComplaintApp.config.SupabaseStorageProperties;
 import com.project.ComplaintApp.dto.ComplaintRequest;
 import com.project.ComplaintApp.dto.ComplaintResponse;
 import com.project.ComplaintApp.entities.Category;
@@ -20,24 +17,31 @@ import com.project.ComplaintApp.repository.ComplaintRepository;
 import com.project.ComplaintApp.repository.CategoryRepository;
 import com.project.ComplaintApp.repository.UserRepository;
 
-import jakarta.persistence.criteria.Path;
-
 @Service
 public class ComplaintService {
 
     private final ComplaintRepository complaintRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final SupabaseStorageService supabaseStorageService;
+    private final SupabaseStorageProperties supabaseProps;
 
-    public ComplaintService(ComplaintRepository complaintRepository, UserRepository userRepository,
-            CategoryRepository categoryRepository) {
+    public ComplaintService(
+            ComplaintRepository complaintRepository,
+            UserRepository userRepository,
+            CategoryRepository categoryRepository,
+            SupabaseStorageService supabaseStorageService,
+            SupabaseStorageProperties supabaseProps) {
         this.complaintRepository = complaintRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
+        this.supabaseStorageService = supabaseStorageService;
+        this.supabaseProps = supabaseProps;
     }
 
     public ComplaintResponse submitComplaint(Long userId, ComplaintRequest req) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         Category category = categoryRepository.findById(req.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Invalid Category"));
@@ -51,26 +55,17 @@ public class ComplaintService {
             complaint.setPriority(req.getPriority());
         }
 
+        // Upload complaint image to Supabase Storage
         MultipartFile image = req.getImageFile();
         if (image != null && !image.isEmpty()) {
-
-            String uploadDir = System.getProperty("user.dir") + "/uploads/complaints/";
-            File dir = new File(uploadDir);
-            try {
-                if (!dir.exists())
-                    dir.mkdirs();
-
-                String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
-                String path = uploadDir + fileName;
-                System.out.println(path);
-                image.transferTo(new File(path));
-                complaint.setImagePath(fileName);
-                System.out.println("Image is saved into complaint");
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw new RuntimeException("Failed to save Images");
-            }
+            String ext = SupabaseStorageService.getExtension(image.getOriginalFilename());
+            // Path inside bucket: complaint_<timestamp>.<ext>
+            String objectPath = "complaint_" + System.currentTimeMillis() + "." + ext;
+            String publicUrl = supabaseStorageService.uploadFile(
+                    supabaseProps.getBuckets().getComplaints(), objectPath, image);
+            complaint.setImagePath(publicUrl); // store full public URL
         }
+
         Complaint saved = complaintRepository.save(complaint);
         return ComplaintResponse.fromEntity(saved);
     }

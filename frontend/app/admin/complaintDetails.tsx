@@ -77,7 +77,7 @@ const [totalComplaints, setTotalComplaints] = useState(0);
       console.log("Complaint data:", data);
 
       setComplaint(data);
-      setSelectedStatus(data.status);
+      setSelectedStatus(null);
       setError(false);
 
     } catch (err) {
@@ -131,10 +131,11 @@ const [totalComplaints, setTotalComplaints] = useState(0);
       const updatedData: ComplaintDetail = await response.json();
 
       // Update UI state immediately without page refresh
+      const previousSelected = selectedStatus;
       setComplaint(updatedData);
-      setSelectedStatus(updatedData.status);
+      setSelectedStatus(null);
 
-      Alert.alert('Success', `Status updated to ${selectedStatus.replace('_', ' ')} successfully!`);
+      Alert.alert('Success', `Status updated to ${previousSelected.replace('_', ' ')} successfully!`);
     } catch (err) {
       console.log('Status update error:', err);
       Alert.alert('Error', 'Failed to update complaint status on server.');
@@ -146,32 +147,32 @@ const [totalComplaints, setTotalComplaints] = useState(0);
   const statusColor = (status: string) => {
     switch (status) {
       case 'SUBMITTED':
-        return { bg: '#d88919', text: '#B8710A' };
+        return { bg: '#FFF7ED', text: '#C2410C', border: '#FED7AA' }; // Amber
 
       case 'ASSIGNED':
-        return { bg: '#2f13e4', text: '#7E22CE' };
+        return { bg: '#FAF5FF', text: '#7E22CE', border: '#E9D5FF' }; // Purple
 
       case 'IN_PROGRESS':
-        return { bg: '#dceb11', text: '#2563EB' };
+        return { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' }; // Blue
 
       case 'RESOLVED':
-        return { bg: '#1a6e07', text: '#1D9A5C' };
+        return { bg: '#ECFDF5', text: '#047857', border: '#A7F3D0' }; // Emerald Green
 
       default:
-        return { bg: '#F0F2F6', text: '#465267' };
+        return { bg: '#F8FAFC', text: '#475569', border: '#CBD5E1' };
     }
   };
 
   const priorityColor = (priority: string) => {
     switch (priority) {
       case 'LOW':
-        return { bg: '#afb4b5', text: '#3B82F6' };
+        return { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' };
       case 'MEDIUM':
-        return { bg: '#474747', text: '#D97706' };
+        return { bg: '#FFFBEB', text: '#B45309', border: '#FDE68A' };
       case 'HIGH':
-        return { bg: '#FDECEC', text: '#DC2626' };
+        return { bg: '#FEF2F2', text: '#B91C1C', border: '#FECACA' };
       default:
-        return { bg: '#F0F2F6', text: '#465267' };
+        return { bg: '#F8FAFC', text: '#475569', border: '#CBD5E1' };
     }
   };
 
@@ -213,7 +214,6 @@ const [totalComplaints, setTotalComplaints] = useState(0);
 
   const next = nextStatus(complaint.status);
 
-  const activeStatusSelection = selectedStatus ?? complaint.status;
   const isStatusChanged = selectedStatus !== null && selectedStatus !== complaint.status;
 
   return (
@@ -253,7 +253,7 @@ const [totalComplaints, setTotalComplaints] = useState(0);
             <View style={styles.categoryPill}>
               <Text style={styles.categoryPillText}>{complaint.category || 'General'}</Text>
             </View>
-            <View style={[styles.priorityPill, { backgroundColor: priority.bg }]}>
+            <View style={[styles.priorityPill, { backgroundColor: priority.bg, borderColor: priority.border, borderWidth: 1 }]}>
               <Text style={[styles.priorityPillText, { color: priority.text }]}>
                 {complaint.priority} PRIORITY
               </Text>
@@ -298,7 +298,7 @@ const [totalComplaints, setTotalComplaints] = useState(0);
                   </View>
                 ) : (
                   <Image
-                    source={{ uri: `${API_BASE}/uploads/complaints/${complaint.imageUrl}` }}
+                    source={{ uri: complaint.imageUrl }} // full Supabase public URL stored in DB
                     style={styles.attachedImage}
                     resizeMode="cover"
                     onError={(e) => {
@@ -320,15 +320,13 @@ const [totalComplaints, setTotalComplaints] = useState(0);
 
           <View style={styles.currentStatusRow}>
             <Text style={styles.infoLabel}>Current Status:</Text>
-            <View style={[styles.statusPill, { backgroundColor: status.bg }]}>
+            <View style={[styles.statusPill, { backgroundColor: status.bg, borderColor: status.border, borderWidth: 1 }]}>
               <View style={[styles.statusDot, { backgroundColor: status.text }]} />
               <Text style={[styles.statusPillText, { color: status.text }]}>
                 {complaint.status.replace('_', ' ')}
               </Text>
             </View>
           </View>
-
-          <Text style={styles.selectStatusLabel}>Select new status:</Text>
 
           <Text style={styles.selectStatusLabel}>
             {next ? 'Next Status:' : 'Status Workflow Complete'}
@@ -339,15 +337,18 @@ const [totalComplaints, setTotalComplaints] = useState(0);
               <TouchableOpacity
                 style={[
                   styles.statusOptionBtn,
-                  activeStatusSelection === next && styles.activeStatusOptionBtn,
+                  selectedStatus === next && styles.activeStatusOptionBtn,
                 ]}
                 disabled={updating}
-                onPress={() => setSelectedStatus(next)}
+                onPress={() =>
+                  setSelectedStatus((prev) => (prev === next ? null : next))
+                }
+                activeOpacity={0.7}
               >
                 <Text
                   style={[
                     styles.statusOptionText,
-                    activeStatusSelection === next &&
+                    selectedStatus === next &&
                     styles.activeStatusOptionText,
                   ]}
                 >

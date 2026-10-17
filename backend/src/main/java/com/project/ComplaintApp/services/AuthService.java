@@ -1,6 +1,5 @@
 package com.project.ComplaintApp.services;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,10 +8,12 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.project.ComplaintApp.Enums.Role;
 import com.project.ComplaintApp.config.JwtUtil;
+import com.project.ComplaintApp.config.SupabaseStorageProperties;
 import com.project.ComplaintApp.dto.LoginRequest;
 import com.project.ComplaintApp.dto.RegisterRequest;
 import com.project.ComplaintApp.entities.EmailOtp;
@@ -21,34 +22,41 @@ import com.project.ComplaintApp.repository.EmailOtpRepository;
 import com.project.ComplaintApp.repository.UserRepository;
 
 @Service
+@Transactional
 public class AuthService {
 
     @Value("${app.college.allowed-email-domain:scet.ac.in}")
     private String allowedEmailDomain;
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
-        "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
-    );
+            "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$");
 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final EmailOtpRepository emailOtpRepository;
     private final EmailService emailService;
+    private final SupabaseStorageService supabaseStorageService;
+    private final SupabaseStorageProperties supabaseProps;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     public AuthService(
             UserRepository userRepository,
             JwtUtil jwtUtil,
             EmailOtpRepository emailOtpRepository,
-            EmailService emailService) {
+            EmailService emailService,
+            SupabaseStorageService supabaseStorageService,
+            SupabaseStorageProperties supabaseProps) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.emailOtpRepository = emailOtpRepository;
         this.emailService = emailService;
+        this.supabaseStorageService = supabaseStorageService;
+        this.supabaseProps = supabaseProps;
     }
 
     /**
-     * Sends a 6-digit verification code to the student's official college email address.
+     * Sends a 6-digit verification code to the student's official college email
+     * address.
      */
     public String sendOtp(String email) {
         String normalizedEmail = normalizeAndValidateCollegeEmail(email);
@@ -61,16 +69,15 @@ public class AuthService {
         int randomCode = 100000 + new java.security.SecureRandom().nextInt(900000);
         String otp = String.valueOf(randomCode);
 
-        // Delete any existing unverified OTP for this email
-        try {
-            emailOtpRepository.deleteByEmail(normalizedEmail);
-        } catch (Exception ignored) {}
+        // Delete any existing OTP for this email from DB before generating new one
+        emailOtpRepository.deleteByEmail(normalizedEmail);
+        emailOtpRepository.flush();
 
-        // Save new OTP record (valid for 5 minutes)
+        // Save new OTP record (valid for 1 minute)
         EmailOtp emailOtp = new EmailOtp();
         emailOtp.setEmail(normalizedEmail);
         emailOtp.setOtp(otp);
-        emailOtp.setExpiresAt(java.time.LocalDateTime.now().plusMinutes(5));
+        emailOtp.setExpiresAt(java.time.LocalDateTime.now().plusMinutes(1));
         emailOtp.setVerified(false);
         emailOtpRepository.save(emailOtp);
 
@@ -81,7 +88,8 @@ public class AuthService {
     }
 
     /**
-     * Normalizes and validates that the email address is well-formed and belongs strictly to the official college domain.
+     * Normalizes and validates that the email address is well-formed and belongs
+     * strictly to the official college domain.
      */
     public String normalizeAndValidateCollegeEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
@@ -104,8 +112,8 @@ public class AuthService {
 
         if (!domain.equals(expectedDomain)) {
             throw new IllegalArgumentException(
-                "Only official college email addresses (@" + expectedDomain + ") are allowed for student registration."
-            );
+                    "Only official college email addresses (@" + expectedDomain
+                            + ") are allowed for student registration.");
         }
 
         return normalized;
@@ -142,26 +150,28 @@ public class AuthService {
 
         // Validate OTP verification code
         if (req.getOtp() == null || req.getOtp().trim().isEmpty()) {
-            throw new IllegalArgumentException("Email verification code (OTP) is required. Please verify your email first.");
+            throw new IllegalArgumentException(
+                    "Email verification code (OTP) is required. Please verify your email first.");
         }
 
         String inputOtp = req.getOtp().trim();
         EmailOtp otpRecord = emailOtpRepository
                 .findTopByEmailAndVerifiedFalseOrderByCreatedAtDesc(normalizedEmail)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "No pending verification code found for '" + normalizedEmail + "'. Please tap 'Send OTP' first."));
+                        "No pending verification code found for '" + normalizedEmail
+                                + "'. Please tap 'Send OTP' first."));
 
         if (otpRecord.getExpiresAt().isBefore(java.time.LocalDateTime.now())) {
-            throw new IllegalArgumentException("The verification code has expired. Please request a new OTP.");
+            emailOtpRepository.delete(otpRecord);
+            throw new IllegalArgumentException("The verification code has expired. Please try again for a new one.");
         }
 
         if (!otpRecord.getOtp().equals(inputOtp)) {
             throw new IllegalArgumentException("Incorrect verification code. Please check your email and try again.");
         }
 
-        // Mark OTP as verified
-        otpRecord.setVerified(true);
-        emailOtpRepository.save(otpRecord);
+        // Delete used OTP from database so it cannot be reused
+        emailOtpRepository.delete(otpRecord);
 
         User user = new User();
         user.setName(req.getName().trim());
@@ -169,26 +179,21 @@ public class AuthService {
         user.setPassword(encoder.encode(req.getPassword()));
         user.setDepartment(req.getDepartment().trim());
         user.setDivision(req.getDivision().trim());
-        // Always assign STUDENT role on the server; client cannot assign or override role
+        // Always assign STUDENT role on the server; client cannot assign or override
+        // role
         user.setRole(Role.STUDENT);
 
         if (profilePhoto != null && !profilePhoto.isEmpty()) {
-            String uploadDir = System.getProperty("user.dir") + "/uploads/profiles/";
-            File dir = new File(uploadDir);
-
-            try {
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
-
-                String fileName = System.currentTimeMillis() + "_" + profilePhoto.getOriginalFilename();
-                String path = uploadDir + fileName;
-                profilePhoto.transferTo(new File(path));
-                user.setProfilePhotoPath(fileName);
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw new RuntimeException("Failed to save profile image: " + e.getMessage());
-            }
+            // Save user first to get the generated ID, then upload with user ID in path
+            User savedUser = userRepository.save(user);
+            String ext = SupabaseStorageService.getExtension(profilePhoto.getOriginalFilename());
+            // Path inside bucket: user_<id>.<ext> — overwrites old photo on re-upload
+            String objectPath = "user_" + savedUser.getId() + "." + ext;
+            String publicUrl = supabaseStorageService.uploadFile(
+                    supabaseProps.getBuckets().getProfiles(), objectPath, profilePhoto);
+            savedUser.setProfilePhotoPath(publicUrl);
+            userRepository.save(savedUser);
+            return "Registered Successfully";
         }
 
         userRepository.save(user);
@@ -206,10 +211,12 @@ public class AuthService {
         String rawEmail = req.getEmail().trim();
         String normalizedEmail = rawEmail.toLowerCase();
 
-        // Search for normalized email first; fallback to raw email for backward compatibility with existing users
+        // Search for normalized email first; fallback to raw email for backward
+        // compatibility with existing users
         User user = userRepository.findByEmail(normalizedEmail)
                 .orElseGet(() -> userRepository.findByEmail(rawEmail)
-                .orElseThrow(() -> new RuntimeException("Email '" + rawEmail + "' is not registered in database.")));
+                        .orElseThrow(
+                                () -> new RuntimeException("Email '" + rawEmail + "' is not registered in database.")));
 
         if (!encoder.matches(req.getPassword(), user.getPassword())) {
             throw new RuntimeException("Incorrect password for account '" + rawEmail + "'.");
@@ -227,4 +234,3 @@ public class AuthService {
         return response;
     }
 }
-

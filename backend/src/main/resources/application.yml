@@ -13,9 +13,9 @@ spring:
           starttls:
             enable: true
   datasource:
-    url: jdbc:mysql://localhost:3306/college_complaint_db
-    username: root
-    password: FalgunR05@
+    url: jdbc:mysql://${AIVEN_HOST}:${AIVEN_PORT}/${AIVEN_DB}?sslmode=required
+    username: ${AIVEN_USERNAME}
+    password: ${AIVEN_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -38,3 +38,9 @@ server:
 app:
   college:
     allowed-email-domain: scet.ac.in
+  supabase:
+    url: ${SUPABASE_URL}
+    service-role-key: ${SUPABASE_SERVICE_ROLE_KEY}
+    buckets:
+      profiles: profiles
+      complaints: complaints

@@ -78,7 +78,9 @@ backend/.settings/
 backend/.springBeans
 backend/.sts4-cache
 backend/application.yml
-
+backend/.env
+backend/.env.*
+.env
 # IntelliJ IDEA
 backend/.idea/
 backend/*.iws

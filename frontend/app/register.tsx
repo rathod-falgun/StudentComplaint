@@ -204,7 +204,27 @@ export default function RegisterScreen() {
           }
         },
       },
-
+      {
+        text: 'Choose from gallery',
+        onPress: async () => {
+          try {
+            const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (!permission.granted) {
+              Alert.alert('Permission required', 'Gallery access is required to pick a photo.');
+              return;
+            }
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ['images'],
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.8,
+            });
+            if (!result.canceled && result.assets[0]) setProfilePhoto(result.assets[0].uri);
+          } catch {
+            Alert.alert('Unable to open gallery', 'Please try again or take a photo instead.');
+          }
+        },
+      },
       { text: 'Cancel', style: 'cancel' },
     ]);
   };
@@ -235,6 +255,13 @@ export default function RegisterScreen() {
     }
     if (!otpMatchesCurrentEmail || otpEmail !== targetEmail) {
       Alert.alert('Verify your email', 'Send a verification code to this email address before creating your account.');
+      return;
+    }
+    if (countdown <= 0) {
+      Alert.alert(
+        'Verification Code Expired',
+        'Your 1-minute verification code has expired. Please tap "Resend verification code" to try again for a new one.'
+      );
       return;
     }
     if (!/^\d{6}$/.test(otp.trim())) {
@@ -491,14 +518,23 @@ export default function RegisterScreen() {
           {otpMatchesCurrentEmail && (
             <View style={styles.otpPanel}>
               <View style={styles.otpPanelHeader}>
-                <View style={styles.otpIconBox}><Ionicons name="lock-closed-outline" size={17} color={COLORS.blue} /></View>
+                <View style={styles.otpIconBox}>
+                  <Ionicons name="lock-closed-outline" size={17} color={COLORS.blue} />
+                </View>
                 <View style={styles.otpPanelCopy}>
                   <Text style={styles.otpTitle}>Check your inbox</Text>
                   <Text style={styles.otpSubtitle}>Enter the 6-digit code sent to this email.</Text>
                 </View>
+
+
               </View>
+
               <TextInput
-                style={[styles.otpInput, otp.length === 6 && styles.otpInputFilled]}
+                style={[
+                  styles.otpInput,
+                  otp.length === 6 && styles.otpInputFilled,
+                  countdown === 0 && styles.otpInputExpired,
+                ]}
                 value={otp}
                 onChangeText={(value) => setOtp(value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="000000"
@@ -508,8 +544,30 @@ export default function RegisterScreen() {
                 autoCapitalize="none"
                 textContentType="oneTimeCode"
                 accessibilityLabel="Six-digit email verification code"
+                editable={countdown > 0}
               />
-              <Text style={styles.otpFootnote}>The code must match the email address above.</Text>
+
+              {countdown > 0 ? (
+                <Text style={styles.otpFootnote}>
+                  Code valid for{' '}
+                  <Text
+                    style={{
+                      fontWeight: '700',
+                      color: countdown <= 15 ? COLORS.danger : COLORS.navy,
+                    }}
+                  >
+                    {countdown}s
+                  </Text>
+                  . Enter code before the timer expires.
+                </Text>
+              ) : (
+                <View style={styles.expiredNoticeRow}>
+                  <Ionicons name="alert-circle" size={16} color={COLORS.danger} />
+                  <Text style={styles.expiredNoticeText}>
+                    Code has expired! Tap "Resend verification code" below to try again for a new one.
+                  </Text>
+                </View>
+              )}
             </View>
           )}
 
@@ -628,7 +686,14 @@ const styles = StyleSheet.create({
   otpSubtitle: { color: COLORS.secondary, fontSize: 11, marginTop: 3 },
   otpInput: { minHeight: 48, borderWidth: 1, borderColor: COLORS.border, borderRadius: 10, backgroundColor: COLORS.surface, textAlign: 'center', letterSpacing: 7, fontSize: 20, fontWeight: '800', color: COLORS.text, paddingHorizontal: 12 },
   otpInputFilled: { borderColor: COLORS.blue },
-  otpFootnote: { marginTop: 8, color: COLORS.secondary, fontSize: 10 },
+  otpInputExpired: { borderColor: '#FCA5A5', backgroundColor: '#FEF2F2', color: '#991B1B' },
+  otpFootnote: { marginTop: 8, color: COLORS.secondary, fontSize: 11 },
+  timerBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#EFF6FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#BFDBFE' },
+  timerBadgeText: { fontSize: 12, fontWeight: '800', color: COLORS.blue },
+  timerBadgeExpired: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FEF2F2', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' },
+  timerBadgeExpiredText: { fontSize: 11, fontWeight: '800', color: COLORS.danger },
+  expiredNoticeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA', borderRadius: 8, padding: 8, marginTop: 10 },
+  expiredNoticeText: { flex: 1, fontSize: 11, fontWeight: '600', color: COLORS.danger, lineHeight: 16 },
   visibilityButton: { width: 30, height: 38, alignItems: 'center', justifyContent: 'center' },
   passwordMatchRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -7, marginBottom: 14 },
   passwordMatchText: { fontSize: 11, fontWeight: '600' },

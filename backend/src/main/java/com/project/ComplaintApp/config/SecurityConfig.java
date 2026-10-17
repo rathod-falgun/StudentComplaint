@@ -33,9 +33,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/complaints/**").authenticated()
-                        .requestMatchers("/api/users/getProfile/**").authenticated()
-
-                        .requestMatchers("/api/users/**").permitAll()
+                        .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/api/auth/test").permitAll()
