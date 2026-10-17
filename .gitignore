@@ -94,6 +94,8 @@ backend/dist/
 backend/nbdist/
 backend/.nb-gradle/
 
+backend\run-local.ps1
+
 # Build
 backend/build/
 
