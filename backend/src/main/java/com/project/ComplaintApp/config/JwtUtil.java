@@ -1,9 +1,11 @@
 package com.project.ComplaintApp.config;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Jwts;
@@ -13,10 +15,14 @@ import io.jsonwebtoken.security.Keys;
 public class JwtUtil {
 
     // Secret key used to SIGN tokens - keep this safe, never expose it
-    private final SecretKey secretKey = Keys.hmacShaKeyFor(
-            "college-complaint-app-jwt-secret-key-2026".getBytes());
+    private final SecretKey secretKey;
 
     private final long EXPIRATION_TIME = 60 * 60 * 1000 * 24; // 24 hours
+
+    public JwtUtil(
+            @Value("${app.jwt.secret}") String secret) {
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
 
     // Generate a token when user logs in
     public String generateToken(Long userId, String email, String role) {

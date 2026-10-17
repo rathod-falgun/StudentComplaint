@@ -2,10 +2,10 @@ spring:
   application:
     name: ComplaintApp
   mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: studentcoder131@gmail.com
-    password: sjny gjve nrta qebq
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -31,13 +31,15 @@ spring:
         
         
 
-server:
-  address: 0.0.0.0
-  port: 8081
+  server:
+    address: 0.0.0.0
+    port: ${SERVER_PORT}
 
 app:
   college:
     allowed-email-domain: scet.ac.in
+  jwt:
+    secret: ${JWT_SECRET_KEY}
   supabase:
     url: ${SUPABASE_URL}
     service-role-key: ${SUPABASE_SERVICE_ROLE_KEY}
