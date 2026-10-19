@@ -24,6 +24,9 @@ type ComplaintDetail = {
   imageUrl: string;
   studentDepartment?: string;
   studentDivision?: string;
+  deadline?: string;
+  isOverdue?: boolean;
+  slaHours?: number;
 };
 
 export default function AdminComplaintDetails() {

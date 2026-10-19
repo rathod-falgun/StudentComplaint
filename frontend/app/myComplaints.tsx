@@ -26,6 +26,9 @@ type Complaint = {
     createdAt: string;
     updatedAt: string;
     imageUrl: string;
+    deadline?: string;
+    isOverdue?: boolean;
+    slaHours?: number;
 };
 
 const statusColor = (status: string) => {

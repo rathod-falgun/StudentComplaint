@@ -28,6 +28,9 @@ type Complaint = {
   // studentEmail?: string;
   studentDepartment?: string;
   studentDivision?: string;
+  deadline?: string;
+  isOverdue?: boolean;
+  slaHours?: number;
 };
 
 export default function AdminComplaints() {

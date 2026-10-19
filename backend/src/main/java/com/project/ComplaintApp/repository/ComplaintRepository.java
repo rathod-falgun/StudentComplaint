@@ -1,5 +1,6 @@
 package com.project.ComplaintApp.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,4 +31,12 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
                 """)
     List<Complaint> findbyUserIdOrederByCreatedAtAndStatus(@Param("userId") Long userId);
 
+    @Query("""
+            SELECT c FROM Complaint c 
+            WHERE c.status <> com.project.ComplaintApp.Enums.ComplaintStatus.RESOLVED 
+              AND c.deadline IS NOT NULL 
+              AND c.deadline <= :now 
+              AND (c.deadlineMissedEmailSent IS NULL OR c.deadlineMissedEmailSent = false)
+            """)
+    List<Complaint> findOverdueUnresolvedComplaints(@Param("now") LocalDateTime now);
 }

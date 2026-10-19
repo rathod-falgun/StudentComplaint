@@ -69,12 +69,22 @@ public class Complaint {
     @Column(name = "image_path")
     private String imagePath;
 
+    @Column(name = "deadline")
+    private LocalDateTime deadline;
+
+    @Column(name = "deadline_missed_email_sent")
+    private Boolean deadlineMissedEmailSent = false;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        if (priority == null) priority = ComplaintPriority.MEDIUM;
-        if (status == null) status = ComplaintStatus.ASSIGNED;
+        if (priority == null)
+            priority = ComplaintPriority.MEDIUM;
+        if (status == null)
+            status = ComplaintStatus.ASSIGNED;
+        if (deadlineMissedEmailSent == null)
+            deadlineMissedEmailSent = false;
     }
 
     @PreUpdate
