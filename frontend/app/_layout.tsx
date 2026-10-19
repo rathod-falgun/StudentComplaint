@@ -1,6 +1,7 @@
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -55,7 +56,7 @@ export default function RootLayout() {
       // ==========================================
       // SESSION FOUND
       // ==========================================
-      console.log('Saved session found. Role:',user.role);
+      console.log('Saved session found. Role:', user.role);
 
       const role = String(user.role)
         .trim()
@@ -131,90 +132,31 @@ export default function RootLayout() {
   // APP NAVIGATION
   // ==========================================
   return (
-    <>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen
-          name="profile"
-          options={{
-            headerShown: false,
-          }}
-        />
+    <SafeAreaProvider>
+      <>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="profile" />
+          <Stack.Screen name="register" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="dashboard" />
+          <Stack.Screen name="myComplaints" />
+          <Stack.Screen name="addComplaint" />
+          <Stack.Screen name="admin/dashboard" />
+          <Stack.Screen name="admin/complaints" />
+          <Stack.Screen name="admin/complaintDetails" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="modal"
+            options={{
+              presentation: 'modal',
+              title: 'Modal',
+            }}
+          />
+        </Stack>
 
-        <Stack.Screen
-          name="register"
-          options={{
-            headerShown: false,
-          }}
-        />
-
-        <Stack.Screen
-          name="login"
-          options={{
-            headerShown: false,
-          }}
-        />
-
-        <Stack.Screen
-          name="dashboard"
-          options={{
-            headerShown: false,
-          }}
-        />
-
-        <Stack.Screen
-          name="myComplaints"
-          options={{
-            headerShown: false,
-          }}
-        />
-
-        <Stack.Screen
-          name="addComplaint"
-          options={{
-            headerShown: false,
-          }}
-        />
-
-        <Stack.Screen
-          name="admin/dashboard"
-          options={{
-            headerShown: false,
-          }}
-        />
-
-        <Stack.Screen
-          name="admin/complaints"
-          options={{
-            headerShown: false,
-          }}
-        />
-
-        <Stack.Screen
-          name="admin/complaintDetails"
-          options={{
-            headerShown: false,
-          }}
-        />
-
-        <Stack.Screen
-          name="(tabs)"
-          options={{
-            headerShown: false,
-          }}
-        />
-
-        <Stack.Screen
-          name="modal"
-          options={{
-            presentation: 'modal',
-            title: 'Modal',
-          }}
-        />
-
-      </Stack>
-
-      <StatusBar style="auto" />
-    </>
+        <StatusBar style="dark" />
+      </>
+    </SafeAreaProvider>
   );
 }
 
