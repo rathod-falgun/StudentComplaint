@@ -73,7 +73,7 @@ public class Complaint {
     private LocalDateTime deadline;
 
     @Column(name = "deadline_missed_email_sent")
-    private Boolean deadlineMissedEmailSent = false;
+    private Boolean deadlineMissedEmailSent;
 
     @PrePersist
     protected void onCreate() {
