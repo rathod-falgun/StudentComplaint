@@ -167,5 +167,3 @@ Thumbs.db
 
 .env
 
-api.ts
-constants/api.ts
