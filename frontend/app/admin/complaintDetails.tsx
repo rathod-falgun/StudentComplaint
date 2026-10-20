@@ -11,6 +11,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type ComplaintDetail = {
   id: number;
@@ -193,22 +194,26 @@ const [totalComplaints, setTotalComplaints] = useState(0);
 
   if (loading) {
     return (
-      <View style={styles.centerScreen}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Loading details...</Text>
-      </View>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.centerScreen}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Loading details...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (error || !complaint) {
     return (
-      <View style={styles.centerScreen}>
-        <Text style={styles.errorIcon}>⚠️</Text>
-        <Text style={styles.errorTitle}>Complaint Not Found</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.centerScreen}>
+          <Text style={styles.errorIcon}>⚠️</Text>
+          <Text style={styles.errorTitle}>Complaint Not Found</Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Text style={styles.backButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -220,7 +225,8 @@ const [totalComplaints, setTotalComplaints] = useState(0);
   const isStatusChanged = selectedStatus !== null && selectedStatus !== complaint.status;
 
   return (
-    <ScrollView style={styles.screen}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView style={styles.screen}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -386,10 +392,12 @@ const [totalComplaints, setTotalComplaints] = useState(0);
         </View>
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#1E293B' },
   screen: { flex: 1, backgroundColor: '#F4F6F9' },
   centerScreen: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 25 },
   loadingText: { marginTop: 12, fontSize: 16, color: '#64748B' },

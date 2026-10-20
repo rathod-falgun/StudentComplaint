@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type Complaint = {
   id: number;
@@ -235,23 +236,27 @@ export default function AdminComplaints() {
 
   if (loading) {
     return (
-      <View style={styles.centerScreen}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Loading complaints...</Text>
-      </View>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.centerScreen}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Loading complaints...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.centerScreen}>
-        <Text style={styles.errorIcon}>⚠️</Text>
-        <Text style={styles.errorTitle}>Failed to load complaints</Text>
-        <Text style={styles.errorSubtitle}>Please check your connection and pull down to retry.</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => { fetchAllComplaints() }}>
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.centerScreen}>
+          <Text style={styles.errorIcon}>⚠️</Text>
+          <Text style={styles.errorTitle}>Failed to load complaints</Text>
+          <Text style={styles.errorSubtitle}>Please check your connection and pull down to retry.</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => { fetchAllComplaints() }}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -261,7 +266,8 @@ export default function AdminComplaints() {
   }
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.screen}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -572,11 +578,13 @@ export default function AdminComplaints() {
       )}
 
     </View>
+    </SafeAreaView>
 
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#1E293B' },
   screen: { flex: 1, backgroundColor: '#F4F6F9' },
   centerScreen: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 25 },
   loadingText: { marginTop: 12, fontSize: 16, color: '#64748B' },

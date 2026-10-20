@@ -12,6 +12,7 @@ import {
   FlatList,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { clearAuthToken, getToken } from '@/utils/authStorage';
 
 type Stats = {
@@ -155,18 +156,21 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <View style={styles.centerScreen}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Loading Admin Dashboard...</Text>
-      </View>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.centerScreen}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Loading Admin Dashboard...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView
-      style={styles.screen}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView
+        style={styles.screen}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>ADMIN DASHBOARD</Text>
@@ -314,10 +318,12 @@ export default function AdminDashboard() {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#1E293B' },
   screen: { flex: 1, backgroundColor: '#F4F6F9' },
   centerScreen: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF' },
   loadingText: { marginTop: 12, fontSize: 16, color: '#555555' },

@@ -13,6 +13,7 @@ import {
     Modal,
     Pressable,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -290,14 +291,15 @@ export default function AddComplaint() {
     // =================================================
 
     return (
-        <KeyboardAvoidingView
-            style={styles.screen}
-            behavior={
-                Platform.OS === 'ios'
-                    ? 'padding'
-                    : undefined
-            }
-        >
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+            <KeyboardAvoidingView
+                style={styles.screen}
+                behavior={
+                    Platform.OS === 'ios'
+                        ? 'padding'
+                        : undefined
+                }
+            >
 
             <ScrollView
                 contentContainerStyle={[
@@ -879,6 +881,7 @@ export default function AddComplaint() {
             </Modal>
 
         </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 }
 
@@ -888,6 +891,11 @@ export default function AddComplaint() {
 // =====================================================
 
 const styles = StyleSheet.create({
+
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#F5F7FB',
+    },
 
     // ================================================
     // SCREEN

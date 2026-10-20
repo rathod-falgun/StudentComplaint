@@ -15,6 +15,7 @@ import {
     ScrollView,
     StatusBar,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
@@ -179,27 +180,31 @@ export default function Profile() {
 
     if (loading) {
         return (
-            <View style={styles.center}>
-                <StatusBar barStyle="light-content" backgroundColor="#121216" />
-                <ActivityIndicator size="large" color="#3B82F6" />
-                <Text style={styles.loadingText}>Loading profile...</Text>
-            </View>
+            <SafeAreaView style={styles.safeArea} edges={['top']}>
+                <View style={styles.center}>
+                    <StatusBar barStyle="light-content" backgroundColor="#121216" />
+                    <ActivityIndicator size="large" color="#3B82F6" />
+                    <Text style={styles.loadingText}>Loading profile...</Text>
+                </View>
+            </SafeAreaView>
         );
     }
 
     if (!profile) {
         return (
-            <View style={styles.center}>
-                <StatusBar barStyle="light-content" backgroundColor="#121216" />
-                <View style={styles.errorIconBox}>
-                    <Ionicons name="alert-circle-outline" size={36} color="#EF4444" />
+            <SafeAreaView style={styles.safeArea} edges={['top']}>
+                <View style={styles.center}>
+                    <StatusBar barStyle="light-content" backgroundColor="#121216" />
+                    <View style={styles.errorIconBox}>
+                        <Ionicons name="alert-circle-outline" size={36} color="#EF4444" />
+                    </View>
+                    <Text style={styles.errorTitle}>Could not load profile</Text>
+                    <Text style={styles.errorSubtitle}>Please verify your internet connection or login again.</Text>
+                    <TouchableOpacity style={styles.retryButton} onPress={getProfile} activeOpacity={0.8}>
+                        <Text style={styles.retryButtonText}>Retry</Text>
+                    </TouchableOpacity>
                 </View>
-                <Text style={styles.errorTitle}>Could not load profile</Text>
-                <Text style={styles.errorSubtitle}>Please verify your internet connection or login again.</Text>
-                <TouchableOpacity style={styles.retryButton} onPress={getProfile} activeOpacity={0.8}>
-                    <Text style={styles.retryButtonText}>Retry</Text>
-                </TouchableOpacity>
-            </View>
+            </SafeAreaView>
         );
     }
 
@@ -209,7 +214,8 @@ export default function Profile() {
     const photoFileName = profile.profilePhoto || profile.profilePhotoPath;
 
     return (
-        <View style={styles.screen}>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+            <View style={styles.screen}>
             <StatusBar barStyle="light-content" backgroundColor="#121216" />
 
             {/* Top Navigation Bar */}
@@ -446,10 +452,15 @@ export default function Profile() {
                 </Pressable>
             </Modal>
         </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#121216',
+    },
     screen: {
         flex: 1,
         backgroundColor: '#121216',

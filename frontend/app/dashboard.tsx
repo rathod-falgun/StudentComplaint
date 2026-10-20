@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Text,
   View,
@@ -198,7 +199,10 @@ export default function Dashboard() {
   };
 
   return (
-    <ScrollView
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={['top']}
+    >    <ScrollView
       style={styles.screen}
       contentContainerStyle={[
         styles.container,
@@ -216,323 +220,328 @@ export default function Dashboard() {
         />
       }
     >
-      <View
-        style={[
-          styles.contentWrapper,
-          isMobile && styles.mobileContentWrapper,
-          isTablet && styles.tabletContentWrapper,
-          isDesktop && styles.desktopContentWrapper,
-        ]}
-      >
-        {/* ================================================= */}
-        {/* TOP GREETING HEADER */}
-        {/* ================================================= */}
-        <View style={styles.topHeader}>
-          <View style={styles.headerLeft}>
-            <View style={styles.appBadge}>
-              <Text style={styles.appBadgeText}>SCET STUDENT PORTAL</Text>
+        <View
+          style={[
+            styles.contentWrapper,
+            isMobile && styles.mobileContentWrapper,
+            isTablet && styles.tabletContentWrapper,
+            isDesktop && styles.desktopContentWrapper,
+          ]}
+        >
+          {/* ================================================= */}
+          {/* TOP GREETING HEADER */}
+          {/* ================================================= */}
+          <View style={styles.topHeader}>
+            <View style={styles.headerLeft}>
+              <View style={styles.appBadge}>
+                <Text style={styles.appBadgeText}>SCET STUDENT PORTAL</Text>
+              </View>
+              <Text style={styles.headerGreeting}>
+                Welcome, {displayName.split(' ')[0]} 👋
+              </Text>
+              <Text style={styles.headerSubtext}>
+                {displayDepartment} {displayDivision ? `• Div ${displayDivision}` : ''}
+              </Text>
             </View>
-            <Text style={styles.headerGreeting}>
-              Welcome, {displayName.split(' ')[0]} 👋
-            </Text>
-            <Text style={styles.headerSubtext}>
-              {displayDepartment} {displayDivision ? `• Div ${displayDivision}` : ''}
-            </Text>
+
+            <TouchableOpacity
+              style={styles.headerAvatarTouchable}
+              onPress={() => router.push('/profile')}
+              activeOpacity={0.8}
+            >
+              {photoUrl && !imageError ? (
+                <Image
+                  source={{
+                    uri: photoUrl,
+                  }}
+                  style={styles.headerAvatarImage}
+                  contentFit="cover"
+                  cachePolicy="memory-disk"
+                  onError={(e) => {
+                    console.log("Failed to load dashboard profile photo:", e);
+                    setImageError(true);
+                  }}
+                />
+              ) : (
+                <View style={styles.headerAvatarFallback}>
+                  <Text style={styles.headerAvatarInitial}>
+                    {displayName.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
 
+          {/* ================================================= */}
+          {/* COMPLAINTS OVERVIEW METRICS */}
+          {/* ================================================= */}
+          <View style={styles.sectionTitleRow}>
+            <Text style={styles.sectionTitle}>Overview Statistics</Text>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: '/myComplaints',
+                  params: { userId: effectiveUserId || '', name: displayName },
+                })
+              }
+            >
+              <Text style={styles.viewAllText}>View All →</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.statsGrid}>
+            {/* Total Complaints */}
+            <TouchableOpacity
+              style={[styles.statCard, { borderLeftColor: '#3B82F6' }]}
+              activeOpacity={0.8}
+              onPress={() =>
+                router.push({
+                  pathname: '/myComplaints',
+                  params: { userId: effectiveUserId || '', name: displayName },
+                })
+              }
+            >
+              <View style={styles.statIconCircle}>
+                <Ionicons name="document-text-outline" size={18} color="#3B82F6" />
+              </View>
+              <Text style={styles.statNumber}>{totalCount}</Text>
+              <Text style={styles.statLabel}>Total Complaints</Text>
+            </TouchableOpacity>
+
+            {/* Pending */}
+            <TouchableOpacity
+              style={[styles.statCard, { borderLeftColor: '#F59E0B' }]}
+              activeOpacity={0.8}
+              onPress={() =>
+                router.push({
+                  pathname: '/myComplaints',
+                  params: { userId: effectiveUserId || '', name: displayName },
+                })
+              }
+            >
+              <View style={[styles.statIconCircle, { backgroundColor: 'rgba(245, 158, 11, 0.12)' }]}>
+                <Ionicons name="time-outline" size={18} color="#F59E0B" />
+              </View>
+              <Text style={[styles.statNumber, { color: '#F59E0B' }]}>
+                {pendingCount}
+              </Text>
+              <Text style={styles.statLabel}>Pending Triage</Text>
+            </TouchableOpacity>
+
+            {/* In Progress */}
+            <TouchableOpacity
+              style={[styles.statCard, { borderLeftColor: '#0EA5E9' }]}
+              activeOpacity={0.8}
+              onPress={() =>
+                router.push({
+                  pathname: '/myComplaints',
+                  params: { userId: effectiveUserId || '', name: displayName },
+                })
+              }
+            >
+              <View style={[styles.statIconCircle, { backgroundColor: 'rgba(14, 165, 233, 0.12)' }]}>
+                <Ionicons name="sync-outline" size={18} color="#0EA5E9" />
+              </View>
+              <Text style={[styles.statNumber, { color: '#0EA5E9' }]}>
+                {inProgressCount}
+              </Text>
+              <Text style={styles.statLabel}>In Progress</Text>
+            </TouchableOpacity>
+
+            {/* Resolved */}
+            <TouchableOpacity
+              style={[styles.statCard, { borderLeftColor: '#10B981' }]}
+              activeOpacity={0.8}
+              onPress={() =>
+                router.push({
+                  pathname: '/myComplaints',
+                  params: { userId: effectiveUserId || '', name: displayName },
+                })
+              }
+            >
+              <View style={[styles.statIconCircle, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
+                <Ionicons name="checkmark-circle-outline" size={18} color="#10B981" />
+              </View>
+              <Text style={[styles.statNumber, { color: '#10B981' }]}>
+                {resolvedCount}
+              </Text>
+              <Text style={styles.statLabel}>Resolved</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* ================================================= */}
+          {/* QUICK ACTIONS */}
+          {/* ================================================= */}
+          <Text style={[styles.sectionTitle, { marginTop: 16 }]}>Quick Actions</Text>
+
+          {/* Action: Submit Complaint */}
           <TouchableOpacity
-            style={styles.headerAvatarTouchable}
-            onPress={() => router.push('/profile')}
-            activeOpacity={0.8}
+            style={styles.primaryActionCard}
+            activeOpacity={0.85}
+            onPress={() =>
+              router.push({
+                pathname: '/addComplaint',
+                params: {
+                  userId: effectiveUserId || '',
+                  name: displayName,
+                },
+              })
+            }
           >
-            {photoUrl && !imageError ? (
-              <Image
-                source={{
-                  uri: photoUrl,
-                }}
-                style={styles.headerAvatarImage}
-                contentFit="cover"
-                cachePolicy="memory-disk"
-                onError={(e) => {
-                  console.log("Failed to load dashboard profile photo:", e);
-                  setImageError(true);
-                }}
-              />
-            ) : (
-              <View style={styles.headerAvatarFallback}>
-                <Text style={styles.headerAvatarInitial}>
-                  {displayName.charAt(0).toUpperCase()}
+            <View style={styles.actionLeft}>
+              <View style={styles.primaryIconCircle}>
+                <Ionicons name="camera-outline" size={24} color="#FFFFFF" />
+              </View>
+              <View style={styles.actionTexts}>
+                <Text style={styles.primaryActionTitle}>Submit New Complaint</Text>
+                <Text style={styles.primaryActionSub}>
+                  Capture photo & report campus or lab issue
                 </Text>
               </View>
-            )}
+            </View>
+            <Ionicons name="chevron-forward" size={22} color="#FFFFFF" />
           </TouchableOpacity>
-        </View>
 
-        {/* ================================================= */}
-        {/* COMPLAINTS OVERVIEW METRICS */}
-        {/* ================================================= */}
-        <View style={styles.sectionTitleRow}>
-          <Text style={styles.sectionTitle}>Overview Statistics</Text>
+          {/* Action: View Complaints */}
           <TouchableOpacity
+            style={styles.secondaryActionCard}
+            activeOpacity={0.85}
             onPress={() =>
               router.push({
                 pathname: '/myComplaints',
-                params: { userId: effectiveUserId || '', name: displayName },
+                params: {
+                  userId: effectiveUserId || '',
+                  name: displayName,
+                },
               })
             }
           >
-            <Text style={styles.viewAllText}>View All →</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.statsGrid}>
-          {/* Total Complaints */}
-          <TouchableOpacity
-            style={[styles.statCard, { borderLeftColor: '#3B82F6' }]}
-            activeOpacity={0.8}
-            onPress={() =>
-              router.push({
-                pathname: '/myComplaints',
-                params: { userId: effectiveUserId || '', name: displayName },
-              })
-            }
-          >
-            <View style={styles.statIconCircle}>
-              <Ionicons name="document-text-outline" size={18} color="#3B82F6" />
-            </View>
-            <Text style={styles.statNumber}>{totalCount}</Text>
-            <Text style={styles.statLabel}>Total Complaints</Text>
-          </TouchableOpacity>
-
-          {/* Pending */}
-          <TouchableOpacity
-            style={[styles.statCard, { borderLeftColor: '#F59E0B' }]}
-            activeOpacity={0.8}
-            onPress={() =>
-              router.push({
-                pathname: '/myComplaints',
-                params: { userId: effectiveUserId || '', name: displayName },
-              })
-            }
-          >
-            <View style={[styles.statIconCircle, { backgroundColor: 'rgba(245, 158, 11, 0.12)' }]}>
-              <Ionicons name="time-outline" size={18} color="#F59E0B" />
-            </View>
-            <Text style={[styles.statNumber, { color: '#F59E0B' }]}>
-              {pendingCount}
-            </Text>
-            <Text style={styles.statLabel}>Pending Triage</Text>
-          </TouchableOpacity>
-
-          {/* In Progress */}
-          <TouchableOpacity
-            style={[styles.statCard, { borderLeftColor: '#0EA5E9' }]}
-            activeOpacity={0.8}
-            onPress={() =>
-              router.push({
-                pathname: '/myComplaints',
-                params: { userId: effectiveUserId || '', name: displayName },
-              })
-            }
-          >
-            <View style={[styles.statIconCircle, { backgroundColor: 'rgba(14, 165, 233, 0.12)' }]}>
-              <Ionicons name="sync-outline" size={18} color="#0EA5E9" />
-            </View>
-            <Text style={[styles.statNumber, { color: '#0EA5E9' }]}>
-              {inProgressCount}
-            </Text>
-            <Text style={styles.statLabel}>In Progress</Text>
-          </TouchableOpacity>
-
-          {/* Resolved */}
-          <TouchableOpacity
-            style={[styles.statCard, { borderLeftColor: '#10B981' }]}
-            activeOpacity={0.8}
-            onPress={() =>
-              router.push({
-                pathname: '/myComplaints',
-                params: { userId: effectiveUserId || '', name: displayName },
-              })
-            }
-          >
-            <View style={[styles.statIconCircle, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-              <Ionicons name="checkmark-circle-outline" size={18} color="#10B981" />
-            </View>
-            <Text style={[styles.statNumber, { color: '#10B981' }]}>
-              {resolvedCount}
-            </Text>
-            <Text style={styles.statLabel}>Resolved</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* ================================================= */}
-        {/* QUICK ACTIONS */}
-        {/* ================================================= */}
-        <Text style={[styles.sectionTitle, { marginTop: 16 }]}>Quick Actions</Text>
-
-        {/* Action: Submit Complaint */}
-        <TouchableOpacity
-          style={styles.primaryActionCard}
-          activeOpacity={0.85}
-          onPress={() =>
-            router.push({
-              pathname: '/addComplaint',
-              params: {
-                userId: effectiveUserId || '',
-                name: displayName,
-              },
-            })
-          }
-        >
-          <View style={styles.actionLeft}>
-            <View style={styles.primaryIconCircle}>
-              <Ionicons name="camera-outline" size={24} color="#FFFFFF" />
-            </View>
-            <View style={styles.actionTexts}>
-              <Text style={styles.primaryActionTitle}>Submit New Complaint</Text>
-              <Text style={styles.primaryActionSub}>
-                Capture photo & report campus or lab issue
-              </Text>
-            </View>
-          </View>
-          <Ionicons name="chevron-forward" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-
-        {/* Action: View Complaints */}
-        <TouchableOpacity
-          style={styles.secondaryActionCard}
-          activeOpacity={0.85}
-          onPress={() =>
-            router.push({
-              pathname: '/myComplaints',
-              params: {
-                userId: effectiveUserId || '',
-                name: displayName,
-              },
-            })
-          }
-        >
-          <View style={styles.actionLeft}>
-            <View style={styles.secondaryIconCircle}>
-              <Ionicons name="list-outline" size={24} color="#60A5FA" />
-            </View>
-            <View style={styles.actionTexts}>
-              <Text style={styles.secondaryActionTitle}>Track My Complaints</Text>
-              <Text style={styles.secondaryActionSub}>
-                Check real-time resolution progress & updates
-              </Text>
-            </View>
-          </View>
-          <Ionicons name="chevron-forward" size={22} color="#8D8D98" />
-        </TouchableOpacity>
-
-        {/* ================================================= */}
-        {/* RECENT COMPLAINTS PREVIEW */}
-        {/* ================================================= */}
-        <View style={[styles.sectionTitleRow, { marginTop: 22 }]}>
-          <Text style={styles.sectionTitle}>Recent Grievances</Text>
-        </View>
-
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#2563EB" />
-            <Text style={styles.loadingText}>Fetching recent complaints...</Text>
-          </View>
-        ) : complaints.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Ionicons name="shield-checkmark-outline" size={36} color="#3B82F6" />
-            <Text style={styles.emptyTitle}>No Complaints Recorded</Text>
-            <Text style={styles.emptySub}>
-              You have not filed any complaints yet. If you notice any campus, classroom, or lab maintenance issue, tap "Submit New Complaint".
-            </Text>
-          </View>
-        ) : (
-          complaints.slice(0, 3).map((item) => {
-            const badge = getStatusBadge(item.status);
-            return (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.recentCard}
-                activeOpacity={0.8}
-                onPress={() =>
-                  router.push({
-                    pathname: '/myComplaints',
-                    params: {
-                      userId: effectiveUserId || '',
-                      name: displayName,
-                    },
-                  })
-                }
-              >
-                <View style={styles.recentTopRow}>
-                  <View style={styles.categoryBadge}>
-                    <Text style={styles.categoryBadgeText}>
-                      {item.category || 'General'}
-                    </Text>
-                  </View>
-                  <View style={[styles.statusBadge, { backgroundColor: badge.bgColor }]}>
-                    <Text style={[styles.statusBadgeText, { color: badge.textColor }]}>
-                      {badge.label}
-                    </Text>
-                  </View>
-                </View>
-
-                <Text style={styles.recentTitle} numberOfLines={1}>
-                  {item.title}
+            <View style={styles.actionLeft}>
+              <View style={styles.secondaryIconCircle}>
+                <Ionicons name="list-outline" size={24} color="#60A5FA" />
+              </View>
+              <View style={styles.actionTexts}>
+                <Text style={styles.secondaryActionTitle}>Track My Complaints</Text>
+                <Text style={styles.secondaryActionSub}>
+                  Check real-time resolution progress & updates
                 </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={22} color="#8D8D98" />
+          </TouchableOpacity>
 
-                <View style={styles.recentFooter}>
-                  <Text style={styles.recentDate}>
-                    Filed on {formatDate(item.createdAt)}
-                  </Text>
-                  <Text style={styles.recentTap}>View details →</Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })
-        )}
+          {/* ================================================= */}
+          {/* RECENT COMPLAINTS PREVIEW */}
+          {/* ================================================= */}
+          <View style={[styles.sectionTitleRow, { marginTop: 22 }]}>
+            <Text style={styles.sectionTitle}>Recent Grievances</Text>
+          </View>
 
-        {/* ================================================= */}
-        {/* STUDENT PROFILE SUMMARY CARD */}
-        {/* ================================================= */}
-        <View style={styles.profileSnippetCard}>
-          <View style={styles.snippetLeft}>
-            <Ionicons name="person-circle-outline" size={24} color="#60A5FA" />
-            <View style={styles.snippetTexts}>
-              <Text style={styles.snippetTitle}>Student Identity</Text>
-              <Text style={styles.snippetEmail} numberOfLines={1}>
-                {displayEmail}
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#2563EB" />
+              <Text style={styles.loadingText}>Fetching recent complaints...</Text>
+            </View>
+          ) : complaints.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <Ionicons name="shield-checkmark-outline" size={36} color="#3B82F6" />
+              <Text style={styles.emptyTitle}>No Complaints Recorded</Text>
+              <Text style={styles.emptySub}>
+                You have not filed any complaints yet. If you notice any campus, classroom, or lab maintenance issue, tap "Submit New Complaint".
               </Text>
             </View>
+          ) : (
+            complaints.slice(0, 3).map((item) => {
+              const badge = getStatusBadge(item.status);
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.recentCard}
+                  activeOpacity={0.8}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/myComplaints',
+                      params: {
+                        userId: effectiveUserId || '',
+                        name: displayName,
+                      },
+                    })
+                  }
+                >
+                  <View style={styles.recentTopRow}>
+                    <View style={styles.categoryBadge}>
+                      <Text style={styles.categoryBadgeText}>
+                        {item.category || 'General'}
+                      </Text>
+                    </View>
+                    <View style={[styles.statusBadge, { backgroundColor: badge.bgColor }]}>
+                      <Text style={[styles.statusBadgeText, { color: badge.textColor }]}>
+                        {badge.label}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.recentTitle} numberOfLines={1}>
+                    {item.title}
+                  </Text>
+
+                  <View style={styles.recentFooter}>
+                    <Text style={styles.recentDate}>
+                      Filed on {formatDate(item.createdAt)}
+                    </Text>
+                    <Text style={styles.recentTap}>View details →</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
+
+          {/* ================================================= */}
+          {/* STUDENT PROFILE SUMMARY CARD */}
+          {/* ================================================= */}
+          <View style={styles.profileSnippetCard}>
+            <View style={styles.snippetLeft}>
+              <Ionicons name="person-circle-outline" size={24} color="#60A5FA" />
+              <View style={styles.snippetTexts}>
+                <Text style={styles.snippetTitle}>Student Identity</Text>
+                <Text style={styles.snippetEmail} numberOfLines={1}>
+                  {displayEmail}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.profileLinkButton}
+              onPress={() => router.push('/profile')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.profileLinkText}>View Profile</Text>
+            </TouchableOpacity>
           </View>
+
+          {/* ================================================= */}
+          {/* LOGOUT BUTTON */}
+          {/* ================================================= */}
           <TouchableOpacity
-            style={styles.profileLinkButton}
-            onPress={() => router.push('/profile')}
-            activeOpacity={0.7}
+            style={styles.logoutCard}
+            activeOpacity={0.8}
+            onPress={confirmLogout}
           >
-            <Text style={styles.profileLinkText}>View Profile</Text>
+            <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+            <Text style={styles.logoutCardText}>Sign Out</Text>
           </TouchableOpacity>
+
+          <Text style={styles.footerNote}>
+            College Complaint Management System
+          </Text>
         </View>
 
-        {/* ================================================= */}
-        {/* LOGOUT BUTTON */}
-        {/* ================================================= */}
-        <TouchableOpacity
-          style={styles.logoutCard}
-          activeOpacity={0.8}
-          onPress={confirmLogout}
-        >
-          <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-          <Text style={styles.logoutCardText}>Sign Out</Text>
-        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
 
-        <Text style={styles.footerNote}>
-          College Complaint Management System • SCET
-        </Text>
-      </View>
-    </ScrollView>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   screen: {
@@ -946,7 +955,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
-
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#17171C',
+  },
   snippetEmail: {
     color: '#8D8D98',
     fontSize: 12,

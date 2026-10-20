@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -369,10 +370,11 @@ export default function RegisterScreen() {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <StatusBar style="dark" />
       <View style={styles.topBar}>
         <TouchableOpacity
@@ -622,10 +624,12 @@ export default function RegisterScreen() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: COLORS.surface },
   keyboardContainer: { flex: 1, backgroundColor: COLORS.background },
   topBar: {
     minHeight: 58, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center',

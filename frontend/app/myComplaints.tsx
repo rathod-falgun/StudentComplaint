@@ -10,6 +10,7 @@ import {
     TouchableOpacity,
     ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 
 import { useResponsive } from "@/constants/responsive";
@@ -345,34 +346,38 @@ export default function MyComplaints() {
 
     if (loading) {
         return (
-            <View style={styles.centerScreen}>
-                <ActivityIndicator
-                    size="large"
-                    color="#2563EB"
-                />
+            <SafeAreaView style={styles.safeArea} edges={['top']}>
+                <View style={styles.centerScreen}>
+                    <ActivityIndicator
+                        size="large"
+                        color="#2563EB"
+                    />
 
-                <Text style={styles.loadingText}>
-                    Loading your complaints...
-                </Text>
-            </View>
+                    <Text style={styles.loadingText}>
+                        Loading your complaints...
+                    </Text>
+                </View>
+            </SafeAreaView>
         );
     }
 
     if (error) {
         return (
-            <View style={styles.centerScreen}>
-                <Text style={styles.errorIcon}>
-                    ⚠️
-                </Text>
+            <SafeAreaView style={styles.safeArea} edges={['top']}>
+                <View style={styles.centerScreen}>
+                    <Text style={styles.errorIcon}>
+                        ⚠️
+                    </Text>
 
-                <Text style={styles.errorTitle}>
-                    Something went wrong
-                </Text>
+                    <Text style={styles.errorTitle}>
+                        Something went wrong
+                    </Text>
 
-                <Text style={styles.errorSubtitle}>
-                    Unable to load your complaints. Pull down to try again.
-                </Text>
-            </View>
+                    <Text style={styles.errorSubtitle}>
+                        Unable to load your complaints. Pull down to try again.
+                    </Text>
+                </View>
+            </SafeAreaView>
         );
     }
 
@@ -382,7 +387,8 @@ export default function MyComplaints() {
     }
 
     return (
-        <View style={styles.screen}>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+            <View style={styles.screen}>
 
             {/* HEADER */}
             <View
@@ -585,10 +591,16 @@ export default function MyComplaints() {
             </TouchableOpacity>
 
         </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
+
+    safeArea: {
+        flex: 1,
+        backgroundColor: "#F5F7FB",
+    },
 
     // =====================================================
     // SCREEN

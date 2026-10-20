@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   StyleSheet,
   View,
@@ -112,10 +113,11 @@ export default function Login() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={styles.container}
@@ -277,10 +279,16 @@ export default function Login() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#121216',
+  },
+
   keyboardContainer: {
     flex: 1,
     backgroundColor: '#121216',
@@ -290,7 +298,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: '#121216',
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 48 : 32,
+    paddingTop: Platform.OS === 'ios' ? 24 : 16,
     paddingBottom: 40,
     justifyContent: 'center',
     alignItems: 'center',
