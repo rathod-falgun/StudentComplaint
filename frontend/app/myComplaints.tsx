@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 12,
         elevation: 2,
-        alignItems: "flex-start",
+        alignItems: "center",
     },
 
     mobileHeader: {
@@ -710,12 +710,14 @@ const styles = StyleSheet.create({
         paddingBottom: 17,
         borderBottomLeftRadius: 18,
         borderBottomRightRadius: 18,
+        alignItems: "center",
     },
 
     tabletHeader: {
         paddingHorizontal: 35,
         paddingTop: 22,
         paddingBottom: 22,
+        alignItems: "center",
     },
 
     desktopHeader: {
@@ -727,6 +729,7 @@ const styles = StyleSheet.create({
         paddingBottom: 25,
         borderBottomLeftRadius: 24,
         borderBottomRightRadius: 24,
+        alignItems: "center",
     },
 
     pageTitle: {
@@ -734,7 +737,7 @@ const styles = StyleSheet.create({
         fontWeight: "800",
         color: "#082668",
         letterSpacing: -0.5,
-        textAlign: "left",
+        textAlign: "center",
     },
 
     mobilePageTitle: {
@@ -753,10 +756,12 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: "#310AB1",
         marginTop: 4,
+        textAlign: "center",
     },
 
     mobilePageSubtitle: {
         fontSize: 11.5,
+        textAlign: "center",
     },
 
     // =====================================================

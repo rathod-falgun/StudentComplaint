@@ -229,10 +229,13 @@ const [totalComplaints, setTotalComplaints] = useState(0);
       <ScrollView style={styles.screen}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backBtnText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Complaint Details</Text>
+        <View style={styles.headerTopRow}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <Text style={styles.backBtnText}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Complaint Details</Text>
+          <View style={styles.headerSpacer} />
+        </View>
         <Text style={styles.complaintIdHeader}>Complaint ID: #{complaint.id}</Text>
       </View>
 
@@ -405,11 +408,13 @@ const styles = StyleSheet.create({
   errorTitle: { fontSize: 18, fontWeight: 'bold', color: '#1E293B' },
   backButton: { marginTop: 15, backgroundColor: '#007AFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
   backButtonText: { color: '#FFFFFF', fontWeight: 'bold' },
-  header: { backgroundColor: '#1E293B', paddingHorizontal: 20, paddingTop: 25, paddingBottom: 20 },
-  backBtn: { marginBottom: 10 },
+  header: { backgroundColor: '#1E293B', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 18 },
+  headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  backBtn: { paddingVertical: 4, minWidth: 50 },
   backBtnText: { color: '#38BDF8', fontSize: 14, fontWeight: 'bold' },
-  headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#FFFFFF' },
-  complaintIdHeader: { fontSize: 13, color: '#94A3B8', marginTop: 2 },
+  headerTitle: { flex: 1, fontSize: 20, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center' },
+  headerSpacer: { minWidth: 50 },
+  complaintIdHeader: { fontSize: 13, color: '#94A3B8', marginTop: 2, textAlign: 'center' },
   container: { padding: 16 },
   card: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#E2E8F0', elevation: 2 },
   cardSectionHeader: { fontSize: 16, fontWeight: 'bold', color: '#0F172A', marginBottom: 12 },

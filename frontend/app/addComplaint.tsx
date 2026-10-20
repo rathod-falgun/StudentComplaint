@@ -147,24 +147,24 @@ export default function AddComplaint() {
                 if (Platform.OS === 'web') {
                     // web 
                     const imageResponse = await fetch(imageUrl);
-        const blob = await imageResponse.blob();
+                    const blob = await imageResponse.blob();
 
-        let rawFileName = imageUrl.split('/').pop() || `photo_${Date.now()}.jpg`;
-        if (!rawFileName.includes('.')) {
-            const ext = blob.type ? blob.type.split('/')[1] || 'jpg' : 'jpg';
-            rawFileName = `${rawFileName}.${ext}`;
-        }
-        const webFile = new globalThis.File(
-            [blob],
-            rawFileName,
-            {
-                type: blob.type || 'image/jpeg',
-            }
-        );
+                    let rawFileName = imageUrl.split('/').pop() || `photo_${Date.now()}.jpg`;
+                    if (!rawFileName.includes('.')) {
+                        const ext = blob.type ? blob.type.split('/')[1] || 'jpg' : 'jpg';
+                        rawFileName = `${rawFileName}.${ext}`;
+                    }
+                    const webFile = new globalThis.File(
+                        [blob],
+                        rawFileName,
+                        {
+                            type: blob.type || 'image/jpeg',
+                        }
+                    );
 
-        formData.append('imageFile', webFile);
+                    formData.append('imageFile', webFile);
 
-        console.log("STEP 5: WEB FILE ADDED");
+                    console.log("STEP 5: WEB FILE ADDED");
 
                 } else {
                     // androin and ios
@@ -188,17 +188,17 @@ export default function AddComplaint() {
 
             console.log("STEP 7: ABOUT TO CALL setLoading(true)");
             setLoading(true);
-             const token = await getToken();
+            const token = await getToken();
 
-        if (!token) {
-            Alert.alert("Session Expired", "Please login again.");
-            return;
-        }
+            if (!token) {
+                Alert.alert("Session Expired", "Please login again.");
+                return;
+            }
 
 
             console.log("STEP 8: ABOUT TO CALL API FETCH");
             const response = await expoFetch(
-                    `${API_URL}/api/complaints/${userId}`, {
+                `${API_URL}/api/complaints/${userId}`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -212,7 +212,7 @@ export default function AddComplaint() {
 
 
             console.log("STEP 9: FETCH RETURNED, status:", response.status);
-                    console.log("Response status:", response.status);
+            console.log("Response status:", response.status);
 
 
             if (!response.ok) {
@@ -301,586 +301,586 @@ export default function AddComplaint() {
                 }
             >
 
-            <ScrollView
-                contentContainerStyle={[
-                    styles.container,
-                    isMobile && styles.mobileContainer,
-                    isTablet && styles.tabletContainer,
-                    isDesktop && styles.desktopContainer,
-                ]}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-            >
-
-                {/* ===================================== */}
-                {/* HEADER */}
-                {/* ===================================== */}
-
-                <View style={styles.header}>
-
-                    <TouchableOpacity
-                        style={styles.backButton}
-                        activeOpacity={0.7}
-                        onPress={() => router.back()}
-                    >
-                        <Text style={styles.backIcon}>‹</Text>
-                    </TouchableOpacity>
-
-                    <View style={styles.headerContent}>
-
-                        <Text
-                            style={[
-                                styles.headerTitle,
-                                isMobile && styles.mobileHeaderTitle,
-                                isDesktop && styles.desktopHeaderTitle,
-                            ]}
-                        >                            Submit a Complaint
-                        </Text>
-
-                        <Text style={styles.headerSubtitle}>
-                            Help us improve your campus
-                        </Text>
-
-                    </View>
-
-                </View>
-
-
-                {/* ===================================== */}
-                {/* TRUST / INFO CARD */}
-                {/* ===================================== */}
-
-                <View style={styles.infoCard}>
-
-                    <View style={styles.infoIconContainer}>
-                        <Text style={styles.infoIcon}>
-                            ✓
-                        </Text>
-                    </View>
-
-                    <View style={styles.infoContent}>
-
-                        <Text style={styles.infoTitle}>
-                            Your voice matters
-                        </Text>
-
-                        <Text style={styles.infoText}>
-                            Share the issue clearly and our team
-                            will route it to the right department.
-                        </Text>
-
-                    </View>
-
-                </View>
-
-
-                {/* ===================================== */}
-                {/* FORM CARD */}
-                {/* ===================================== */}
-
-                <View
-                    style={[
-                        styles.formCard,
-                        isMobile && styles.mobileFormCard,
-                        isTablet && styles.tabletFormCard,
-                        isDesktop && styles.desktopFormCard,
+                <ScrollView
+                    contentContainerStyle={[
+                        styles.container,
+                        isMobile && styles.mobileContainer,
+                        isTablet && styles.tabletContainer,
+                        isDesktop && styles.desktopContainer,
                     ]}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
                 >
 
-                    {/* ================================= */}
-                    {/* TITLE */}
-                    {/* ================================= */}
+                    {/* ===================================== */}
+                    {/* HEADER */}
+                    {/* ===================================== */}
 
-                    <View style={styles.section}>
-
-                        <View style={styles.labelRow}>
-
-                            <Text style={styles.label}>
-                                Complaint title
-                            </Text>
-
-                            <Text style={styles.required}>
-                                Required
-                            </Text>
-
-                        </View>
-
-                        <TextInput
-                            style={styles.input}
-                            placeholder="e.g. Classroom fan is not working"
-                            placeholderTextColor="#A1AAB8"
-                            value={title}
-                            onChangeText={setTitle}
-                            maxLength={150}
-                            returnKeyType="next"
-                        />
-
-                        <View style={styles.counterRow}>
-
-                            <Text style={styles.fieldHint}>
-                                Keep it short and specific
-                            </Text>
-
-                            <Text style={styles.counter}>
-                                {title.length}/150
-                            </Text>
-
-                        </View>
-
-                    </View>
-
-
-                    {/* ================================= */}
-                    {/* CATEGORY */}
-                    {/* ================================= */}
-
-                    <View style={styles.section}>
-
-                        <View style={styles.labelRow}>
-
-                            <Text style={styles.label}>
-                                Category
-                            </Text>
-
-                            <Text style={styles.required}>
-                                Required
-                            </Text>
-
-                        </View>
+                    <View style={styles.header}>
 
                         <TouchableOpacity
-                            style={[
-                                styles.dropdown,
-                                categoryName && styles.dropdownSelected,
-                            ]}
+                            style={styles.backButton}
                             activeOpacity={0.7}
-                            onPress={() =>
-                                setShowCategories(true)
-                            }
+                            onPress={() => router.back()}
                         >
-
-                            <View style={styles.dropdownLeft}>
-
-                                {categoryName ? (
-                                    <View style={styles.selectedCategoryIcon}>
-                                        <Text>
-                                            {getCategoryIcon(categoryName)}
-                                        </Text>
-                                    </View>
-                                ) : (
-                                    <View style={styles.categoryPlaceholderIcon}>
-                                        <Text style={styles.placeholderIconText}>
-                                            +
-                                        </Text>
-                                    </View>
-                                )}
-
-                                <Text
-                                    style={
-                                        categoryName
-                                            ? styles.dropdownText
-                                            : styles.placeholder
-                                    }
-                                >
-                                    {categoryName ||
-                                        'Select a category'}
-                                </Text>
-
-                            </View>
-
-                            <Text style={styles.dropdownArrow}>
-                                ›
-                            </Text>
-
+                            <Text style={styles.backIcon}>‹</Text>
                         </TouchableOpacity>
 
-                    </View>
+                        <View style={styles.headerContent}>
 
-
-                    {/* ================================= */}
-                    {/* PRIORITY */}
-                    {/* ================================= */}
-
-                    <View style={styles.section}>
-
-                        <View style={styles.labelRow}>
-
-                            <Text style={styles.label}>
-                                Priority
-                            </Text>
-
-                            <Text style={styles.optional}>
-                                How urgent?
-                            </Text>
-
-                        </View>
-
-                        <View style={styles.priorityContainer}>
-
-                            {priorities.map((item) => {
-
-                                const selected =
-                                    priority === item;
-
-                                return (
-                                    <TouchableOpacity
-                                        key={item}
-                                        activeOpacity={0.7}
-                                        style={[
-                                            styles.priorityButton,
-                                            selected &&
-                                            styles.priorityButtonSelected,
-                                        ]}
-                                        onPress={() =>
-                                            setPriority(item)
-                                        }
-                                    >
-                                        <Text
-                                            style={[
-                                                styles.priorityText,
-                                                selected &&
-                                                styles.priorityTextSelected,
-                                            ]}
-                                        >
-                                            {item}
-                                        </Text>
-
-                                        {selected && (
-                                            <View
-                                                style={styles.selectedDot}
-                                            />
-                                        )}
-
-                                    </TouchableOpacity>
-                                );
-                            })}
-
-                        </View>
-
-                    </View>
-
-
-                    {/* ================================= */}
-                    {/* DESCRIPTION */}
-                    {/* ================================= */}
-
-                    <View style={styles.sectionLast}>
-
-                        <View style={styles.labelRow}>
-
-                            <Text style={styles.label}>
-                                Describe the issue
-                            </Text>
-
-                            <Text style={styles.required}>
-                                Required
-                            </Text>
-
-                        </View>
-
-                        <TextInput
-                            style={styles.descriptionInput}
-                            placeholder={
-                                'Tell us what happened, where it happened, and any details that may help us resolve it...'
-                            }
-                            placeholderTextColor="#A1AAB8"
-                            value={description}
-                            onChangeText={setDescription}
-                            multiline
-                            textAlignVertical="top"
-                            maxLength={1000}
-                        />
-
-                        <View style={styles.descriptionFooter}>
-
-                            <Text style={styles.fieldHint}>
-                                More details help us resolve issues faster
-                            </Text>
-
-                            <Text style={styles.counter}>
-                                {description.length}/1000
-                            </Text>
-
-                        </View>
-
-                    </View>
-                    {/* ================================= */}
-                    {/* IMAGE UPLOAD (CAMERA ONLY) */}
-                    {/* ================================= */}
-
-                    <View style={styles.sectionLast}>
-                        <View style={styles.labelRow}>
-                            <Text style={styles.label}>Attach Photo</Text>
-                            <Text style={styles.optional}>Optional</Text>
-                        </View>
-
-                        <Text style={styles.cameraNoteText}>
-                            Live camera capture only to verify the current situation.
-                        </Text>
-
-                        {!imageUrl ? (
-                            <TouchableOpacity
-                                onPress={takePhoto}
+                            <Text
                                 style={[
-                                    styles.dropdown,
-                                    styles.cameraButton,
+                                    styles.headerTitle,
+                                    isMobile && styles.mobileHeaderTitle,
+                                    isDesktop && styles.desktopHeaderTitle,
                                 ]}
-                                activeOpacity={0.7}
-                            >
-                                <View style={styles.cameraButtonLeft}>
-                                    <View style={styles.cameraIconContainer}>
-                                        <Text style={styles.cameraIcon}>📷</Text>
-                                    </View>
-                                    <View>
-                                        <Text style={styles.dropdownText}>Take Photo</Text>
-                                        <Text style={styles.cameraButtonSubtext}>Use camera to capture current issue</Text>
-                                    </View>
-                                </View>
-                                <View style={styles.cameraBadge}>
-                                    <Text style={styles.cameraBadgeText}>Live Only</Text>
-                                </View>
-                            </TouchableOpacity>
-                        ) : (
-                            <View style={styles.previewContainer}>
-                                <Image
-                                    source={{ uri: imageUrl }}
-                                    style={[
-                                        styles.previewImage,
-                                        isMobile && styles.mobilePreviewImage,
-                                        isDesktop && styles.desktopPreviewImage,
-                                    ]}
-                                    contentFit="cover"
-                                />
+                            >                            Submit a Complaint
+                            </Text>
 
-                                <View style={styles.previewActions}>
-                                    <TouchableOpacity
-                                        onPress={takePhoto}
-                                        style={styles.retakeButton}
-                                        activeOpacity={0.7}
-                                    >
-                                        <Text style={styles.retakeButtonText}>🔄 Retake Photo</Text>
-                                    </TouchableOpacity>
+                            <Text style={styles.headerSubtitle}>
+                                Help us improve your campus
+                            </Text>
 
-                                    <TouchableOpacity
-                                        onPress={() => SetImageUrl(null)}
-                                        style={styles.removeButton}
-                                        activeOpacity={0.7}
-                                    >
-                                        <Text style={styles.removeButtonText}>🗑️ Remove</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        )}
+                        </View>
+
                     </View>
 
-                </View>
+
+                    {/* ===================================== */}
+                    {/* TRUST / INFO CARD */}
+                    {/* ===================================== */}
+
+                    <View style={styles.infoCard}>
+
+                        <View style={styles.infoIconContainer}>
+                            <Text style={styles.infoIcon}>
+                                ✓
+                            </Text>
+                        </View>
+
+                        <View style={styles.infoContent}>
+
+                            <Text style={styles.infoTitle}>
+                                Your voice matters
+                            </Text>
+
+                            <Text style={styles.infoText}>
+                                Share the issue clearly and our team
+                                will route it to the right department.
+                            </Text>
+
+                        </View>
+
+                    </View>
 
 
-                {/* ===================================== */}
-                {/* SUBMIT BUTTON */}
-                {/* ===================================== */}
+                    {/* ===================================== */}
+                    {/* FORM CARD */}
+                    {/* ===================================== */}
 
-                <TouchableOpacity
-                    activeOpacity={0.85}
-                    onPress={handleSubmit}
-                    style={[
-                        styles.submitButton,
-                        isMobile && styles.mobileSubmitButton,
-                        isTablet && styles.tabletSubmitButton,
-                        isDesktop && styles.desktopSubmitButton,
-                        loading && styles.submitButtonDisabled,
-                    ]}>
+                    <View
+                        style={[
+                            styles.formCard,
+                            isMobile && styles.mobileFormCard,
+                            isTablet && styles.tabletFormCard,
+                            isDesktop && styles.desktopFormCard,
+                        ]}
+                    >
 
-                    {loading ? (
+                        {/* ================================= */}
+                        {/* TITLE */}
+                        {/* ================================= */}
 
-                        <>
-                            <ActivityIndicator
-                                size="small"
-                                color="#FFFFFF"
+                        <View style={styles.section}>
+
+                            <View style={styles.labelRow}>
+
+                                <Text style={styles.label}>
+                                    Complaint title
+                                </Text>
+
+                                <Text style={styles.required}>
+                                    Required
+                                </Text>
+
+                            </View>
+
+                            <TextInput
+                                style={styles.input}
+                                placeholder="e.g. Classroom fan is not working"
+                                placeholderTextColor="#A1AAB8"
+                                value={title}
+                                onChangeText={setTitle}
+                                maxLength={150}
+                                returnKeyType="next"
                             />
 
-                            <Text style={styles.submitText}>
-                                Submitting...
-                            </Text>
-                        </>
+                            <View style={styles.counterRow}>
 
-                    ) : (
-
-                        <>
-                            <Text style={styles.submitText}>
-                                Submit Complaint
-                            </Text>
-
-                            <View style={styles.submitArrowCircle}>
-                                <Text style={styles.submitArrow}>
-                                    →
+                                <Text style={styles.fieldHint}>
+                                    Keep it short and specific
                                 </Text>
+
+                                <Text style={styles.counter}>
+                                    {title.length}/150
+                                </Text>
+
                             </View>
-                        </>
 
-                    )}
-
-                </TouchableOpacity>
+                        </View>
 
 
-                {/* ===================================== */}
-                {/* FOOTER TRUST MESSAGE */}
-                {/* ===================================== */}
+                        {/* ================================= */}
+                        {/* CATEGORY */}
+                        {/* ================================= */}
 
-                <View style={styles.footer}>
+                        <View style={styles.section}>
 
-                    <Text style={styles.footerIcon}>
-                        🔒
-                    </Text>
+                            <View style={styles.labelRow}>
 
-                    <Text style={styles.footerText}>
-                        Your complaint will be reviewed by the
-                        concerned department.
-                    </Text>
-
-                </View>
-
-
-            </ScrollView>
-
-
-            {/* ========================================= */}
-            {/* CATEGORY MODAL */}
-            {/* ========================================= */}
-
-            <Modal
-                visible={showCategories}
-                transparent
-                animationType="slide"
-                onRequestClose={() =>
-                    setShowCategories(false)
-                }
-            >
-
-                <View style={styles.modalOverlay}>
-
-                    <Pressable
-                        style={StyleSheet.absoluteFill}
-                        onPress={() =>
-                            setShowCategories(false)
-                        }
-                    />
-
-                    <View style={styles.categoryModal}>
-
-                        {/* Modal Header */}
-
-                        <View style={styles.modalHeader}>
-
-                            <View>
-
-                                <Text style={styles.modalTitle}>
-                                    Select category
+                                <Text style={styles.label}>
+                                    Category
                                 </Text>
 
-                                <Text style={styles.modalSubtitle}>
-                                    Choose what your complaint is about
+                                <Text style={styles.required}>
+                                    Required
                                 </Text>
 
                             </View>
 
                             <TouchableOpacity
-                                style={styles.closeButton}
+                                style={[
+                                    styles.dropdown,
+                                    categoryName && styles.dropdownSelected,
+                                ]}
+                                activeOpacity={0.7}
                                 onPress={() =>
-                                    setShowCategories(false)
+                                    setShowCategories(true)
                                 }
                             >
-                                <Text style={styles.closeText}>
-                                    ×
+
+                                <View style={styles.dropdownLeft}>
+
+                                    {categoryName ? (
+                                        <View style={styles.selectedCategoryIcon}>
+                                            <Text>
+                                                {getCategoryIcon(categoryName)}
+                                            </Text>
+                                        </View>
+                                    ) : (
+                                        <View style={styles.categoryPlaceholderIcon}>
+                                            <Text style={styles.placeholderIconText}>
+                                                +
+                                            </Text>
+                                        </View>
+                                    )}
+
+                                    <Text
+                                        style={
+                                            categoryName
+                                                ? styles.dropdownText
+                                                : styles.placeholder
+                                        }
+                                    >
+                                        {categoryName ||
+                                            'Select a category'}
+                                    </Text>
+
+                                </View>
+
+                                <Text style={styles.dropdownArrow}>
+                                    ›
                                 </Text>
+
                             </TouchableOpacity>
 
                         </View>
-                        {/* Category List */}
 
-                        <ScrollView
-                            showsVerticalScrollIndicator={false}
-                            contentContainerStyle={
-                                styles.categoryList
-                            }
-                        >
 
-                            {categories.map((item) => {
+                        {/* ================================= */}
+                        {/* PRIORITY */}
+                        {/* ================================= */}
 
-                                const selected =
-                                    categoryName === item.name;
-                                return (
-                                    <TouchableOpacity
-                                        key={item.cid}
-                                        activeOpacity={0.7}
-                                        style={[
-                                            styles.categoryItem,
-                                            selected &&
-                                            styles.categoryItemSelected,
-                                        ]}
-                                        onPress={() => {
-                                            console.log('Selected category:', item.cid, item.name);
-                                            setCategoryId(item.cid);
-                                            setCategoryName(item.name);
-                                            setShowCategories(false);
+                        <View style={styles.section}>
 
-                                        }}
-                                    >
+                            <View style={styles.labelRow}>
 
-                                        <View
+                                <Text style={styles.label}>
+                                    Priority
+                                </Text>
+
+                                <Text style={styles.optional}>
+                                    How urgent?
+                                </Text>
+
+                            </View>
+
+                            <View style={styles.priorityContainer}>
+
+                                {priorities.map((item) => {
+
+                                    const selected =
+                                        priority === item;
+
+                                    return (
+                                        <TouchableOpacity
+                                            key={item}
+                                            activeOpacity={0.7}
                                             style={[
-                                                styles.categoryIcon,
+                                                styles.priorityButton,
                                                 selected &&
-                                                styles.categoryIconSelected,
+                                                styles.priorityButtonSelected,
                                             ]}
-
+                                            onPress={() =>
+                                                setPriority(item)
+                                            }
                                         >
-                                            <Text style={styles.categoryEmoji}>
-                                                {getCategoryIcon(item.name)}
+                                            <Text
+                                                style={[
+                                                    styles.priorityText,
+                                                    selected &&
+                                                    styles.priorityTextSelected,
+                                                ]}
+                                            >
+                                                {item}
                                             </Text>
-                                        </View>
-
-                                        <Text
-                                            style={[
-                                                styles.categoryText,
-                                                selected &&
-                                                styles.categoryTextSelected,
-                                            ]}
-                                        >
-                                            {item.name}
-                                        </Text>
-
-                                        <View
-                                            style={[
-                                                styles.radioOuter,
-                                                selected &&
-                                                styles.radioOuterSelected,
-                                            ]}
-                                        >
 
                                             {selected && (
                                                 <View
-                                                    style={
-                                                        styles.radioInner
-                                                    }
+                                                    style={styles.selectedDot}
                                                 />
                                             )}
 
+                                        </TouchableOpacity>
+                                    );
+                                })}
+
+                            </View>
+
+                        </View>
+
+
+                        {/* ================================= */}
+                        {/* DESCRIPTION */}
+                        {/* ================================= */}
+
+                        <View style={styles.sectionLast}>
+
+                            <View style={styles.labelRow}>
+
+                                <Text style={styles.label}>
+                                    Describe the issue
+                                </Text>
+
+                                <Text style={styles.required}>
+                                    Required
+                                </Text>
+
+                            </View>
+
+                            <TextInput
+                                style={styles.descriptionInput}
+                                placeholder={
+                                    'Tell us what happened, where it happened, and any details that may help us resolve it...'
+                                }
+                                placeholderTextColor="#A1AAB8"
+                                value={description}
+                                onChangeText={setDescription}
+                                multiline
+                                textAlignVertical="top"
+                                maxLength={1000}
+                            />
+
+                            <View style={styles.descriptionFooter}>
+
+                                <Text style={styles.fieldHint}>
+                                    More details help us resolve issues faster
+                                </Text>
+
+                                <Text style={styles.counter}>
+                                    {description.length}/1000
+                                </Text>
+
+                            </View>
+
+                        </View>
+                        {/* ================================= */}
+                        {/* IMAGE UPLOAD (CAMERA ONLY) */}
+                        {/* ================================= */}
+
+                        <View style={styles.sectionLast}>
+                            <View style={styles.labelRow}>
+                                <Text style={styles.label}>Attach Photo</Text>
+                                <Text style={styles.optional}>Optional</Text>
+                            </View>
+
+                            <Text style={styles.cameraNoteText}>
+                                Live camera capture only to verify the current situation.
+                            </Text>
+
+                            {!imageUrl ? (
+                                <TouchableOpacity
+                                    onPress={takePhoto}
+                                    style={[
+                                        styles.dropdown,
+                                        styles.cameraButton,
+                                    ]}
+                                    activeOpacity={0.7}
+                                >
+                                    <View style={styles.cameraButtonLeft}>
+                                        <View style={styles.cameraIconContainer}>
+                                            <Text style={styles.cameraIcon}>📷</Text>
                                         </View>
+                                        <View>
+                                            <Text style={styles.dropdownText}>Take Photo</Text>
+                                            <Text style={styles.cameraButtonSubtext}>Use camera to capture current issue</Text>
+                                        </View>
+                                    </View>
+                                    <View style={styles.cameraBadge}>
+                                        <Text style={styles.cameraBadgeText}>Live Only</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ) : (
+                                <View style={styles.previewContainer}>
+                                    <Image
+                                        source={{ uri: imageUrl }}
+                                        style={[
+                                            styles.previewImage,
+                                            isMobile && styles.mobilePreviewImage,
+                                            isDesktop && styles.desktopPreviewImage,
+                                        ]}
+                                        contentFit="cover"
+                                    />
 
-                                    </TouchableOpacity>
-                                );
-                            })}
+                                    <View style={styles.previewActions}>
+                                        <TouchableOpacity
+                                            onPress={takePhoto}
+                                            style={styles.retakeButton}
+                                            activeOpacity={0.7}
+                                        >
+                                            <Text style={styles.retakeButtonText}>🔄 Retake Photo</Text>
+                                        </TouchableOpacity>
 
-                        </ScrollView>
+                                        <TouchableOpacity
+                                            onPress={() => SetImageUrl(null)}
+                                            style={styles.removeButton}
+                                            activeOpacity={0.7}
+                                        >
+                                            <Text style={styles.removeButtonText}>🗑️ Remove</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            )}
+                        </View>
 
                     </View>
 
-                </View>
 
-            </Modal>
+                    {/* ===================================== */}
+                    {/* SUBMIT BUTTON */}
+                    {/* ===================================== */}
 
-        </KeyboardAvoidingView>
+                    <TouchableOpacity
+                        activeOpacity={0.85}
+                        onPress={handleSubmit}
+                        style={[
+                            styles.submitButton,
+                            isMobile && styles.mobileSubmitButton,
+                            isTablet && styles.tabletSubmitButton,
+                            isDesktop && styles.desktopSubmitButton,
+                            loading && styles.submitButtonDisabled,
+                        ]}>
+
+                        {loading ? (
+
+                            <>
+                                <ActivityIndicator
+                                    size="small"
+                                    color="#FFFFFF"
+                                />
+
+                                <Text style={styles.submitText}>
+                                    Submitting...
+                                </Text>
+                            </>
+
+                        ) : (
+
+                            <>
+                                <Text style={styles.submitText}>
+                                    Submit Complaint
+                                </Text>
+
+                                <View style={styles.submitArrowCircle}>
+                                    <Text style={styles.submitArrow}>
+                                        →
+                                    </Text>
+                                </View>
+                            </>
+
+                        )}
+
+                    </TouchableOpacity>
+
+
+                    {/* ===================================== */}
+                    {/* FOOTER TRUST MESSAGE */}
+                    {/* ===================================== */}
+
+                    <View style={styles.footer}>
+
+                        <Text style={styles.footerIcon}>
+                            🔒
+                        </Text>
+
+                        <Text style={styles.footerText}>
+                            Your complaint will be reviewed by the
+                            concerned department.
+                        </Text>
+
+                    </View>
+
+
+                </ScrollView>
+
+
+                {/* ========================================= */}
+                {/* CATEGORY MODAL */}
+                {/* ========================================= */}
+
+                <Modal
+                    visible={showCategories}
+                    transparent
+                    animationType="slide"
+                    onRequestClose={() =>
+                        setShowCategories(false)
+                    }
+                >
+
+                    <View style={styles.modalOverlay}>
+
+                        <Pressable
+                            style={StyleSheet.absoluteFill}
+                            onPress={() =>
+                                setShowCategories(false)
+                            }
+                        />
+
+                        <View style={styles.categoryModal}>
+
+                            {/* Modal Header */}
+
+                            <View style={styles.modalHeader}>
+
+                                <View>
+
+                                    <Text style={styles.modalTitle}>
+                                        Select category
+                                    </Text>
+
+                                    <Text style={styles.modalSubtitle}>
+                                        Choose what your complaint is about
+                                    </Text>
+
+                                </View>
+
+                                <TouchableOpacity
+                                    style={styles.closeButton}
+                                    onPress={() =>
+                                        setShowCategories(false)
+                                    }
+                                >
+                                    <Text style={styles.closeText}>
+                                        ×
+                                    </Text>
+                                </TouchableOpacity>
+
+                            </View>
+                            {/* Category List */}
+
+                            <ScrollView
+                                showsVerticalScrollIndicator={false}
+                                contentContainerStyle={
+                                    styles.categoryList
+                                }
+                            >
+
+                                {categories.map((item) => {
+
+                                    const selected =
+                                        categoryName === item.name;
+                                    return (
+                                        <TouchableOpacity
+                                            key={item.cid}
+                                            activeOpacity={0.7}
+                                            style={[
+                                                styles.categoryItem,
+                                                selected &&
+                                                styles.categoryItemSelected,
+                                            ]}
+                                            onPress={() => {
+                                                console.log('Selected category:', item.cid, item.name);
+                                                setCategoryId(item.cid);
+                                                setCategoryName(item.name);
+                                                setShowCategories(false);
+
+                                            }}
+                                        >
+
+                                            <View
+                                                style={[
+                                                    styles.categoryIcon,
+                                                    selected &&
+                                                    styles.categoryIconSelected,
+                                                ]}
+
+                                            >
+                                                <Text style={styles.categoryEmoji}>
+                                                    {getCategoryIcon(item.name)}
+                                                </Text>
+                                            </View>
+
+                                            <Text
+                                                style={[
+                                                    styles.categoryText,
+                                                    selected &&
+                                                    styles.categoryTextSelected,
+                                                ]}
+                                            >
+                                                {item.name}
+                                            </Text>
+
+                                            <View
+                                                style={[
+                                                    styles.radioOuter,
+                                                    selected &&
+                                                    styles.radioOuterSelected,
+                                                ]}
+                                            >
+
+                                                {selected && (
+                                                    <View
+                                                        style={
+                                                            styles.radioInner
+                                                        }
+                                                    />
+                                                )}
+
+                                            </View>
+
+                                        </TouchableOpacity>
+                                    );
+                                })}
+
+                            </ScrollView>
+
+                        </View>
+
+                    </View>
+
+                </Modal>
+
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }

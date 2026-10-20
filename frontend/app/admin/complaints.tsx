@@ -270,10 +270,13 @@ export default function AdminComplaints() {
       <View style={styles.screen}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backBtnText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>All Complaints</Text>
+        <View style={styles.headerTopRow}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Text style={styles.backBtnText}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>All Complaints</Text>
+          <View style={styles.headerSpacer} />
+        </View>
         <Text style={styles.headerSubtitle}>
           Showing {filteredComplaints.length} of {complaints.length} total
         </Text>
@@ -596,11 +599,13 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 40, marginBottom: 10 },
   emptyTitle: { fontSize: 18, fontWeight: 'bold', color: '#1E293B' },
   emptySubtitle: { fontSize: 13, color: '#64748B', textAlign: 'center', marginTop: 4 },
-  header: { backgroundColor: '#1E293B', paddingHorizontal: 20, paddingTop: 25, paddingBottom: 20 },
-  backBtn: { marginBottom: 10 },
+  header: { backgroundColor: '#1E293B', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 18 },
+  headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  backBtn: { paddingVertical: 4, minWidth: 50 },
   backBtnText: { color: '#38BDF8', fontSize: 14, fontWeight: 'bold' },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#FFFFFF' },
-  headerSubtitle: { fontSize: 13, color: '#94A3B8', marginTop: 2 },
+  headerTitle: { flex: 1, fontSize: 20, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center' },
+  headerSpacer: { minWidth: 50 },
+  headerSubtitle: { fontSize: 13, color: '#94A3B8', marginTop: 2, textAlign: 'center' },
   searchContainer: { paddingHorizontal: 15, paddingTop: 12, paddingBottom: 6, backgroundColor: '#FFFFFF', flexDirection: 'row', alignItems: 'center' },
   searchInput: { flex: 1, height: 44, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 10, paddingHorizontal: 15, fontSize: 14, color: '#0F172A', backgroundColor: '#F8FAFC' },
   clearSearchBtn: { position: 'absolute', right: 25 },
