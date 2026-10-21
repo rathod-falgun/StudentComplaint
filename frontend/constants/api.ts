@@ -4,13 +4,13 @@ import { Alert, Platform } from 'react-native';
 
 
 const getBaseUrl = () => {
-  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.hostname) {
-    return `http://${window.location.hostname}:8081`;
-  }
   if (process.env.EXPO_PUBLIC_API_BASE) {
-    return process.env.EXPO_PUBLIC_API_BASE;
+    return process.env.EXPO_PUBLIC_API_BASE.replace(/\/$/, '');
   }
-  return 'http://10.163.139.154:8081';
+  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.hostname) {
+    return `http://${window.location.hostname}:10000`;
+  }
+  return 'http://10.118.31.1:10000';
 };
 
 export const API_BASE_URL = getBaseUrl();

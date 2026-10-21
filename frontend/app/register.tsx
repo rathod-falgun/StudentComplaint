@@ -20,6 +20,7 @@ import { File } from 'expo-file-system';
 import { fetch as expoFetch } from 'expo/fetch';
 import { Dropdown } from 'react-native-element-dropdown';
 import { Ionicons } from '@expo/vector-icons';
+import { API_BASE_URL } from '@/constants/api';
 
 const COLORS = {
   background: '#F7F9FC',
@@ -102,7 +103,7 @@ export default function RegisterScreen() {
   const [countdown, setCountdown] = useState(0);
   const emailRef = useRef('');
 
-  const API_URL = process.env.EXPO_PUBLIC_API_BASE?.replace(/\/$/, '');
+  const API_URL = API_BASE_URL;
   const normalizedEmail = normalizeEmail(email);
   const collegeEmailValid = isValidCollegeEmail(email);
   const otpMatchesCurrentEmail = otpSent && otpEmail === normalizedEmail;
