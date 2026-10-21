@@ -73,11 +73,11 @@ public class AuthService {
         // Delete any existing OTP for this email from DB before generating new one
         emailOtpRepository.deleteByEmail(normalizedEmail);
 
-        // Save new OTP record (valid for 1 minute)
+        // Save new OTP record (valid for 5 minutes)
         EmailOtp emailOtp = new EmailOtp();
         emailOtp.setEmail(normalizedEmail);
         emailOtp.setOtp(otp);
-        emailOtp.setExpiresAt(java.time.LocalDateTime.now().plusMinutes(1));
+        emailOtp.setExpiresAt(java.time.LocalDateTime.now().plusMinutes(5));
         emailOtp.setVerified(false);
         emailOtpRepository.save(emailOtp);
 
@@ -89,11 +89,11 @@ public class AuthService {
 
     /**
      * Normalizes and validates that the email address is well-formed and belongs
-     * strictly to the official college domain.
+     * strictly to the allowed college domain(s).
      */
     public String normalizeAndValidateCollegeEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
-            throw new IllegalArgumentException("Official college email address is required.");
+            throw new IllegalArgumentException("Email address is required.");
         }
 
         String normalized = email.trim().toLowerCase();
@@ -108,12 +108,17 @@ public class AuthService {
         }
 
         String domain = normalized.substring(atIndex + 1);
-        String expectedDomain = (allowedEmailDomain != null ? allowedEmailDomain.trim().toLowerCase() : "scet.ac.in");
+        String configVal = (allowedEmailDomain != null ? allowedEmailDomain.trim().toLowerCase() : "scet.ac.in");
+        java.util.List<String> allowedList = java.util.Arrays.stream(configVal.split(","))
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .filter(s -> !s.isEmpty())
+                .collect(java.util.stream.Collectors.toList());
 
-        if (!domain.equals(expectedDomain)) {
+        if (!allowedList.contains(domain)) {
             throw new IllegalArgumentException(
-                    "Only official college email addresses (@" + expectedDomain
-                            + ") are allowed for student registration.");
+                    "Only official college email addresses (@" + String.join(", @", allowedList)
+                            + ") are allowed.");
         }
 
         return normalized;

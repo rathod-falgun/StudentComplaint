@@ -12,6 +12,9 @@ spring:
           auth: true
           starttls:
             enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
   datasource:
     url: jdbc:mysql://${AIVEN_HOST}:${AIVEN_PORT}/${AIVEN_DB}?sslmode=required
     username: ${AIVEN_USERNAME}
@@ -37,7 +40,7 @@ spring:
 
 app:
   college:
-    allowed-email-domain: scet.ac.in
+    allowed-email-domain: scet.ac.in,gmail.com
   jwt:
     secret: ${JWT_SECRET_KEY}
   supabase:
