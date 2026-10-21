@@ -66,13 +66,21 @@ public class AuthController {
 
     @PostMapping("/send-otp")
     public ResponseEntity<?> sendOtp(@RequestBody Map<String, String> body) {
+        String email = body != null ? body.get("email") : null;
+        System.out.println("========== REGISTRATION OTP REQUEST RECEIVED ==========");
+        System.out.println("Target Email: " + email);
         try {
-            String email = body != null ? body.get("email") : null;
             String message = authService.sendOtp(email);
+            System.out.println("✅ Registration OTP dispatched successfully for: " + email);
+            System.out.println("========================================================");
             return ResponseEntity.ok(Map.of("message", message));
         } catch (IllegalArgumentException e) {
+            System.err.println("❌ Registration OTP Validation Error: " + e.getMessage());
+            System.err.println("========================================================");
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (RuntimeException e) {
+            System.err.println("❌ Registration OTP Error: " + e.getMessage());
+            System.err.println("========================================================");
             int statusCode = (e.getMessage() != null && e.getMessage().toLowerCase().contains("already registered")) ? 409 : 400;
             return ResponseEntity.status(statusCode).body(Map.of("message", e.getMessage() != null ? e.getMessage() : "Failed to send OTP."));
         }
@@ -80,25 +88,41 @@ public class AuthController {
 
     @PostMapping("/forgot-password/send-otp")
     public ResponseEntity<?> sendPasswordResetOtp(@RequestBody Map<String, String> body) {
+        String email = body != null ? body.get("email") : null;
+        System.out.println("========== PASSWORD RESET OTP REQUEST RECEIVED ==========");
+        System.out.println("Target Email: " + email);
         try {
-            String email = body != null ? body.get("email") : null;
             String message = authService.sendPasswordResetOtp(email);
+            System.out.println("✅ Password reset OTP dispatched successfully for: " + email);
+            System.out.println("=========================================================");
             return ResponseEntity.ok(Map.of("message", message));
         } catch (IllegalArgumentException e) {
+            System.err.println("❌ Password Reset OTP Validation Error: " + e.getMessage());
+            System.err.println("=========================================================");
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (RuntimeException e) {
+            System.err.println("❌ Password Reset OTP Error: " + e.getMessage());
+            System.err.println("=========================================================");
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage() != null ? e.getMessage() : "Failed to send reset code."));
         }
     }
 
     @PostMapping("/forgot-password/reset")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest req) {
+        System.out.println("========== RESET PASSWORD SUBMITTED ==========");
+        System.out.println("Email: " + (req != null ? req.getEmail() : "null"));
         try {
             String message = authService.resetPassword(req);
+            System.out.println("✅ Password successfully reset for: " + (req != null ? req.getEmail() : "null"));
+            System.out.println("===============================================");
             return ResponseEntity.ok(Map.of("message", message));
         } catch (IllegalArgumentException e) {
+            System.err.println("❌ Password Reset Validation Error: " + e.getMessage());
+            System.err.println("===============================================");
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (RuntimeException e) {
+            System.err.println("❌ Password Reset Execution Error: " + e.getMessage());
+            System.err.println("===============================================");
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage() != null ? e.getMessage() : "Failed to reset password."));
         }
     }
