@@ -29,7 +29,8 @@ public class ComplaintDeadlineScheduler {
     /**
      * Checks for overdue unresolved complaints every minute.
      * When a complaint passes its SLA deadline without resolution,
-     * it notifies the student via email and marks the complaint so it's not notified again.
+     * it notifies the student via email and marks the complaint so it's not
+     * notified again.
      */
     @Scheduled(fixedDelay = 60000, initialDelay = 15000)
     @Transactional
