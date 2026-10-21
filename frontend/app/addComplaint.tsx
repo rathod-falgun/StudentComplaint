@@ -1531,6 +1531,7 @@ const styles = StyleSheet.create({
     },
 
     mobileHeaderTitle: {
+
         fontSize: 21,
     },
 

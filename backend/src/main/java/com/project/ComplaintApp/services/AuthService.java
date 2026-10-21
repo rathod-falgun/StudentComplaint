@@ -16,6 +16,7 @@ import com.project.ComplaintApp.config.JwtUtil;
 import com.project.ComplaintApp.config.SupabaseStorageProperties;
 import com.project.ComplaintApp.dto.LoginRequest;
 import com.project.ComplaintApp.dto.RegisterRequest;
+import com.project.ComplaintApp.dto.ResetPasswordRequest;
 import com.project.ComplaintApp.entities.EmailOtp;
 import com.project.ComplaintApp.entities.User;
 import com.project.ComplaintApp.repository.EmailOtpRepository;
@@ -232,5 +233,87 @@ public class AuthService {
         response.put("email", user.getEmail());
         response.put("role", user.getRole());
         return response;
+    }
+
+    /**
+     * Sends a 6-digit password reset verification code to the student's registered college email address.
+     */
+    public String sendPasswordResetOtp(String email) {
+        String normalizedEmail = normalizeAndValidateCollegeEmail(email);
+
+        if (!userRepository.existsByEmail(normalizedEmail)) {
+            throw new RuntimeException("No account registered with email '" + normalizedEmail + "'. Please check the email address or register first.");
+        }
+
+        // Generate secure 6-digit OTP
+        int randomCode = 100000 + new java.security.SecureRandom().nextInt(900000);
+        String otp = String.valueOf(randomCode);
+
+        // Delete any existing OTP for this email
+        emailOtpRepository.deleteByEmail(normalizedEmail);
+        emailOtpRepository.flush();
+
+        // Save new OTP record (valid for 5 minutes)
+        EmailOtp emailOtp = new EmailOtp();
+        emailOtp.setEmail(normalizedEmail);
+        emailOtp.setOtp(otp);
+        emailOtp.setExpiresAt(java.time.LocalDateTime.now().plusMinutes(5));
+        emailOtp.setVerified(false);
+        emailOtpRepository.save(emailOtp);
+
+        // Send password reset email
+        emailService.sendPasswordResetOtpEmail(normalizedEmail, otp);
+
+        return "Password reset verification code sent to " + normalizedEmail;
+    }
+
+    /**
+     * Resets the user's password using the provided 6-digit OTP.
+     */
+    public String resetPassword(ResetPasswordRequest req) {
+        if (req == null) {
+            throw new IllegalArgumentException("Password reset details must not be null.");
+        }
+
+        if (req.getEmail() == null || req.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Official college email is required.");
+        }
+
+        if (req.getOtp() == null || req.getOtp().trim().isEmpty()) {
+            throw new IllegalArgumentException("Verification code (OTP) is required.");
+        }
+
+        if (req.getNewPassword() == null || req.getNewPassword().trim().length() < 6) {
+            throw new IllegalArgumentException("New password must be at least 6 characters long.");
+        }
+
+        String normalizedEmail = normalizeAndValidateCollegeEmail(req.getEmail());
+
+        User user = userRepository.findByEmail(normalizedEmail)
+                .orElseThrow(() -> new RuntimeException("No account registered with email '" + normalizedEmail + "'."));
+
+        String inputOtp = req.getOtp().trim();
+        EmailOtp otpRecord = emailOtpRepository
+                .findTopByEmailAndVerifiedFalseOrderByCreatedAtDesc(normalizedEmail)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No pending reset code found for '" + normalizedEmail + "'. Please request an OTP first."));
+
+        if (otpRecord.getExpiresAt().isBefore(java.time.LocalDateTime.now())) {
+            emailOtpRepository.delete(otpRecord);
+            throw new IllegalArgumentException("The verification code has expired. Please request a new code.");
+        }
+
+        if (!otpRecord.getOtp().equals(inputOtp)) {
+            throw new IllegalArgumentException("Incorrect verification code. Please check your email and try again.");
+        }
+
+        // Delete used OTP
+        emailOtpRepository.delete(otpRecord);
+
+        // Update password with BCrypt hash
+        user.setPassword(encoder.encode(req.getNewPassword().trim()));
+        userRepository.save(user);
+
+        return "Password has been reset successfully. Please login with your new password.";
     }
 }

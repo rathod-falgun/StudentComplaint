@@ -231,6 +231,19 @@ export default function Login() {
               </View>
             </View>
 
+            {/* Forgot Password Link */}
+            <View style={styles.forgotPasswordRow}>
+              <TouchableOpacity
+                onPress={() => router.push('/forgotPassword' as any)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Forgot Password"
+              >
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Sign In Button */}
             <TouchableOpacity
               style={[styles.signInButton, loading && styles.signInButtonDisabled]}
@@ -514,6 +527,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.2,
+  },
+
+  /* =====================================
+     FORGOT PASSWORD
+  ====================================== */
+  forgotPasswordRow: {
+    alignItems: 'flex-end',
+    marginTop: -4,
+    marginBottom: 16,
+  },
+
+  forgotPasswordText: {
+    color: '#60A5FA',
+    fontSize: 12.5,
+    fontWeight: '600',
   },
 
   /* =====================================

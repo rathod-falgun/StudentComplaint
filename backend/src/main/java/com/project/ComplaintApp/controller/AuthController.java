@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.ComplaintApp.dto.LoginRequest;
 import com.project.ComplaintApp.dto.RegisterRequest;
+import com.project.ComplaintApp.dto.ResetPasswordRequest;
 import com.project.ComplaintApp.services.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -74,6 +75,31 @@ public class AuthController {
         } catch (RuntimeException e) {
             int statusCode = (e.getMessage() != null && e.getMessage().toLowerCase().contains("already registered")) ? 409 : 400;
             return ResponseEntity.status(statusCode).body(Map.of("message", e.getMessage() != null ? e.getMessage() : "Failed to send OTP."));
+        }
+    }
+
+    @PostMapping("/forgot-password/send-otp")
+    public ResponseEntity<?> sendPasswordResetOtp(@RequestBody Map<String, String> body) {
+        try {
+            String email = body != null ? body.get("email") : null;
+            String message = authService.sendPasswordResetOtp(email);
+            return ResponseEntity.ok(Map.of("message", message));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage() != null ? e.getMessage() : "Failed to send reset code."));
+        }
+    }
+
+    @PostMapping("/forgot-password/reset")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest req) {
+        try {
+            String message = authService.resetPassword(req);
+            return ResponseEntity.ok(Map.of("message", message));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage() != null ? e.getMessage() : "Failed to reset password."));
         }
     }
 
