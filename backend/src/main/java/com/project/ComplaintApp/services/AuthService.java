@@ -72,7 +72,6 @@ public class AuthService {
 
         // Delete any existing OTP for this email from DB before generating new one
         emailOtpRepository.deleteByEmail(normalizedEmail);
-        emailOtpRepository.flush();
 
         // Save new OTP record (valid for 1 minute)
         EmailOtp emailOtp = new EmailOtp();
@@ -251,7 +250,6 @@ public class AuthService {
 
         // Delete any existing OTP for this email
         emailOtpRepository.deleteByEmail(normalizedEmail);
-        emailOtpRepository.flush();
 
         // Save new OTP record (valid for 5 minutes)
         EmailOtp emailOtp = new EmailOtp();
@@ -307,8 +305,9 @@ public class AuthService {
             throw new IllegalArgumentException("Incorrect verification code. Please check your email and try again.");
         }
 
-        // Delete used OTP
-        emailOtpRepository.delete(otpRecord);
+        // Mark OTP as verified so it cannot be reused
+        otpRecord.setVerified(true);
+        emailOtpRepository.save(otpRecord);
 
         // Update password with BCrypt hash
         user.setPassword(encoder.encode(req.getNewPassword().trim()));

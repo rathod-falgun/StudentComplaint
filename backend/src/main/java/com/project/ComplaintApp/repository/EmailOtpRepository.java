@@ -4,6 +4,8 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.project.ComplaintApp.entities.EmailOtp;
@@ -11,7 +13,8 @@ import com.project.ComplaintApp.entities.EmailOtp;
 public interface EmailOtpRepository extends JpaRepository<EmailOtp, Long> {
     Optional<EmailOtp> findTopByEmailAndVerifiedFalseOrderByCreatedAtDesc(String email);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Transactional
-    void deleteByEmail(String email);
+    @Query("DELETE FROM EmailOtp e WHERE LOWER(e.email) = LOWER(:email)")
+    int deleteByEmail(@Param("email") String email);
 }
