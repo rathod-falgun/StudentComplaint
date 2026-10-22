@@ -1,6 +1,8 @@
 import { apiFetch, API_BASE_URL } from "@/constants/api";
-import { getUserId } from "@/utils/authStorage";
+import { getUserId, getToken } from "@/utils/authStorage";
 import { router } from "expo-router";
+import { File } from 'expo-file-system';
+import { fetch as expoFetch } from "expo/fetch";
 import React, { useEffect, useState } from "react";
 import {
     View,
@@ -41,6 +43,12 @@ export default function Profile() {
 
     const getProfile = async () => {
         const userId = await getUserId();
+        if (!userId) {
+            console.log("No userId found in storage for profile");
+            setLoading(false);
+            return;
+        }
+
         try {
             console.log("Fetching profile for user:", userId);
             const response = await apiFetch(`/api/users/getProfile/${userId}`);
@@ -48,14 +56,15 @@ export default function Profile() {
             console.log("Profile response status:", response.status);
 
             if (!response.ok) {
-                const errorData = await response.json();
+                const errorData = await response.json().catch(() => ({}));
                 console.log("Profile Api Error : ", errorData);
                 throw new Error(errorData.message || "Failed to Load Profile");
             }
-            const data = await response.json();
-            console.log("Profile data:", data);
-
-            setProfile(data);
+            const data = await response.json().catch(() => null);
+            if (data) {
+                console.log("Profile data:", data);
+                setProfile(data);
+            }
         } catch (error) {
             console.log("Fetch profile error : ", error);
         } finally {
@@ -127,17 +136,17 @@ export default function Profile() {
                 formData.append('photo', webFile);
                 formData.append('profilePhoto', webFile);
             } else {
-                const fileData = {
-                    uri: imageUri,
-                    name: filename,
-                    type: mimeType,
-                };
-                formData.append('photo', fileData as any);
-                formData.append('profilePhoto', fileData as any);
+                const file = new File(imageUri);
+                formData.append('photo', file as unknown as Blob);
+                formData.append('profilePhoto', file as unknown as Blob);
             }
 
-            const response = await apiFetch(`/api/users/${userId}/photo`, {
+            const token = await getToken();
+            const response = await expoFetch(`${API_BASE_URL}/api/users/${userId}/photo`, {
                 method: 'POST',
+                headers: {
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
                 body: formData,
             });
 

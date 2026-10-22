@@ -67,7 +67,14 @@ export default function AdminDashboard() {
       console.log("Response status:", stats?.status);
       console.log("Response ok:", stats?.ok);
 
-      const dashboardData = await stats.json();
+      if (!stats.ok) {
+        throw new Error(`Failed to load admin dashboard: ${stats.status}`);
+      }
+
+      const dashboardData = await stats.json().catch(() => null);
+      if (!dashboardData) {
+        throw new Error('Invalid dashboard data received');
+      }
 
       console.log("===== DASHBOARD DATA =====");
       console.log(dashboardData);

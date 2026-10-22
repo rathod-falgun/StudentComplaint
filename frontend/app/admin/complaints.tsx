@@ -55,78 +55,51 @@ export default function AdminComplaints() {
   const [pageSize] = useState(5);
 
 
+  const getContent = (data: any): Complaint[] => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.content)) {
+      return data.content;
+    }
+    if (data._embedded) {
+      const embeddedArray = Object.values(data._embedded).find(
+        (value) => Array.isArray(value)
+      );
+
+      if (Array.isArray(embeddedArray)) {
+        return embeddedArray as Complaint[];
+      }
+    }
+
+    return [];
+  };
+
   const fetchAllComplaints = async () => {
     try {
-      const firstResponse = await apiFetch(`/api/admin/complaints?page=0&size=${pageSize}`);
+      setLoading(true);
+      let allComplaints: Complaint[] = [];
 
-      if (!firstResponse.ok) {
-        throw new Error('Failed to fetch complaints');
+      // Try single batch endpoint first
+      const response = await apiFetch('/api/admin/Allcomplaints');
+      if (response.ok) {
+        const data = await response.json().catch(() => null);
+        allComplaints = getContent(data);
       }
-      const data = await firstResponse.json();
-      console.log("----------------------------------------------------------------Data Arrived-----");
-      console.log(firstResponse.status);
-      console.log("\n", data);
 
-      const getContent = (data: any): Complaint[] => {
-        if (Array.isArray(data.content)) {
-          return data.content;
+      // Fallback to paginated endpoint with size 100 if Allcomplaints fails
+      if (allComplaints.length === 0 && !response.ok) {
+        const fallbackRes = await apiFetch(`/api/admin/complaints?page=0&size=100`);
+        if (fallbackRes.ok) {
+          const fbData = await fallbackRes.json().catch(() => null);
+          allComplaints = getContent(fbData);
+        } else {
+          throw new Error('Failed to fetch complaints');
         }
-        if (data._embedded) {
-          const embeddedArray = Object.values(data._embedded).find(
-            (value) => Array.isArray(value)
-          );
-
-          if (Array.isArray(embeddedArray)) {
-            return embeddedArray as Complaint[];
-          }
-        }
-
-        return [];
-      };
-
-
-      const getPageInfo = (data: any) => {
-        return data.page || {
-          number: data.number ?? 0,
-          totalPages: data.totalPages ?? 1,
-          totalElements: data.totalElements ?? 0,
-        };
-      };
-
-
-      const firstContent = getContent(data);
-      const firstPageInfo = getPageInfo(data);
-      console.log("----------------------------------------------------------------Data Content-----");
-      console.log(firstContent);
-
-      console.log("----------------------------------------------------------------Page Data-----");
-      console.log(firstPageInfo);
-      const allComplaints: Complaint[] = [...firstContent];
-
-      const totalPagesFromBackend = firstPageInfo.totalPages || 1;
-
-      for (let page = 1; page < totalPagesFromBackend; page++) {
-        const response = await apiFetch(
-          `/api/admin/complaints?page=${page}&size=${pageSize}`
-        );
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch complaints page ${page}`);
-        }
-
-        const data = await response.json();
-        const content = getContent(data);
-
-        allComplaints.push(...content);
       }
 
       setComplaints(allComplaints);
-      console.log("----------------------------------------------------------------ALL Complaints after for loop-----");
-      console.log(allComplaints);
-
 
       const categoriesSet = new Set<string>();
-
       allComplaints.forEach((item) => {
         if (item.category) {
           categoriesSet.add(item.category);
@@ -134,10 +107,6 @@ export default function AdminComplaints() {
       });
 
       setAvailableCategories(Array.from(categoriesSet));
-      console.log("----------------------------------------------------------------CATEGORIES-----");
-      console.log(categoriesSet);
-      console.log("---------------------------------------------------------------------");
-
       setCurrentPage(0);
       setError(false);
     } catch (err) {
@@ -148,6 +117,7 @@ export default function AdminComplaints() {
       setRefreshing(false);
     }
   };
+
 
   useFocusEffect(
     useCallback(() => {

@@ -46,12 +46,12 @@ export default function Login() {
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
       // ==========================================
       // LOGIN SUCCESS
       // ==========================================
-      if (response.ok) {
+      if (response.ok && data) {
         const userRole = data.role
           ? String(data.role).trim().toUpperCase()
           : null;
@@ -97,9 +97,11 @@ export default function Login() {
         }
       } else {
         const failureMsg =
-          data.message ||
-          data.error ||
-          'Invalid credentials. Please verify your email and password.';
+          data?.message ||
+          data?.error ||
+          (response.status === 401
+            ? 'Invalid credentials. Please verify your email and password.'
+            : 'Login failed. Please verify your connection or try again later.');
         Alert.alert('Login Failed', failureMsg);
       }
     } catch (error: any) {

@@ -18,7 +18,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useResponsive } from '@/constants/responsive';
-import { apiFetch } from '@/constants/api';
+import { apiFetch, API_BASE_URL } from '@/constants/api';
 import { fetch as expoFetch } from "expo/fetch";
 import { File } from 'expo-file-system';
 import { getToken, getUserId } from '@/utils/authStorage';
@@ -65,7 +65,7 @@ export default function AddComplaint() {
 
 
 
-    const API_URL = process.env.EXPO_PUBLIC_API_BASE;
+    const API_URL = API_BASE_URL;
 
 
     const takePhoto = async () => {
@@ -83,15 +83,22 @@ export default function AddComplaint() {
     };
 
     useEffect(() => {
-        apiFetch(`/api/complaints/categories`).
-            then(res => {
+        apiFetch(`/api/complaints/categories`)
+            .then(async (res) => {
                 if (!res.ok) {
-                    console.log("Failed to load categories");
+                    throw new Error("Failed to load categories");
                 }
                 return res.json();
             })
-            .then(data => setCategories(data))
-            .catch(() => Alert.alert('Error', 'Could not load Categories'))
+            .then((data) => {
+                if (Array.isArray(data)) {
+                    setCategories(data);
+                }
+            })
+            .catch((err) => {
+                console.log("Categories load error:", err);
+                Alert.alert('Error', 'Could not load Categories');
+            })
             .finally(() => setCategoriesLoading(false));
     }, []);
 
@@ -103,8 +110,12 @@ export default function AddComplaint() {
         console.log("STEP 1: SUBMIT PRESSED");
         if (!userId) {
             console.log("FAILED: no userId");
-            Alert.alert('Login Required', '...');
-            window.alert("Login required...");
+            if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                window.alert("Login required. Please login again.");
+            } else {
+                Alert.alert('Login Required', 'You must be logged in to submit a complaint.');
+            }
+            router.replace('/login');
             return;
         }
         if (!title.trim()) {
