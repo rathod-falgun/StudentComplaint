@@ -139,7 +139,14 @@ const [totalComplaints, setTotalComplaints] = useState(0);
 
       if (!response.ok) {
         const errText = await response.text();
-        throw new Error(errText || 'Failed to update status on server');
+        let displayMsg = errText;
+        try {
+          const parsed = JSON.parse(errText);
+          if (parsed.message) {
+            displayMsg = parsed.message;
+          }
+        } catch (_) {}
+        throw new Error(displayMsg || 'Failed to update status on server');
       }
 
       const updatedData: ComplaintDetail = await response.json();
