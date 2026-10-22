@@ -931,6 +931,7 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
         marginBottom: 22,
     },
 
@@ -943,7 +944,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
         borderColor: '#E7EBF2',
-        marginRight: 13,
 
         shadowColor: '#172033',
         shadowOffset: {
@@ -960,24 +960,33 @@ const styles = StyleSheet.create({
         lineHeight: 31,
         color: '#172033',
         marginTop: -2,
-        marginLeft: -2,
     },
 
     headerContent: {
         flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 8,
     },
 
     headerTitle: {
         fontSize: 24,
         fontWeight: '800',
         color: '#172033',
-        letterSpacing: -0.5,
+        letterSpacing: -0.4,
+        textAlign: 'center',
     },
 
     headerSubtitle: {
         fontSize: 13,
         color: '#758197',
         marginTop: 4,
+        textAlign: 'center',
+    },
+
+    headerSpacer: {
+        width: 44,
+        height: 44,
     },
 
 
@@ -1542,7 +1551,6 @@ const styles = StyleSheet.create({
     },
 
     mobileHeaderTitle: {
-
         fontSize: 21,
     },
 
