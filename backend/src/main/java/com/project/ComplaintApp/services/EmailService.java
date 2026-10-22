@@ -142,29 +142,64 @@ public class EmailService {
     }
 
     /**
-     * Sends complaint status update notification to the student.
+     * Sends complaint status update notification to the student without remarks.
      */
     public boolean sendUpdateStatus(String toEmail, String status, String title, String oldStatus) {
-        System.out.println("Sending complaint status update to: " + toEmail);
+        return sendUpdateStatus(toEmail, status, title, oldStatus, null);
+    }
+
+    /**
+     * Sends complaint status update notification to the student with optional admin remarks.
+     */
+    public boolean sendUpdateStatus(String toEmail, String status, String title, String oldStatus, String adminRemarks) {
+        System.out.println("Sending complaint status update to: " + toEmail + " (Remarks: " + adminRemarks + ")");
 
         String safeTitle = escapeHtml(title);
         String safeStatus = escapeHtml(status);
         String safeOldStatus = escapeHtml(oldStatus);
+        boolean isRejected = "REJECTED".equalsIgnoreCase(status);
+
+        StringBuilder remarksBlock = new StringBuilder();
+        if (adminRemarks != null && !adminRemarks.trim().isEmpty()) {
+            remarksBlock.append("<div style='margin-top:14px;padding:12px 14px;background:")
+                    .append(isRejected ? "#FEF2F2" : "#F0FDF4")
+                    .append(";border-left:4px solid ")
+                    .append(isRejected ? "#EF4444" : "#10B981")
+                    .append(";border-radius:6px;'>")
+                    .append("<p style='margin:0;font-size:13px;font-weight:700;color:")
+                    .append(isRejected ? "#991B1B" : "#065F46")
+                    .append(";'>Official Admin Feedback / Remarks:</p>")
+                    .append("<p style='margin:6px 0 0 0;font-size:14px;color:#1E293B;line-height:1.5;'>")
+                    .append(escapeHtml(adminRemarks.trim()))
+                    .append("</p></div>");
+        }
 
         String htmlMsg = "<div style='font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;border:1px solid #E2E8F0;border-radius:12px;background:#FFFFFF;'>"
-                + "<h2 style='color:#2563EB;'>SCET Complaint Portal</h2>"
-                + "<p>Hello Student,</p>"
-                + "<p>Your complaint status has been updated.</p>"
-                + "<div style='padding:16px;background:#F8FAFC;border-radius:8px;'>"
-                + "<p><strong>Complaint:</strong> " + safeTitle + "</p>"
-                + "<p><strong>Previous status:</strong> " + safeOldStatus + "</p>"
-                + "<p><strong>New status:</strong> " + safeStatus + "</p>"
+                + "<div style='text-align:center;margin-bottom:16px;'>"
+                + "<h2 style='color:#2563EB;margin:0;font-size:20px;'>Sarvajanik College of Engineering &amp; Technology</h2>"
+                + "<p style='color:#64748B;font-size:13px;margin-top:4px;'>Official Student Complaint Portal</p>"
                 + "</div>"
-                + "<p style='color:#64748B;font-size:12px;'>SCET Complaint Management System • Automated Notification</p>"
+                + "<hr style='border:none;border-top:1px solid #E2E8F0;margin:16px 0;'/>"
+                + "<p style='font-size:15px;color:#1E293B;'>Hello Student,</p>"
+                + "<p style='font-size:14px;color:#334155;line-height:1.5;'>Your complaint status has been updated by the administration:</p>"
+                + "<div style='padding:16px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;margin:16px 0;'>"
+                + "<p style='margin:4px 0;font-size:14px;'><strong>Complaint:</strong> " + safeTitle + "</p>"
+                + "<p style='margin:4px 0;font-size:14px;'><strong>Previous Status:</strong> " + safeOldStatus + "</p>"
+                + "<p style='margin:4px 0;font-size:14px;'><strong>New Status:</strong> <span style='font-weight:700;color:"
+                + (isRejected ? "#DC2626" : "#2563EB") + ";'>" + safeStatus + "</span></p>"
+                + "</div>"
+                + remarksBlock.toString()
+                + "<p style='font-size:13px;color:#64748B;line-height:1.5;margin-top:20px;'>You can view full real-time details and history anytime in your SCET Student Complaint App.</p>"
+                + "<hr style='border:none;border-top:1px solid #E2E8F0;margin:20px 0 12px 0;'/>"
+                + "<p style='color:#94A3B8;font-size:11px;text-align:center;'>SCET Complaint Management System • Automated Notification</p>"
                 + "</div>";
 
+        String emailSubject = isRejected
+                ? "Complaint Update: REJECTED - " + title
+                : "Complaint Status Updated: " + title;
+
         CompletableFuture.runAsync(() -> {
-            sendHtmlEmail(toEmail, "Complaint Status Updated: " + title, htmlMsg);
+            sendHtmlEmail(toEmail, emailSubject, htmlMsg);
         });
 
         return true;

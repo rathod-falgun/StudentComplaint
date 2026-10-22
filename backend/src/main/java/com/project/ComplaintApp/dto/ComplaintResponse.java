@@ -28,6 +28,7 @@ public class ComplaintResponse {
     private LocalDateTime deadline;
     private Boolean isOverdue;
     private Integer slaHours;
+    private String adminRemarks;
 
     // Student Information
     private Long userId;
@@ -48,9 +49,11 @@ public class ComplaintResponse {
         res.setUpdatedAt(complaint.getUpdatedAt());
         res.setImageUrl(complaint.getImagePath());
         res.setDeadline(complaint.getDeadline());
+        res.setAdminRemarks(complaint.getAdminRemarks());
 
         boolean overdue = complaint.getDeadline() != null
                 && complaint.getStatus() != com.project.ComplaintApp.Enums.ComplaintStatus.RESOLVED
+                && complaint.getStatus() != com.project.ComplaintApp.Enums.ComplaintStatus.REJECTED
                 && LocalDateTime.now().isAfter(complaint.getDeadline());
         res.setIsOverdue(overdue);
 

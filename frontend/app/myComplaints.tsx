@@ -23,23 +23,28 @@ type Complaint = {
     description: string;
     category: string;
     priority: "LOW" | "MEDIUM" | "HIGH";
-    status: "SUBMITTED" | "ASSIGNED" | "IN_PROGRESS" | "RESOLVED";
+    status: "SUBMITTED" | "ASSIGNED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED";
     createdAt: string;
     updatedAt: string;
     imageUrl: string;
     deadline?: string;
     isOverdue?: boolean;
     slaHours?: number;
+    adminRemarks?: string;
 };
 
 const statusColor = (status: string) => {
     switch (status) {
-        case "ASSIGNED":
+        case "SUBMITTED":
             return { bg: "#FFF4E5", text: "#B8710A" };
+        case "ASSIGNED":
+            return { bg: "#FAF5FF", text: "#7E22CE" };
         case "IN_PROGRESS":
             return { bg: "#E8F0FF", text: "#2563EB" };
         case "RESOLVED":
             return { bg: "#E7F8EE", text: "#1D9A5C" };
+        case "REJECTED":
+            return { bg: "#FDECEC", text: "#DC2626" };
         default:
             return { bg: "#F0F2F6", text: "#465267" };
     }
@@ -155,6 +160,32 @@ const ComplaintCard = React.memo(function ComplaintCard({
                 {item.description}
             </Text>
 
+            {/* OFFICIAL ADMIN REMARKS (IF PRESENT) */}
+            {item.adminRemarks ? (
+                <View
+                    style={[
+                        styles.adminRemarksBox,
+                        item.status === "REJECTED"
+                            ? styles.adminRemarksBoxRejected
+                            : styles.adminRemarksBoxResolved,
+                    ]}
+                >
+                    <Text
+                        style={[
+                            styles.adminRemarksLabel,
+                            item.status === "REJECTED"
+                                ? styles.adminRemarksLabelRejected
+                                : styles.adminRemarksLabelResolved,
+                        ]}
+                    >
+                        📋 Official Admin Response:
+                    </Text>
+                    <Text style={styles.adminRemarksText}>
+                        {item.adminRemarks}
+                    </Text>
+                </View>
+            ) : null}
+
             <View style={styles.divider} />
 
             {/* BOTTOM INFORMATION */}
@@ -253,6 +284,7 @@ const STATUS_FILTERS = [
     { key: "ASSIGNED", label: "Assigned", icon: "👤" },
     { key: "IN_PROGRESS", label: "In Progress", icon: "⏳" },
     { key: "RESOLVED", label: "Resolved", icon: "✅" },
+    { key: "REJECTED", label: "Rejected", icon: "⛔" },
 ] as const;
 
 export default function MyComplaints() {
@@ -315,6 +347,7 @@ export default function MyComplaints() {
             ASSIGNED: 0,
             IN_PROGRESS: 0,
             RESOLVED: 0,
+            REJECTED: 0,
         };
         complaints.forEach((c) => {
             if (counts[c.status] !== undefined) {
@@ -1228,6 +1261,38 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: "700",
         color: "#2563EB",
+    },
+
+    adminRemarksBox: {
+        marginTop: 10,
+        marginBottom: 8,
+        padding: 10,
+        borderRadius: 8,
+        borderLeftWidth: 3.5,
+    },
+    adminRemarksBoxResolved: {
+        backgroundColor: "#F0FDF4",
+        borderLeftColor: "#10B981",
+    },
+    adminRemarksBoxRejected: {
+        backgroundColor: "#FEF2F2",
+        borderLeftColor: "#EF4444",
+    },
+    adminRemarksLabel: {
+        fontSize: 11,
+        fontWeight: "800",
+        marginBottom: 3,
+    },
+    adminRemarksLabelResolved: {
+        color: "#065F46",
+    },
+    adminRemarksLabelRejected: {
+        color: "#991B1B",
+    },
+    adminRemarksText: {
+        fontSize: 13,
+        color: "#1E293B",
+        lineHeight: 18,
     },
 });
 

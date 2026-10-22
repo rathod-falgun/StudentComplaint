@@ -20,10 +20,11 @@ type Complaint = {
   description: string;
   category: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'SUBMITTED' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED';
+  status: 'SUBMITTED' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
   createdAt: string;
   updatedAt: string;
   imageUrl: string;
+  adminRemarks?: string;
   // userId?: number;
   // studentName?: string;
   // studentEmail?: string;
@@ -202,10 +203,14 @@ export default function AdminComplaints() {
     switch (status) {
       case 'SUBMITTED':
         return { bg: '#FFF4E5', text: '#B8710A' };
+      case 'ASSIGNED':
+        return { bg: '#FAF5FF', text: '#7E22CE' };
       case 'IN_PROGRESS':
         return { bg: '#E8F0FF', text: '#2563EB' };
       case 'RESOLVED':
         return { bg: '#E7F8EE', text: '#1D9A5C' };
+      case 'REJECTED':
+        return { bg: '#FDECEC', text: '#DC2626' };
       default:
         return { bg: '#F0F2F6', text: '#465267' };
     }
@@ -302,7 +307,7 @@ export default function AdminComplaints() {
       <View style={styles.filterSection}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
           <Text style={styles.filterLabel}>Status:</Text>
-          {['ALL','SUBMITTED', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED'].map((st) => (
+          {['ALL', 'SUBMITTED', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'].map((st) => (
             <TouchableOpacity
               key={st}
               style={[

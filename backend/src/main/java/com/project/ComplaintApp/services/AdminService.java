@@ -35,6 +35,7 @@ public class AdminService {
         long inProgress = complaintRepository.countByStatus(ComplaintStatus.IN_PROGRESS);
         long assigned = complaintRepository.countByStatus(ComplaintStatus.ASSIGNED);
         long resolved = complaintRepository.countByStatus(ComplaintStatus.RESOLVED);
+        long rejected = complaintRepository.countByStatus(ComplaintStatus.REJECTED);
 
         List<Complaint> recentComplaints = complaintRepository.findTop5ByOrderByCreatedAtDesc();
 
@@ -43,7 +44,7 @@ public class AdminService {
             finalComplaints.add(ComplaintResponse.fromEntity(c));
         }
 
-        return new AdminDashboardResponse(total, submitted, assigned, inProgress, resolved, finalComplaints);
+        return new AdminDashboardResponse(total, submitted, assigned, inProgress, resolved, rejected, finalComplaints);
     }
 
     public PagedModel<ComplaintResponse> getComplaints(Pageable pageable) {
@@ -64,6 +65,11 @@ public class AdminService {
 
     @Transactional
     public ComplaintResponse updateComplaintStatus(Long id, ComplaintStatus newStatus) {
+        return updateComplaintStatus(id, newStatus, null);
+    }
+
+    @Transactional
+    public ComplaintResponse updateComplaintStatus(Long id, ComplaintStatus newStatus, String adminRemarks) {
 
         Complaint complaint = complaintRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Complaint not found with id: " + id));
@@ -72,24 +78,40 @@ public class AdminService {
 
         System.out.println("Current Status: " + currentStatus);
         System.out.println("Requested Status: " + newStatus);
+        System.out.println("Admin Remarks: " + adminRemarks);
 
-        boolean validTransition = switch (currentStatus) {
-            case SUBMITTED -> newStatus == ComplaintStatus.ASSIGNED;
-            case ASSIGNED -> newStatus == ComplaintStatus.IN_PROGRESS;
-            case IN_PROGRESS -> newStatus == ComplaintStatus.RESOLVED;
-            case RESOLVED -> false;
-        };
+        boolean validTransition;
+        if (newStatus == ComplaintStatus.REJECTED) {
+            // Any active complaint can be rejected; terminal states (RESOLVED, REJECTED) cannot be transitioned
+            validTransition = (currentStatus != ComplaintStatus.RESOLVED && currentStatus != ComplaintStatus.REJECTED);
+        } else {
+            validTransition = switch (currentStatus) {
+                case SUBMITTED -> newStatus == ComplaintStatus.ASSIGNED;
+                case ASSIGNED -> newStatus == ComplaintStatus.IN_PROGRESS;
+                case IN_PROGRESS -> newStatus == ComplaintStatus.RESOLVED;
+                case RESOLVED, REJECTED -> false;
+            };
+        }
         System.out.println("Valid Transition: " + validTransition);
 
         if (!validTransition) {
             throw new IllegalStateException("Invalid State Transition : " + currentStatus + "->" + newStatus);
         }
+
+        // Rejection requires admin explanation remarks
+        if (newStatus == ComplaintStatus.REJECTED && (adminRemarks == null || adminRemarks.trim().isEmpty())) {
+            throw new IllegalArgumentException("Rejection remarks are required when rejecting a complaint.");
+        }
+
         complaint.setStatus(newStatus);
+        if (adminRemarks != null && !adminRemarks.trim().isEmpty()) {
+            complaint.setAdminRemarks(adminRemarks.trim());
+        }
         System.out.println("New Status Before Save: " + complaint.getStatus());
 
         Complaint updated = complaintRepository.save(complaint);
 
-        // Send the status update email to the complaint owner
+        // Send the status update email to the complaint owner with admin remarks
         try {
             String studentEmail = updated.getUser().getEmail();
             String complaintTitle = updated.getTitle();
@@ -98,7 +120,8 @@ public class AdminService {
                     studentEmail,
                     newStatus.toString(),
                     complaintTitle,
-                    currentStatus.toString());
+                    currentStatus.toString(),
+                    updated.getAdminRemarks());
 
             System.out.println("Status update email result: " + emailSent);
         } catch (Exception e) {

@@ -34,6 +34,7 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
     @Query("""
             SELECT c FROM Complaint c 
             WHERE c.status <> com.project.ComplaintApp.Enums.ComplaintStatus.RESOLVED 
+              AND c.status <> com.project.ComplaintApp.Enums.ComplaintStatus.REJECTED 
               AND c.deadline IS NOT NULL 
               AND c.deadline <= :now 
               AND (c.deadlineMissedEmailSent IS NULL OR c.deadlineMissedEmailSent = false)

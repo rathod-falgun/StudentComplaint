@@ -56,6 +56,6 @@ public class AdminController {
     public ResponseEntity<ComplaintResponse> updateComplaintStatus(
             @PathVariable Long id,
             @RequestBody StatusUpdateRequest request) {
-        return ResponseEntity.ok(adminService.updateComplaintStatus(id, request.getStatus()));
+        return ResponseEntity.ok(adminService.updateComplaintStatus(id, request.getStatus(), request.getAdminRemarks()));
     }
 }

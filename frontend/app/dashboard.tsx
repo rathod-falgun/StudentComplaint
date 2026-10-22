@@ -199,11 +199,9 @@ export default function Dashboard() {
   };
 
   return (
-    <SafeAreaView
-      style={styles.safeArea}
-      edges={['top']}
-    >    <ScrollView
-      style={styles.screen}
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView
+        style={styles.screen}
       contentContainerStyle={[
         styles.container,
         isMobile && styles.mobileContainer,

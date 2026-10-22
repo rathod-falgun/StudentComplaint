@@ -75,6 +75,9 @@ public class Complaint {
     @Column(name = "deadline_missed_email_sent")
     private Boolean deadlineMissedEmailSent;
 
+    @Column(name = "admin_remarks", columnDefinition = "TEXT")
+    private String adminRemarks;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

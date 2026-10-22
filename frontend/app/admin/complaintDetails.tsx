@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -19,7 +20,7 @@ type ComplaintDetail = {
   description: string;
   category: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'SUBMITTED' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED';
+  status: 'SUBMITTED' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
   createdAt: string;
   updatedAt: string;
   imageUrl: string;
@@ -28,13 +29,15 @@ type ComplaintDetail = {
   deadline?: string;
   isOverdue?: boolean;
   slaHours?: number;
+  adminRemarks?: string;
 };
 
 export default function AdminComplaintDetails() {
   const { complaintId } = useLocalSearchParams();
 
   const [complaint, setComplaint] = useState<ComplaintDetail | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<'SUBMITTED' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED' | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<'SUBMITTED' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED' | null>(null);
+  const [adminRemarks, setAdminRemarks] = useState('');
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState(false);
@@ -82,6 +85,7 @@ const [totalComplaints, setTotalComplaints] = useState(0);
 
       setComplaint(data);
       setSelectedStatus(null);
+      setAdminRemarks(data.adminRemarks || '');
       setError(false);
 
     } catch (err) {
@@ -104,7 +108,8 @@ const [totalComplaints, setTotalComplaints] = useState(0);
         return "RESOLVED";
 
       case "RESOLVED":
-       return "RESOLVED";
+      case "REJECTED":
+        return null;
       default:
         return null;
     }
@@ -117,19 +122,24 @@ const [totalComplaints, setTotalComplaints] = useState(0);
   const handleUpdateStatus = async () => {
     if (!complaint || !selectedStatus || complaint.status === selectedStatus) return;
 
+    if (selectedStatus === 'REJECTED' && !adminRemarks.trim()) {
+      Alert.alert('Remarks Required', 'Please provide an explanation or reason for rejecting this complaint.');
+      return;
+    }
+
     try {
       setUpdating(true);
-      const response = await apiFetch(`/api/admin/complaints/${complaint.id}/status` ,
-        {
-          method : "PUT",
-          body : JSON.stringify({
-            status : selectedStatus,
-          }),
-        }
-      );
+      const response = await apiFetch(`/api/admin/complaints/${complaint.id}/status`, {
+        method: "PUT",
+        body: JSON.stringify({
+          status: selectedStatus,
+          adminRemarks: adminRemarks.trim(),
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to update status in MySQL');
+        const errText = await response.text();
+        throw new Error(errText || 'Failed to update status on server');
       }
 
       const updatedData: ComplaintDetail = await response.json();
@@ -138,11 +148,17 @@ const [totalComplaints, setTotalComplaints] = useState(0);
       const previousSelected = selectedStatus;
       setComplaint(updatedData);
       setSelectedStatus(null);
+      setAdminRemarks(updatedData.adminRemarks || '');
 
-      Alert.alert('Success', `Status updated to ${previousSelected.replace('_', ' ')} successfully!`);
-    } catch (err) {
+      Alert.alert(
+        'Success',
+        previousSelected === 'REJECTED'
+          ? 'Complaint has been marked as REJECTED with your remarks.'
+          : `Status updated to ${previousSelected.replace('_', ' ')} successfully!`
+      );
+    } catch (err: any) {
       console.log('Status update error:', err);
-      Alert.alert('Error', 'Failed to update complaint status on server.');
+      Alert.alert('Error', err.message || 'Failed to update complaint status on server.');
     } finally {
       setUpdating(false);
     }
@@ -161,6 +177,9 @@ const [totalComplaints, setTotalComplaints] = useState(0);
 
       case 'RESOLVED':
         return { bg: '#ECFDF5', text: '#047857', border: '#A7F3D0' }; // Emerald Green
+
+      case 'REJECTED':
+        return { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA' }; // Red
 
       default:
         return { bg: '#F8FAFC', text: '#475569', border: '#CBD5E1' };
@@ -328,7 +347,7 @@ const [totalComplaints, setTotalComplaints] = useState(0);
 
         {/* Status Control Section */}
         <View style={styles.card}>
-          <Text style={styles.cardSectionHeader}>⚙️ Update Status</Text>
+          <Text style={styles.cardSectionHeader}>⚙️ Status & Remarks</Text>
 
           <View style={styles.currentStatusRow}>
             <Text style={styles.infoLabel}>Current Status:</Text>
@@ -340,37 +359,104 @@ const [totalComplaints, setTotalComplaints] = useState(0);
             </View>
           </View>
 
-          <Text style={styles.selectStatusLabel}>
-            {next ? 'Next Status:' : 'Status Workflow Complete'}
-          </Text>
+          {/* Existing Official Admin Remarks */}
+          {complaint.adminRemarks ? (
+            <View style={[
+              styles.existingRemarksBox,
+              complaint.status === 'REJECTED' ? styles.existingRemarksBoxRejected : styles.existingRemarksBoxResolved
+            ]}>
+              <Text style={[
+                styles.existingRemarksLabel,
+                complaint.status === 'REJECTED' ? styles.existingRemarksLabelRejected : styles.existingRemarksLabelResolved
+              ]}>
+                📋 Official Admin Remarks:
+              </Text>
+              <Text style={styles.existingRemarksText}>{complaint.adminRemarks}</Text>
+            </View>
+          ) : null}
 
-          {next ? (
+          {/* Workflow Actions */}
+          {complaint.status !== 'RESOLVED' && complaint.status !== 'REJECTED' ? (
             <>
-              <TouchableOpacity
-                style={[
-                  styles.statusOptionBtn,
-                  selectedStatus === next && styles.activeStatusOptionBtn,
-                ]}
-                disabled={updating}
-                onPress={() =>
-                  setSelectedStatus((prev) => (prev === next ? null : next))
-                }
-                activeOpacity={0.7}
-              >
-                <Text
+              <Text style={styles.selectStatusLabel}>Choose Next Action:</Text>
+
+              <View style={styles.actionButtonsRow}>
+                {next && (
+                  <TouchableOpacity
+                    style={[
+                      styles.statusOptionBtn,
+                      selectedStatus === next && styles.activeStatusOptionBtn,
+                    ]}
+                    disabled={updating}
+                    onPress={() =>
+                      setSelectedStatus((prev) => (prev === next ? null : next))
+                    }
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.statusOptionText,
+                        selectedStatus === next && styles.activeStatusOptionText,
+                      ]}
+                    >
+                      {selectedStatus === next ? '✓ ' : ''}Move to {next.replace('_', ' ')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity
                   style={[
-                    styles.statusOptionText,
-                    selectedStatus === next &&
-                    styles.activeStatusOptionText,
+                    styles.rejectOptionBtn,
+                    selectedStatus === 'REJECTED' && styles.activeRejectOptionBtn,
                   ]}
+                  disabled={updating}
+                  onPress={() =>
+                    setSelectedStatus((prev) => (prev === 'REJECTED' ? null : 'REJECTED'))
+                  }
+                  activeOpacity={0.7}
                 >
-                  {next.replace('_', ' ')}
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={[
+                      styles.rejectOptionText,
+                      selectedStatus === 'REJECTED' && styles.activeRejectOptionText,
+                    ]}
+                  >
+                    {selectedStatus === 'REJECTED' ? '✓ ' : '✕ '}Reject Complaint
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Remarks Text Input (Shown when a status action is selected) */}
+              {selectedStatus && (
+                <View style={styles.remarksInputContainer}>
+                  <Text style={styles.remarksInputLabel}>
+                    {selectedStatus === 'REJECTED'
+                      ? 'Rejection Reason * (Required for student email)'
+                      : 'Admin Remarks / Resolution Note (Optional)'}
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.remarksInput,
+                      selectedStatus === 'REJECTED' && styles.remarksInputReject
+                    ]}
+                    placeholder={
+                      selectedStatus === 'REJECTED'
+                        ? 'e.g., Duplicate of ticket #12, invalid photo, or outside college scope...'
+                        : 'e.g., Assigned to electrical team, repaired on-site, or tested...'
+                    }
+                    placeholderTextColor="#94A3B8"
+                    value={adminRemarks}
+                    onChangeText={setAdminRemarks}
+                    multiline
+                    numberOfLines={3}
+                  />
+                </View>
+              )}
 
               <TouchableOpacity
                 style={[
                   styles.updateStatusButton,
+                  selectedStatus === 'REJECTED' && styles.rejectStatusButton,
                   (!isStatusChanged || updating) && styles.disabledUpdateButton,
                 ]}
                 disabled={!isStatusChanged || updating}
@@ -380,17 +466,23 @@ const [totalComplaints, setTotalComplaints] = useState(0);
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <Text style={styles.updateStatusButtonText}>
-                    {isStatusChanged
-                      ? 'Update Status'
-                      : 'Select a Status to Update'}
+                    {selectedStatus === 'REJECTED'
+                      ? 'Confirm Rejection & Send Email'
+                      : isStatusChanged
+                      ? `Update to ${selectedStatus?.replace('_', ' ')} & Notify`
+                      : 'Select an Action Above'}
                   </Text>
                 )}
               </TouchableOpacity>
             </>
           ) : (
-            <Text style={styles.workflowCompleteText}>
-              This complaint has completed the status workflow.
-            </Text>
+            <View style={styles.workflowCompleteBox}>
+              <Text style={styles.workflowCompleteText}>
+                {complaint.status === 'RESOLVED'
+                  ? '✅ This complaint has been successfully resolved.'
+                  : '⛔ This complaint was rejected by the administration.'}
+              </Text>
+            </View>
           )}
         </View>
       </View>
@@ -452,16 +544,99 @@ const styles = StyleSheet.create({
   statusDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
   statusPillText: { fontSize: 12, fontWeight: '800' },
   selectStatusLabel: { fontSize: 13, fontWeight: '700', color: '#64748B', marginBottom: 10 },
-  statusButtonsContainer: { flexDirection: 'column', gap: 10 },
+  actionButtonsRow: { flexDirection: 'column', gap: 10, marginBottom: 14 },
   statusOptionBtn: { backgroundColor: '#F1F5F9', paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#CBD5E1' },
   statusOptionText: { fontSize: 14, fontWeight: 'bold', color: '#475569' },
-  activeStatusOptionText: { color: '#0F172A' },
+  activeStatusOptionText: { color: '#2563EB' },
+  activeStatusOptionBtn: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#2563EB',
+    borderWidth: 1.5,
+  },
+  rejectOptionBtn: {
+    backgroundColor: '#FEF2F2',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  rejectOptionText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#DC2626',
+  },
+  activeRejectOptionBtn: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#DC2626',
+    borderWidth: 1.5,
+  },
+  activeRejectOptionText: {
+    color: '#B91C1C',
+  },
+  remarksInputContainer: {
+    marginBottom: 14,
+  },
+  remarksInputLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#334155',
+    marginBottom: 6,
+  },
+  remarksInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 14,
+    color: '#0F172A',
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  remarksInputReject: {
+    borderColor: '#F87171',
+    backgroundColor: '#FFF5F5',
+  },
+  existingRemarksBox: {
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 14,
+    borderLeftWidth: 4,
+  },
+  existingRemarksBoxResolved: {
+    backgroundColor: '#F0FDF4',
+    borderLeftColor: '#10B981',
+  },
+  existingRemarksBoxRejected: {
+    backgroundColor: '#FEF2F2',
+    borderLeftColor: '#EF4444',
+  },
+  existingRemarksLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  existingRemarksLabelResolved: {
+    color: '#065F46',
+  },
+  existingRemarksLabelRejected: {
+    color: '#991B1B',
+  },
+  existingRemarksText: {
+    fontSize: 13,
+    color: '#1E293B',
+    lineHeight: 18,
+  },
   updateStatusButton: {
     backgroundColor: '#007AFF',
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 6,
+  },
+  rejectStatusButton: {
+    backgroundColor: '#DC2626',
   },
   disabledUpdateButton: {
     backgroundColor: '#94A3B8',
@@ -469,19 +644,22 @@ const styles = StyleSheet.create({
   },
   updateStatusButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
   },
-  activeStatusOptionBtn: {
-    backgroundColor: '#E8F0FF',
-    borderColor: '#2563EB',
+  workflowCompleteBox: {
+    backgroundColor: '#F8FAFC',
+    padding: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    marginVertical: 6,
   },
-
   workflowCompleteText: {
-    color: '#64748B',
+    color: '#475569',
     fontSize: 14,
-    fontStyle: 'italic',
+    fontWeight: '600',
     textAlign: 'center',
-    paddingVertical: 10,
   },
 });
