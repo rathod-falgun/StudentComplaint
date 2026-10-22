@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -22,6 +22,9 @@ import { apiFetch, API_BASE_URL } from '@/constants/api';
 import { fetch as expoFetch } from "expo/fetch";
 import { File } from 'expo-file-system';
 import { getToken, getUserId } from '@/utils/authStorage';
+import { useAppTheme } from '@/context/ThemeContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { ThemeColors } from '@/constants/theme';
 
 
 // =====================================================
@@ -29,6 +32,8 @@ import { getToken, getUserId } from '@/utils/authStorage';
 // =====================================================
 
 export default function AddComplaint() {
+    const { colors, isDark } = useAppTheme();
+    const styles = useMemo(() => getStyles(colors, isDark), [colors, isDark]);
     const { width, isMobile, isTablet, isDesktop } = useResponsive();
 
     const [categories, setCategories] = useState<{ cid: number; name: string }[]>([]);
@@ -268,6 +273,7 @@ export default function AddComplaint() {
     // =================================================
 
     const getCategoryIcon = (item: string) => {
+        if (!item) return '•';
 
         const icons: Record<string, string> = {
             Academic: '📚',
@@ -279,9 +285,27 @@ export default function AddComplaint() {
             'Internet/Wi-Fi': '📶',
             Laboratory: '🧪',
             Library: '📖',
+            Transport: '🚌',
+            Transportation: '🚌',
+            Others: '📌',
+            Other: '📌',
+            Hostel: '🏣'
         };
 
-        return icons[item] || '•';
+        const trimmed = item.trim();
+        if (icons[trimmed]) return icons[trimmed];
+
+        const lower = trimmed.toLowerCase();
+        for (const [key, icon] of Object.entries(icons)) {
+            if (key.toLowerCase() === lower) {
+                return icon;
+            }
+        }
+
+        if (lower.includes('transport')) return '🚌';
+        if (lower.includes('other')) return '📌';
+
+        return '•';
     };
 
 
@@ -345,13 +369,16 @@ export default function AddComplaint() {
                                     isMobile && styles.mobileHeaderTitle,
                                     isDesktop && styles.desktopHeaderTitle,
                                 ]}
-                            >                            Submit a Complaint
-                            </Text>
+                            >Submit a Complaint</Text>
 
                             <Text style={styles.headerSubtitle}>
                                 Help us improve your campus
                             </Text>
 
+                        </View>
+
+                        <View style={styles.headerSpacer}>
+                            <ThemeToggle compact />
                         </View>
 
                     </View>
@@ -419,7 +446,7 @@ export default function AddComplaint() {
                             <TextInput
                                 style={styles.input}
                                 placeholder="e.g. Classroom fan is not working"
-                                placeholderTextColor="#A1AAB8"
+                                placeholderTextColor={colors.inputPlaceholder}
                                 value={title}
                                 onChangeText={setTitle}
                                 maxLength={150}
@@ -594,7 +621,7 @@ export default function AddComplaint() {
                                 placeholder={
                                     'Tell us what happened, where it happened, and any details that may help us resolve it...'
                                 }
-                                placeholderTextColor="#A1AAB8"
+                                placeholderTextColor={colors.inputPlaceholder}
                                 value={description}
                                 onChangeText={setDescription}
                                 multiline
@@ -901,11 +928,11 @@ export default function AddComplaint() {
 // STYLES
 // =====================================================
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
 
     safeArea: {
         flex: 1,
-        backgroundColor: '#F5F7FB',
+        backgroundColor: colors.bgPrimary,
     },
 
     // ================================================
@@ -914,7 +941,7 @@ const styles = StyleSheet.create({
 
     screen: {
         flex: 1,
-        backgroundColor: '#F5F7FB',
+        backgroundColor: colors.bgPrimary,
     },
 
     container: {
@@ -932,25 +959,25 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 22,
+        marginBottom: 20,
     },
 
     backButton: {
         width: 44,
         height: 44,
         borderRadius: 14,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.cardBg,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#E7EBF2',
+        borderColor: colors.cardBorder,
 
-        shadowColor: '#172033',
+        shadowColor: colors.shadowColor,
         shadowOffset: {
             width: 0,
             height: 3,
         },
-        shadowOpacity: 0.06,
+        shadowOpacity: isDark ? 0.25 : 0.06,
         shadowRadius: 8,
         elevation: 2,
     },
@@ -958,7 +985,7 @@ const styles = StyleSheet.create({
     backIcon: {
         fontSize: 31,
         lineHeight: 31,
-        color: '#172033',
+        color: colors.textPrimary,
         marginTop: -2,
     },
 
@@ -966,27 +993,30 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 8,
     },
 
     headerTitle: {
         fontSize: 24,
         fontWeight: '800',
-        color: '#172033',
+        color: colors.textPrimary,
         letterSpacing: -0.4,
         textAlign: 'center',
+        alignSelf: 'stretch',
     },
 
     headerSubtitle: {
         fontSize: 13,
-        color: '#758197',
+        color: colors.textSecondary,
         marginTop: 4,
         textAlign: 'center',
+        alignSelf: 'stretch',
     },
 
     headerSpacer: {
         width: 44,
         height: 44,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 
 
@@ -996,11 +1026,11 @@ const styles = StyleSheet.create({
 
     infoCard: {
         flexDirection: 'row',
-        backgroundColor: '#EEF5FF',
+        backgroundColor: colors.accentSoft,
         borderRadius: 18,
         padding: 15,
         borderWidth: 1,
-        borderColor: '#DCE9FF',
+        borderColor: isDark ? 'rgba(59, 130, 246, 0.3)' : '#DCE9FF',
         marginBottom: 18,
     },
 
@@ -1008,7 +1038,7 @@ const styles = StyleSheet.create({
         width: 38,
         height: 38,
         borderRadius: 12,
-        backgroundColor: '#DCEAFF',
+        backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : '#DCEAFF',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -1017,7 +1047,7 @@ const styles = StyleSheet.create({
     infoIcon: {
         fontSize: 18,
         fontWeight: '800',
-        color: '#2563EB',
+        color: colors.accent,
     },
 
     infoContent: {
@@ -1027,14 +1057,14 @@ const styles = StyleSheet.create({
     infoTitle: {
         fontSize: 14,
         fontWeight: '800',
-        color: '#1D4ED8',
+        color: colors.accent,
         marginBottom: 3,
     },
 
     infoText: {
         fontSize: 12.5,
         lineHeight: 18,
-        color: '#59708F',
+        color: colors.textSecondary,
     },
 
 
@@ -1043,18 +1073,18 @@ const styles = StyleSheet.create({
     // ================================================
 
     formCard: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.cardBg,
         borderRadius: 20,
         padding: 18,
         borderWidth: 1,
-        borderColor: '#E8ECF2',
+        borderColor: colors.cardBorder,
 
-        shadowColor: '#18243A',
+        shadowColor: colors.shadowColor,
         shadowOffset: {
             width: 0,
             height: 4,
         },
-        shadowOpacity: 0.05,
+        shadowOpacity: isDark ? 0.3 : 0.05,
         shadowRadius: 14,
 
         elevation: 2,
@@ -1082,14 +1112,14 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '800',
-        color: '#273247',
+        color: colors.textPrimary,
     },
 
     required: {
         fontSize: 10,
         fontWeight: '700',
         color: '#D14343',
-        backgroundColor: '#FFF0F0',
+        backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : '#FFF0F0',
         paddingHorizontal: 7,
         paddingVertical: 3,
         borderRadius: 20,
@@ -1100,7 +1130,7 @@ const styles = StyleSheet.create({
     optional: {
         marginLeft: 'auto',
         fontSize: 11,
-        color: '#8A95A6',
+        color: colors.textMuted,
     },
 
 
@@ -1110,13 +1140,13 @@ const styles = StyleSheet.create({
 
     input: {
         height: 54,
-        backgroundColor: '#FAFBFD',
+        backgroundColor: colors.inputBg,
         borderRadius: 13,
         borderWidth: 1,
-        borderColor: '#E2E7EF',
+        borderColor: colors.inputBorder,
         paddingHorizontal: 15,
         fontSize: 14,
-        color: '#172033',
+        color: colors.inputText,
     },
 
     counterRow: {
@@ -1128,13 +1158,13 @@ const styles = StyleSheet.create({
 
     fieldHint: {
         fontSize: 10.5,
-        color: '#98A2B2',
+        color: colors.textMuted,
         flex: 1,
     },
 
     counter: {
         fontSize: 10.5,
-        color: '#98A2B2',
+        color: colors.textMuted,
         marginLeft: 10,
     },
 
@@ -1145,10 +1175,10 @@ const styles = StyleSheet.create({
 
     dropdown: {
         height: 56,
-        backgroundColor: '#FAFBFD',
+        backgroundColor: colors.inputBg,
         borderRadius: 13,
         borderWidth: 1,
-        borderColor: '#E2E7EF',
+        borderColor: colors.inputBorder,
         paddingHorizontal: 13,
         flexDirection: 'row',
         alignItems: 'center',
@@ -1156,8 +1186,8 @@ const styles = StyleSheet.create({
     },
 
     dropdownSelected: {
-        borderColor: '#BFD5FF',
-        backgroundColor: '#F8FBFF',
+        borderColor: colors.accent,
+        backgroundColor: colors.accentSoft,
     },
 
     dropdownLeft: {
@@ -1170,7 +1200,7 @@ const styles = StyleSheet.create({
         width: 34,
         height: 34,
         borderRadius: 10,
-        backgroundColor: '#E8F0FF',
+        backgroundColor: colors.accentSoft,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 10,
@@ -1180,32 +1210,32 @@ const styles = StyleSheet.create({
         width: 34,
         height: 34,
         borderRadius: 10,
-        backgroundColor: '#F0F2F6',
+        backgroundColor: colors.bgTertiary,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 10,
     },
 
     placeholderIconText: {
-        color: '#7F8A9D',
+        color: colors.textMuted,
         fontSize: 20,
         fontWeight: '400',
     },
 
     dropdownText: {
         fontSize: 14,
-        color: '#172033',
+        color: colors.textPrimary,
         fontWeight: '600',
     },
 
     placeholder: {
         fontSize: 14,
-        color: '#98A2B2',
+        color: colors.inputPlaceholder,
     },
 
     dropdownArrow: {
         fontSize: 27,
-        color: '#7D899C',
+        color: colors.textMuted,
         transform: [{ rotate: '90deg' }],
     },
 
@@ -1222,10 +1252,10 @@ const styles = StyleSheet.create({
     priorityButton: {
         flex: 1,
         minHeight: 56,
-        backgroundColor: '#FAFBFD',
+        backgroundColor: colors.inputBg,
         borderRadius: 13,
         borderWidth: 1,
-        borderColor: '#E2E7EF',
+        borderColor: colors.inputBorder,
         paddingHorizontal: 8,
         flexDirection: 'row',
         alignItems: 'center',
@@ -1234,49 +1264,49 @@ const styles = StyleSheet.create({
     },
 
     priorityButtonSelected: {
-        backgroundColor: '#EEF5FF',
-        borderColor: '#7EABFF',
+        backgroundColor: colors.accentSoft,
+        borderColor: colors.accent,
     },
 
     priorityIcon: {
         width: 23,
         height: 23,
         borderRadius: 8,
-        backgroundColor: '#EEF1F5',
+        backgroundColor: colors.bgTertiary,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 6,
     },
 
     priorityIconSelected: {
-        backgroundColor: '#D9E8FF',
+        backgroundColor: colors.accentSoft,
     },
 
     priorityIconText: {
         fontSize: 13,
         fontWeight: '800',
-        color: '#7C8798',
+        color: colors.textMuted,
     },
 
     priorityIconTextSelected: {
-        color: '#2563EB',
+        color: colors.accent,
     },
 
     priorityText: {
         fontSize: 10.5,
         fontWeight: '800',
-        color: '#7C8798',
+        color: colors.textSecondary,
     },
 
     priorityTextSelected: {
-        color: '#2563EB',
+        color: colors.accent,
     },
 
     selectedDot: {
         width: 5,
         height: 5,
         borderRadius: 3,
-        backgroundColor: '#2563EB',
+        backgroundColor: colors.accent,
         position: 'absolute',
         top: 7,
         right: 7,
@@ -1289,16 +1319,16 @@ const styles = StyleSheet.create({
 
     descriptionInput: {
         minHeight: 145,
-        backgroundColor: '#FAFBFD',
+        backgroundColor: colors.inputBg,
         borderRadius: 13,
         borderWidth: 1,
-        borderColor: '#E2E7EF',
+        borderColor: colors.inputBorder,
         paddingHorizontal: 15,
         paddingTop: 14,
         paddingBottom: 12,
         fontSize: 14,
         lineHeight: 21,
-        color: '#172033',
+        color: colors.inputText,
     },
 
     descriptionFooter: {
@@ -1316,18 +1346,18 @@ const styles = StyleSheet.create({
     submitButton: {
         height: 57,
         marginTop: 17,
-        backgroundColor: '#2563EB',
+        backgroundColor: colors.accent,
         borderRadius: 15,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
 
-        shadowColor: '#2563EB',
+        shadowColor: colors.accent,
         shadowOffset: {
             width: 0,
             height: 6,
         },
-        shadowOpacity: 0.20,
+        shadowOpacity: isDark ? 0.35 : 0.20,
         shadowRadius: 12,
 
         elevation: 5,
@@ -1381,7 +1411,7 @@ const styles = StyleSheet.create({
     footerText: {
         flex: 1,
         textAlign: 'center',
-        color: '#8994A5',
+        color: colors.textMuted,
         fontSize: 10.5,
         lineHeight: 16,
     },
@@ -1393,12 +1423,12 @@ const styles = StyleSheet.create({
 
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(15, 23, 42, 0.45)',
+        backgroundColor: colors.overlay,
         justifyContent: 'flex-end',
     },
 
     categoryModal: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.cardBg,
         borderTopLeftRadius: 25,
         borderTopRightRadius: 25,
         maxHeight: '82%',
@@ -1413,18 +1443,18 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingBottom: 17,
         borderBottomWidth: 1,
-        borderBottomColor: '#EEF1F5',
+        borderBottomColor: colors.border,
     },
 
     modalTitle: {
         fontSize: 19,
         fontWeight: '800',
-        color: '#172033',
+        color: colors.textPrimary,
     },
 
     modalSubtitle: {
         fontSize: 11.5,
-        color: '#8A95A6',
+        color: colors.textSecondary,
         marginTop: 3,
     },
 
@@ -1432,14 +1462,14 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 12,
-        backgroundColor: '#F1F3F6',
+        backgroundColor: colors.bgTertiary,
         justifyContent: 'center',
         alignItems: 'center',
     },
 
     closeText: {
         fontSize: 25,
-        color: '#687386',
+        color: colors.textSecondary,
         lineHeight: 27,
         marginTop: -2,
     },
@@ -1459,21 +1489,21 @@ const styles = StyleSheet.create({
     },
 
     categoryItemSelected: {
-        backgroundColor: '#F0F6FF',
+        backgroundColor: colors.accentSoft,
     },
 
     categoryIcon: {
         width: 40,
         height: 40,
         borderRadius: 12,
-        backgroundColor: '#F2F4F7',
+        backgroundColor: colors.bgTertiary,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
     },
 
     categoryIconSelected: {
-        backgroundColor: '#DDEAFF',
+        backgroundColor: colors.accentSoft,
     },
 
     categoryEmoji: {
@@ -1484,11 +1514,11 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 14,
         fontWeight: '600',
-        color: '#465267',
+        color: colors.textPrimary,
     },
 
     categoryTextSelected: {
-        color: '#2563EB',
+        color: colors.accent,
         fontWeight: '800',
     },
 
@@ -1497,21 +1527,21 @@ const styles = StyleSheet.create({
         height: 21,
         borderRadius: 11,
         borderWidth: 1.8,
-        borderColor: '#CBD2DC',
+        borderColor: colors.border,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 8,
     },
 
     radioOuterSelected: {
-        borderColor: '#2563EB',
+        borderColor: colors.accent,
     },
 
     radioInner: {
         width: 11,
         height: 11,
         borderRadius: 6,
-        backgroundColor: '#24169f',
+        backgroundColor: colors.accent,
     },
     // ================================================
     // RESPONSIVE CONTAINER
@@ -1600,7 +1630,7 @@ const styles = StyleSheet.create({
 
     cameraNoteText: {
         fontSize: 12,
-        color: '#64748B',
+        color: colors.textSecondary,
         marginBottom: 10,
         lineHeight: 16,
     },
@@ -1611,10 +1641,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: '#FAFBFD',
+        backgroundColor: colors.inputBg,
         borderRadius: 13,
         borderWidth: 1,
-        borderColor: '#E2E7EF',
+        borderColor: colors.inputBorder,
     },
 
     cameraButtonLeft: {
@@ -1627,7 +1657,7 @@ const styles = StyleSheet.create({
         width: 38,
         height: 38,
         borderRadius: 11,
-        backgroundColor: '#EEF5FF',
+        backgroundColor: colors.accentSoft,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -1639,23 +1669,23 @@ const styles = StyleSheet.create({
 
     cameraButtonSubtext: {
         fontSize: 11,
-        color: '#8A95A6',
+        color: colors.textMuted,
         marginTop: 2,
     },
 
     cameraBadge: {
-        backgroundColor: '#ECFDF5',
+        backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#ECFDF5',
         paddingHorizontal: 9,
         paddingVertical: 4,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#A7F3D0',
+        borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#A7F3D0',
     },
 
     cameraBadgeText: {
         fontSize: 11,
         fontWeight: '700',
-        color: '#059669',
+        color: '#10B981',
     },
 
     previewContainer: {
@@ -1671,10 +1701,10 @@ const styles = StyleSheet.create({
     retakeButton: {
         flex: 1,
         height: 44,
-        backgroundColor: '#EEF5FF',
+        backgroundColor: colors.accentSoft,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#BFD5FF',
+        borderColor: colors.accent,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -1683,16 +1713,16 @@ const styles = StyleSheet.create({
     retakeButtonText: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#2563EB',
+        color: colors.accent,
     },
 
     removeButton: {
         flex: 1,
         height: 44,
-        backgroundColor: '#FFF0F0',
+        backgroundColor: isDark ? 'rgba(239, 68, 68, 0.12)' : '#FFF0F0',
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#FFD1D1',
+        borderColor: isDark ? 'rgba(239, 68, 68, 0.3)' : '#FFD1D1',
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -1701,7 +1731,7 @@ const styles = StyleSheet.create({
     removeButtonText: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#D14343',
+        color: '#EF4444',
     },
 
     // ================================================

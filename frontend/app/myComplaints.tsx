@@ -16,6 +16,9 @@ import { Image } from "expo-image";
 import { useResponsive } from "@/constants/responsive";
 import { apiFetch, API_BASE_URL } from "@/constants/api";
 import { getUserId } from "@/utils/authStorage";
+import { useAppTheme } from "@/context/ThemeContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { ThemeColors } from "@/constants/theme";
 
 type Complaint = {
     id: number;
@@ -33,33 +36,33 @@ type Complaint = {
     adminRemarks?: string;
 };
 
-const statusColor = (status: string) => {
+const statusColor = (status: string, isDark: boolean = false) => {
     switch (status) {
         case "SUBMITTED":
-            return { bg: "#FFF4E5", text: "#B8710A" };
+            return { bg: isDark ? "rgba(245, 158, 11, 0.18)" : "#FFF4E5", text: isDark ? "#FBBF24" : "#B8710A" };
         case "ASSIGNED":
-            return { bg: "#FAF5FF", text: "#7E22CE" };
+            return { bg: isDark ? "rgba(168, 85, 247, 0.18)" : "#FAF5FF", text: isDark ? "#C084FC" : "#7E22CE" };
         case "IN_PROGRESS":
-            return { bg: "#E8F0FF", text: "#2563EB" };
+            return { bg: isDark ? "rgba(59, 130, 246, 0.18)" : "#E8F0FF", text: isDark ? "#60A5FA" : "#2563EB" };
         case "RESOLVED":
-            return { bg: "#E7F8EE", text: "#1D9A5C" };
+            return { bg: isDark ? "rgba(16, 185, 129, 0.18)" : "#E7F8EE", text: isDark ? "#34D399" : "#1D9A5C" };
         case "REJECTED":
-            return { bg: "#FDECEC", text: "#DC2626" };
+            return { bg: isDark ? "rgba(239, 68, 68, 0.18)" : "#FDECEC", text: isDark ? "#F87171" : "#DC2626" };
         default:
-            return { bg: "#F0F2F6", text: "#465267" };
+            return { bg: isDark ? "rgba(255, 255, 255, 0.08)" : "#F0F2F6", text: isDark ? "#9CA3AF" : "#465267" };
     }
 };
 
-const priorityColor = (priority: string) => {
+const priorityColor = (priority: string, isDark: boolean = false) => {
     switch (priority) {
         case "LOW":
-            return { bg: "#EEF6FF", text: "#3B82F6" };
+            return { bg: isDark ? "rgba(59, 130, 246, 0.18)" : "#EEF6FF", text: isDark ? "#60A5FA" : "#3B82F6" };
         case "MEDIUM":
-            return { bg: "#FFF7E5", text: "#D97706" };
+            return { bg: isDark ? "rgba(245, 158, 11, 0.18)" : "#FFF7E5", text: isDark ? "#FBBF24" : "#D97706" };
         case "HIGH":
-            return { bg: "#FDECEC", text: "#DC2626" };
+            return { bg: isDark ? "rgba(239, 68, 68, 0.18)" : "#FDECEC", text: isDark ? "#F87171" : "#DC2626" };
         default:
-            return { bg: "#F0F2F6", text: "#465267" };
+            return { bg: isDark ? "rgba(255, 255, 255, 0.08)" : "#F0F2F6", text: isDark ? "#9CA3AF" : "#465267" };
     }
 };
 
@@ -91,9 +94,11 @@ const ComplaintCard = React.memo(function ComplaintCard({
     isTablet,
     isDesktop,
 }: ComplaintCardProps) {
+    const { colors, isDark } = useAppTheme();
+    const styles = useMemo(() => getStyles(colors, isDark), [colors, isDark]);
     const [showImage, setShowImage] = useState(false);
-    const status = statusColor(item.status);
-    const priority = priorityColor(item.priority);
+    const status = statusColor(item.status, isDark);
+    const priority = priorityColor(item.priority, isDark);
 
     return (
         <View
@@ -288,6 +293,8 @@ const STATUS_FILTERS = [
 ] as const;
 
 export default function MyComplaints() {
+    const { colors, isDark } = useAppTheme();
+    const styles = useMemo(() => getStyles(colors, isDark), [colors, isDark]);
     const { isMobile, isDesktop, isTablet } = useResponsive();
 
     const [complaints, setComplaints] = useState<Complaint[]>([]);
@@ -432,16 +439,20 @@ export default function MyComplaints() {
                     isDesktop && styles.desktopHeader,
                 ]}
             >
-                <Text
-                    style={[
-                        styles.pageTitle,
-                        isMobile && styles.mobilePageTitle,
-                        isTablet && styles.tabletPageTitle,
-                        isDesktop && styles.desktopPageTitle,
-                    ]}
-                >
-                    My Complaints
-                </Text>
+                <View style={styles.headerTitleRow}>
+                    <Text
+                        style={[
+                            styles.pageTitle,
+                            isMobile && styles.mobilePageTitle,
+                            isTablet && styles.tabletPageTitle,
+                            isDesktop && styles.desktopPageTitle,
+                        ]}
+                    >
+                        My Complaints
+                    </Text>
+
+                    <ThemeToggle compact />
+                </View>
 
                 <Text
                     style={[
@@ -628,11 +639,11 @@ export default function MyComplaints() {
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
 
     safeArea: {
         flex: 1,
-        backgroundColor: "#F5F7FB",
+        backgroundColor: colors.bgPrimary,
     },
 
     // =====================================================
@@ -641,7 +652,7 @@ const styles = StyleSheet.create({
 
     screen: {
         flex: 1,
-        backgroundColor: "#F5F7FB",
+        backgroundColor: colors.bgPrimary,
     },
 
     centerScreen: {
@@ -649,13 +660,13 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         paddingHorizontal: 30,
-        backgroundColor: "#F5F7FB",
+        backgroundColor: colors.bgPrimary,
     },
 
     loadingText: {
         marginTop: 12,
         fontSize: 14,
-        color: "#465267",
+        color: colors.textSecondary,
     },
 
     errorIcon: {
@@ -666,13 +677,13 @@ const styles = StyleSheet.create({
     errorTitle: {
         fontSize: 18,
         fontWeight: "800",
-        color: "#172033",
+        color: colors.textPrimary,
         marginBottom: 6,
     },
 
     errorSubtitle: {
         fontSize: 13,
-        color: "#758197",
+        color: colors.textSecondary,
         textAlign: "center",
     },
 
@@ -705,13 +716,13 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontSize: 18,
         fontWeight: "800",
-        color: "#172033",
+        color: colors.textPrimary,
         marginBottom: 6,
     },
 
     emptySubtitle: {
         fontSize: 13,
-        color: "#758197",
+        color: colors.textSecondary,
         textAlign: "center",
     },
 
@@ -723,18 +734,27 @@ const styles = StyleSheet.create({
         paddingHorizontal: 22,
         paddingTop: 20,
         paddingBottom: 20,
-        backgroundColor: "#AEB7DD",
+        backgroundColor: colors.cardBg,
         borderBottomLeftRadius: 24,
         borderBottomRightRadius: 24,
-        shadowColor: "#18243A",
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+        shadowColor: colors.shadowColor,
         shadowOffset: {
             width: 0,
             height: 4,
         },
-        shadowOpacity: 0.05,
+        shadowOpacity: isDark ? 0.3 : 0.05,
         shadowRadius: 12,
         elevation: 2,
         alignItems: "center",
+    },
+
+    headerTitleRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 12,
     },
 
     mobileHeader: {
@@ -766,9 +786,9 @@ const styles = StyleSheet.create({
     },
 
     pageTitle: {
-        fontSize: 40,
+        fontSize: 34,
         fontWeight: "800",
-        color: "#082668",
+        color: colors.textPrimary,
         letterSpacing: -0.5,
         textAlign: "center",
     },
@@ -778,16 +798,16 @@ const styles = StyleSheet.create({
     },
 
     tabletPageTitle: {
-        fontSize: 32,
+        fontSize: 30,
     },
 
     desktopPageTitle: {
-        fontSize: 38,
+        fontSize: 34,
     },
 
     pageSubtitle: {
         fontSize: 13,
-        color: "#310AB1",
+        color: colors.textSecondary,
         marginTop: 4,
         textAlign: "center",
     },
@@ -834,18 +854,18 @@ const styles = StyleSheet.create({
     // =====================================================
 
     card: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.cardBg,
         borderRadius: 18,
         padding: 16,
         marginBottom: 14,
         borderWidth: 1,
-        borderColor: "#EEF1F5",
-        shadowColor: "#18243A",
+        borderColor: colors.cardBorder,
+        shadowColor: colors.shadowColor,
         shadowOffset: {
             width: 0,
             height: 3,
         },
-        shadowOpacity: 0.04,
+        shadowOpacity: isDark ? 0.25 : 0.04,
         shadowRadius: 10,
         elevation: 1,
     },
@@ -884,7 +904,7 @@ const styles = StyleSheet.create({
     },
 
     categoryPill: {
-        backgroundColor: "#EEF5FF",
+        backgroundColor: colors.accentSoft,
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 20,
@@ -894,7 +914,7 @@ const styles = StyleSheet.create({
     categoryPillText: {
         fontSize: 11,
         fontWeight: "700",
-        color: "#2563EB",
+        color: colors.accent,
     },
 
     priorityPill: {
@@ -915,7 +935,7 @@ const styles = StyleSheet.create({
     cardTitle: {
         fontSize: 16,
         fontWeight: "800",
-        color: "#172033",
+        color: colors.textPrimary,
         marginBottom: 6,
     },
 
@@ -930,7 +950,7 @@ const styles = StyleSheet.create({
     cardDescription: {
         fontSize: 13,
         lineHeight: 19,
-        color: "#5B6472",
+        color: colors.textSecondary,
         marginBottom: 12,
     },
 
@@ -941,7 +961,7 @@ const styles = StyleSheet.create({
 
     divider: {
         height: 1,
-        backgroundColor: "#EEF1F5",
+        backgroundColor: colors.border,
         marginBottom: 12,
     },
 
@@ -970,14 +990,14 @@ const styles = StyleSheet.create({
 
     dateLabel: {
         fontSize: 10,
-        color: "#A1AAB8",
+        color: colors.textMuted,
         marginBottom: 2,
     },
 
     dateValue: {
         fontSize: 12,
         fontWeight: "700",
-        color: "#465267",
+        color: colors.textPrimary,
     },
 
     statusPill: {
@@ -1007,7 +1027,7 @@ const styles = StyleSheet.create({
     imageButton: {
         marginTop: 15,
         alignSelf: "center",
-        backgroundColor: "#172033",
+        backgroundColor: colors.accent,
         borderRadius: 10,
         paddingHorizontal: 20,
         paddingVertical: 9,
@@ -1055,10 +1075,10 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         alignSelf: "center",
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.cardBg,
         borderRadius: 10,
         borderWidth: 1,
-        borderColor: "#E2E7EF",
+        borderColor: colors.cardBorder,
         marginVertical: 20,
         paddingHorizontal: 25,
         paddingVertical: 11,
@@ -1081,7 +1101,7 @@ const styles = StyleSheet.create({
     backButtonText: {
         fontSize: 14,
         fontWeight: "700",
-        color: "#2563EB",
+        color: colors.accent,
     },
 
     // =====================================================
@@ -1089,11 +1109,11 @@ const styles = StyleSheet.create({
     // =====================================================
 
     dashboardText: {
-        backgroundColor: "#F0E8E8",
-        color: "#0C0101",
+        backgroundColor: colors.bgTertiary,
+        color: colors.textPrimary,
         alignItems: "center",
         justifyContent: "center",
-        shadowColor: "#18243A",
+        shadowColor: colors.shadowColor,
         borderRadius: 15,
     },
 
@@ -1154,15 +1174,15 @@ const styles = StyleSheet.create({
     filterChip: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.cardBg,
         paddingVertical: 9,
         paddingHorizontal: 13,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: "#E2E8F0",
-        shadowColor: "#0F172A",
+        borderColor: colors.border,
+        shadowColor: colors.shadowColor,
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
+        shadowOpacity: isDark ? 0.2 : 0.04,
         shadowRadius: 4,
         elevation: 1,
     },
@@ -1181,11 +1201,11 @@ const styles = StyleSheet.create({
     },
 
     filterChipSelected: {
-        backgroundColor: "#2563EB",
-        borderColor: "#2563EB",
-        shadowColor: "#2563EB",
+        backgroundColor: colors.accent,
+        borderColor: colors.accent,
+        shadowColor: colors.accent,
         shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.22,
+        shadowOpacity: 0.25,
         shadowRadius: 8,
         elevation: 3,
     },
@@ -1203,7 +1223,7 @@ const styles = StyleSheet.create({
     filterChipText: {
         fontSize: 12.5,
         fontWeight: "700",
-        color: "#475569",
+        color: colors.textSecondary,
     },
 
     mobileFilterChipText: {
@@ -1215,7 +1235,7 @@ const styles = StyleSheet.create({
     },
 
     filterCountBadge: {
-        backgroundColor: "#F1F5F9",
+        backgroundColor: colors.bgTertiary,
         paddingHorizontal: 7,
         paddingVertical: 2,
         borderRadius: 10,
@@ -1236,7 +1256,7 @@ const styles = StyleSheet.create({
     filterCountText: {
         fontSize: 11,
         fontWeight: "800",
-        color: "#64748B",
+        color: colors.textMuted,
     },
 
     mobileFilterCountText: {
@@ -1249,18 +1269,18 @@ const styles = StyleSheet.create({
 
     resetFilterButton: {
         marginTop: 14,
-        backgroundColor: "#EFF6FF",
+        backgroundColor: colors.accentSoft,
         paddingVertical: 10,
         paddingHorizontal: 18,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: "#BFDBFE",
+        borderColor: colors.accent,
     },
 
     resetFilterText: {
         fontSize: 13,
         fontWeight: "700",
-        color: "#2563EB",
+        color: colors.accent,
     },
 
     adminRemarksBox: {
@@ -1271,11 +1291,11 @@ const styles = StyleSheet.create({
         borderLeftWidth: 3.5,
     },
     adminRemarksBoxResolved: {
-        backgroundColor: "#F0FDF4",
+        backgroundColor: isDark ? "rgba(16, 185, 129, 0.15)" : "#F0FDF4",
         borderLeftColor: "#10B981",
     },
     adminRemarksBoxRejected: {
-        backgroundColor: "#FEF2F2",
+        backgroundColor: isDark ? "rgba(239, 68, 68, 0.15)" : "#FEF2F2",
         borderLeftColor: "#EF4444",
     },
     adminRemarksLabel: {
@@ -1284,14 +1304,14 @@ const styles = StyleSheet.create({
         marginBottom: 3,
     },
     adminRemarksLabelResolved: {
-        color: "#065F46",
+        color: isDark ? "#34D399" : "#065F46",
     },
     adminRemarksLabelRejected: {
-        color: "#991B1B",
+        color: isDark ? "#F87171" : "#991B1B",
     },
     adminRemarksText: {
         fontSize: 13,
-        color: "#1E293B",
+        color: colors.textPrimary,
         lineHeight: 18,
     },
 });

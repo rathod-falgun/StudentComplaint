@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Text,
@@ -17,6 +17,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '@/constants/responsive';
 import { clearAuthToken, getUserId } from '@/utils/authStorage';
 import { apiFetch, API_BASE_URL } from '@/constants/api';
+import { useAppTheme } from '@/context/ThemeContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { ThemeColors } from '@/constants/theme';
 
 type UserProfile = {
   id: number;
@@ -42,6 +45,9 @@ type Complaint = {
 };
 
 export default function Dashboard() {
+  const { colors, isDark } = useAppTheme();
+  const styles = useMemo(() => getStyles(colors, isDark), [colors, isDark]);
+
   const params = useLocalSearchParams();
   const paramUserId = params.userId ? String(params.userId) : null;
   const paramName = params.name ? String(params.name) : null;
@@ -127,7 +133,7 @@ export default function Dashboard() {
 
     Alert.alert(
       'Log Out',
-      'Are you sure you want to log out of your SCET student account?',
+      'Are you sure you want to log out of your student account?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -202,22 +208,22 @@ export default function Dashboard() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView
         style={styles.screen}
-      contentContainerStyle={[
-        styles.container,
-        isMobile && styles.mobileContainer,
-        isTablet && styles.tabletContainer,
-        isDesktop && styles.desktopContainer,
-      ]}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor="#60A5FA"
-          colors={['#2563EB']}
-        />
-      }
-    >
+        contentContainerStyle={[
+          styles.container,
+          isMobile && styles.mobileContainer,
+          isTablet && styles.tabletContainer,
+          isDesktop && styles.desktopContainer,
+        ]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#60A5FA"
+            colors={['#2563EB']}
+          />
+        }
+      >
         <View
           style={[
             styles.contentWrapper,
@@ -242,32 +248,35 @@ export default function Dashboard() {
               </Text>
             </View>
 
-            <TouchableOpacity
-              style={styles.headerAvatarTouchable}
-              onPress={() => router.push('/profile')}
-              activeOpacity={0.8}
-            >
-              {photoUrl && !imageError ? (
-                <Image
-                  source={{
-                    uri: photoUrl,
-                  }}
-                  style={styles.headerAvatarImage}
-                  contentFit="cover"
-                  cachePolicy="memory-disk"
-                  onError={(e) => {
-                    console.log("Failed to load dashboard profile photo:", e);
-                    setImageError(true);
-                  }}
-                />
-              ) : (
-                <View style={styles.headerAvatarFallback}>
-                  <Text style={styles.headerAvatarInitial}>
-                    {displayName.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
+            <View style={styles.headerRightActions}>
+              <ThemeToggle />
+              <TouchableOpacity
+                style={styles.headerAvatarTouchable}
+                onPress={() => router.push('/profile')}
+                activeOpacity={0.8}
+              >
+                {photoUrl && !imageError ? (
+                  <Image
+                    source={{
+                      uri: photoUrl,
+                    }}
+                    style={styles.headerAvatarImage}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    onError={(e) => {
+                      console.log("Failed to load dashboard profile photo:", e);
+                      setImageError(true);
+                    }}
+                  />
+                ) : (
+                  <View style={styles.headerAvatarFallback}>
+                    <Text style={styles.headerAvatarInitial}>
+                      {displayName.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* ================================================= */}
@@ -541,468 +550,476 @@ export default function Dashboard() {
 
 
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#17171C',
-  },
-  container: {
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-  },
-  mobileContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 18,
-  },
-  tabletContainer: {
-    paddingHorizontal: 30,
-    paddingVertical: 28,
-  },
-  desktopContainer: {
-    paddingHorizontal: 40,
-    paddingVertical: 36,
-  },
+const getStyles = (colors: ThemeColors, isDark: boolean) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bgPrimary,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.bgPrimary,
+    },
+    container: {
+      paddingVertical: 24,
+      paddingHorizontal: 20,
+      alignItems: 'center',
+    },
+    mobileContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 18,
+    },
+    tabletContainer: {
+      paddingHorizontal: 30,
+      paddingVertical: 28,
+    },
+    desktopContainer: {
+      paddingHorizontal: 40,
+      paddingVertical: 36,
+    },
 
-  contentWrapper: {
-    width: '100%',
-    maxWidth: 620,
-  },
-  mobileContentWrapper: {
-    maxWidth: '100%',
-  },
-  tabletContentWrapper: {
-    maxWidth: 580,
-  },
-  desktopContentWrapper: {
-    maxWidth: 640,
-  },
+    contentWrapper: {
+      width: '100%',
+      maxWidth: 620,
+    },
+    mobileContentWrapper: {
+      maxWidth: '100%',
+    },
+    tabletContentWrapper: {
+      maxWidth: 580,
+    },
+    desktopContentWrapper: {
+      maxWidth: 640,
+    },
 
-  /* =====================================
-     TOP HEADER
-  ====================================== */
-  topHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#262630',
-  },
+    /* =====================================
+       TOP HEADER
+    ====================================== */
+    topHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+      paddingBottom: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
 
-  headerLeft: {
-    flex: 1,
-    paddingRight: 12,
-  },
+    headerLeft: {
+      flex: 1,
+      paddingRight: 12,
+    },
 
-  appBadge: {
-    backgroundColor: 'rgba(37, 99, 235, 0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
-  },
+    headerRightActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
 
-  appBadgeText: {
-    fontSize: 10.5,
-    fontWeight: '800',
-    color: '#60A5FA',
-    letterSpacing: 0.8,
-  },
+    appBadge: {
+      backgroundColor: colors.accentSoft,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 8,
+      alignSelf: 'flex-start',
+      marginBottom: 6,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(59, 130, 246, 0.3)' : 'rgba(37, 99, 235, 0.2)',
+    },
 
-  headerGreeting: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 0.2,
-  },
+    appBadgeText: {
+      fontSize: 10.5,
+      fontWeight: '800',
+      color: colors.accent,
+      letterSpacing: 0.8,
+    },
 
-  headerSubtext: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    marginTop: 2,
-    fontWeight: '500',
-  },
+    headerGreeting: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: colors.textPrimary,
+      letterSpacing: 0.2,
+    },
 
-  headerAvatarTouchable: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    borderWidth: 2,
-    borderColor: '#2563EB',
-    overflow: 'hidden',
-    backgroundColor: '#1E1E24',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+    headerSubtext: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginTop: 2,
+      fontWeight: '500',
+    },
 
-  headerAvatarImage: {
-    width: '100%',
-    height: '100%',
-  },
+    headerAvatarTouchable: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      borderWidth: 2,
+      borderColor: colors.accent,
+      overflow: 'hidden',
+      backgroundColor: colors.bgSecondary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-  headerAvatarFallback: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#2563EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+    headerAvatarImage: {
+      width: '100%',
+      height: '100%',
+    },
 
-  headerAvatarInitial: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '800',
-  },
+    headerAvatarFallback: {
+      width: '100%',
+      height: '100%',
+      backgroundColor: colors.accent,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-  /* =====================================
-     STATS GRID
-  ====================================== */
-  sectionTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
+    headerAvatarInitial: {
+      color: '#FFFFFF',
+      fontSize: 20,
+      fontWeight: '800',
+    },
 
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.2,
-  },
+    /* =====================================
+       STATS GRID
+    ====================================== */
+    sectionTitleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
 
-  viewAllText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#60A5FA',
-  },
+    sectionTitle: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      letterSpacing: 0.2,
+    },
 
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 10,
-    marginBottom: 8,
-  },
+    viewAllText: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.accent,
+    },
 
-  statCard: {
-    width: '48.5%',
-    backgroundColor: '#1E1E24',
-    borderRadius: 14,
-    padding: 14,
-    borderLeftWidth: 4,
-    borderWidth: 1,
-    borderColor: '#303038',
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      gap: 10,
+      marginBottom: 8,
+    },
 
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
-  },
+    statCard: {
+      width: '48.5%',
+      backgroundColor: colors.cardBg,
+      borderRadius: 14,
+      padding: 14,
+      borderLeftWidth: 4,
+      borderWidth: 1,
+      borderColor: colors.cardBorder,
 
-  statIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(59, 130, 246, 0.12)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.25 : 0.05,
+      shadowRadius: 4,
+      elevation: 2,
+    },
 
-  statNumber: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
+    statIconCircle: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.accentSoft,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
 
-  statLabel: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 2,
-    fontWeight: '500',
-  },
+    statNumber: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: colors.textPrimary,
+    },
 
-  /* =====================================
-     ACTION CARDS
-  ====================================== */
-  primaryActionCard: {
-    backgroundColor: '#2563EB',
-    borderRadius: 14,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 12,
+    statLabel: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginTop: 2,
+      fontWeight: '500',
+    },
 
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 4,
-  },
+    /* =====================================
+       ACTION CARDS
+    ====================================== */
+    primaryActionCard: {
+      backgroundColor: colors.accent,
+      borderRadius: 14,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 12,
 
-  secondaryActionCard: {
-    backgroundColor: '#1E1E24',
-    borderRadius: 14,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: '#303038',
-  },
+      shadowColor: colors.accent,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: isDark ? 0.35 : 0.2,
+      shadowRadius: 8,
+      elevation: 4,
+    },
 
-  actionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    paddingRight: 10,
-  },
+    secondaryActionCard: {
+      backgroundColor: colors.cardBg,
+      borderRadius: 14,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 10,
+      borderWidth: 1,
+      borderColor: colors.cardBorder,
+    },
 
-  primaryIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
+    actionLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      paddingRight: 10,
+    },
 
-  secondaryIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(37, 99, 235, 0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
+    primaryIconCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 14,
+    },
 
-  actionTexts: {
-    flex: 1,
-  },
+    secondaryIconCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.accentSoft,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 14,
+    },
 
-  primaryActionTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
+    actionTexts: {
+      flex: 1,
+    },
 
-  primaryActionSub: {
-    color: 'rgba(255, 255, 255, 0.82)',
-    fontSize: 12,
-    marginTop: 2,
-  },
+    primaryActionTitle: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '700',
+    },
 
-  secondaryActionTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
+    primaryActionSub: {
+      color: 'rgba(255, 255, 255, 0.85)',
+      fontSize: 12,
+      marginTop: 2,
+    },
 
-  secondaryActionSub: {
-    color: '#8D8D98',
-    fontSize: 12,
-    marginTop: 2,
-  },
+    secondaryActionTitle: {
+      color: colors.textPrimary,
+      fontSize: 16,
+      fontWeight: '700',
+    },
 
-  /* =====================================
-     RECENT COMPLAINTS & EMPTY
-  ====================================== */
-  loadingContainer: {
-    paddingVertical: 20,
-    alignItems: 'center',
-    gap: 8,
-  },
+    secondaryActionSub: {
+      color: colors.textSecondary,
+      fontSize: 12,
+      marginTop: 2,
+    },
 
-  loadingText: {
-    color: '#8D8D98',
-    fontSize: 13,
-  },
+    /* =====================================
+       RECENT COMPLAINTS & EMPTY
+    ====================================== */
+    loadingContainer: {
+      paddingVertical: 20,
+      alignItems: 'center',
+      gap: 8,
+    },
 
-  emptyCard: {
-    backgroundColor: '#1E1E24',
-    borderWidth: 1,
-    borderColor: '#303038',
-    borderRadius: 14,
-    padding: 22,
-    alignItems: 'center',
-    textAlign: 'center',
-  },
+    loadingText: {
+      color: colors.textMuted,
+      fontSize: 13,
+    },
 
-  emptyTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-    marginTop: 10,
-  },
+    emptyCard: {
+      backgroundColor: colors.cardBg,
+      borderWidth: 1,
+      borderColor: colors.cardBorder,
+      borderRadius: 14,
+      padding: 22,
+      alignItems: 'center',
+      textAlign: 'center',
+    },
 
-  emptySub: {
-    color: '#8D8D98',
-    fontSize: 12.5,
-    textAlign: 'center',
-    lineHeight: 18,
-    marginTop: 6,
-  },
+    emptyTitle: {
+      color: colors.textPrimary,
+      fontSize: 16,
+      fontWeight: '700',
+      marginTop: 10,
+    },
 
-  recentCard: {
-    backgroundColor: '#1E1E24',
-    borderRadius: 13,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#303038',
-    marginBottom: 10,
-  },
+    emptySub: {
+      color: colors.textSecondary,
+      fontSize: 12.5,
+      textAlign: 'center',
+      lineHeight: 18,
+      marginTop: 6,
+    },
 
-  recentTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
+    recentCard: {
+      backgroundColor: colors.cardBg,
+      borderRadius: 13,
+      padding: 14,
+      borderWidth: 1,
+      borderColor: colors.cardBorder,
+      marginBottom: 10,
+    },
 
-  categoryBadge: {
-    backgroundColor: '#262630',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
+    recentTopRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
 
-  categoryBadgeText: {
-    color: '#9CA3AF',
-    fontSize: 11,
-    fontWeight: '600',
-  },
+    categoryBadge: {
+      backgroundColor: colors.bgTertiary,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 6,
+    },
 
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-  },
+    categoryBadgeText: {
+      color: colors.textSecondary,
+      fontSize: 11,
+      fontWeight: '600',
+    },
 
-  statusBadgeText: {
-    fontSize: 10.5,
-    fontWeight: '700',
-  },
+    statusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 12,
+    },
 
-  recentTitle: {
-    color: '#FFFFFF',
-    fontSize: 14.5,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
+    statusBadgeText: {
+      fontSize: 10.5,
+      fontWeight: '700',
+    },
 
-  recentFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#262630',
-    paddingTop: 8,
-  },
+    recentTitle: {
+      color: colors.textPrimary,
+      fontSize: 14.5,
+      fontWeight: '600',
+      marginBottom: 8,
+    },
 
-  recentDate: {
-    color: '#8D8D98',
-    fontSize: 11.5,
-  },
+    recentFooter: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: 8,
+    },
 
-  recentTap: {
-    color: '#60A5FA',
-    fontSize: 11.5,
-    fontWeight: '600',
-  },
+    recentDate: {
+      color: colors.textMuted,
+      fontSize: 11.5,
+    },
 
-  /* =====================================
-     PROFILE SNIPPET
-  ====================================== */
-  profileSnippetCard: {
-    backgroundColor: '#1E1E24',
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#303038',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 14,
-  },
+    recentTap: {
+      color: colors.accent,
+      fontSize: 11.5,
+      fontWeight: '600',
+    },
 
-  snippetLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
-    paddingRight: 10,
-  },
+    /* =====================================
+       PROFILE SNIPPET
+    ====================================== */
+    profileSnippetCard: {
+      backgroundColor: colors.cardBg,
+      borderRadius: 12,
+      padding: 14,
+      borderWidth: 1,
+      borderColor: colors.cardBorder,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 14,
+    },
 
-  snippetTexts: {
-    flex: 1,
-  },
+    snippetLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      flex: 1,
+      paddingRight: 10,
+    },
 
-  snippetTitle: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#17171C',
-  },
-  snippetEmail: {
-    color: '#8D8D98',
-    fontSize: 12,
-    marginTop: 1,
-  },
+    snippetTexts: {
+      flex: 1,
+    },
 
-  profileLinkButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#262630',
-  },
+    snippetTitle: {
+      color: colors.textPrimary,
+      fontSize: 13,
+      fontWeight: '700',
+    },
 
-  profileLinkText: {
-    color: '#60A5FA',
-    fontSize: 12,
-    fontWeight: '700',
-  },
+    snippetEmail: {
+      color: colors.textSecondary,
+      fontSize: 12,
+      marginTop: 1,
+    },
 
-  /* =====================================
-     LOGOUT & FOOTER
-  ====================================== */
-  logoutCard: {
-    backgroundColor: 'rgba(239, 68, 68, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.25)',
-    borderRadius: 12,
-    paddingVertical: 13,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 18,
-  },
+    profileLinkButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+      backgroundColor: colors.bgTertiary,
+    },
 
-  logoutCardText: {
-    color: '#EF4444',
-    fontSize: 14,
-    fontWeight: '700',
-  },
+    profileLinkText: {
+      color: colors.accent,
+      fontSize: 12,
+      fontWeight: '700',
+    },
 
-  footerNote: {
-    color: '#5E5E68',
-    fontSize: 11,
-    textAlign: 'center',
-    marginTop: 22,
-    marginBottom: 10,
-  },
-});
+    /* =====================================
+       LOGOUT & FOOTER
+    ====================================== */
+    logoutCard: {
+      backgroundColor: isDark ? 'rgba(239, 68, 68, 0.08)' : 'rgba(239, 68, 68, 0.05)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(239, 68, 68, 0.25)' : 'rgba(239, 68, 68, 0.2)',
+      borderRadius: 12,
+      paddingVertical: 13,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 18,
+    },
+
+    logoutCardText: {
+      color: '#EF4444',
+      fontSize: 14,
+      fontWeight: '700',
+    },
+
+    footerNote: {
+      color: colors.textMuted,
+      fontSize: 11,
+      textAlign: 'center',
+      marginTop: 22,
+      marginBottom: 10,
+    },
+  });

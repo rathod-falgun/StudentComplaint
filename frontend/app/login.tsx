@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   StyleSheet,
@@ -18,8 +18,13 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { API_BASE_URL } from '@/constants/api';
 import { saveAuthData } from '@/utils/authStorage';
+import { useAppTheme } from '@/context/ThemeContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { ThemeColors } from '@/constants/theme';
 
 export default function Login() {
+  const { colors, isDark } = useAppTheme();
+  const styles = useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -120,13 +125,16 @@ export default function Login() {
         style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-      <StatusBar style="light" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.contentWrapper}>
+          <View style={styles.topToggleRow}>
+            <ThemeToggle />
+          </View>
           {/* ================================================= */}
           {/* INSTITUTIONAL BANNER */}
           {/* ================================================= */}
@@ -177,7 +185,7 @@ export default function Login() {
                 <TextInput
                   style={styles.input}
                   placeholder="e.g. name@scet.ac.in"
-                  placeholderTextColor="#6B7280"
+                  placeholderTextColor={colors.inputPlaceholder}
                   autoCapitalize="none"
                   autoCorrect={false}
                   keyboardType="email-address"
@@ -209,7 +217,7 @@ export default function Login() {
                 <TextInput
                   style={[styles.input, styles.passwordInput]}
                   placeholder="Enter your account password"
-                  placeholderTextColor="#6B7280"
+                  placeholderTextColor={colors.inputPlaceholder}
                   secureTextEntry={!showPassword}
                   value={password}
                   onChangeText={setPassword}
@@ -298,20 +306,20 @@ export default function Login() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#121216',
+    backgroundColor: colors.bgPrimary,
   },
 
   keyboardContainer: {
     flex: 1,
-    backgroundColor: '#121216',
+    backgroundColor: colors.bgPrimary,
   },
 
   container: {
     flexGrow: 1,
-    backgroundColor: '#121216',
+    backgroundColor: colors.bgPrimary,
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 24 : 16,
     paddingBottom: 40,
@@ -324,21 +332,27 @@ const styles = StyleSheet.create({
     maxWidth: 440,
   },
 
+  topToggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 14,
+  },
+
   /* =====================================
      INSTITUTIONAL BANNER
   ====================================== */
   bannerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#161822',
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.22)',
+    borderColor: isDark ? 'rgba(59, 130, 246, 0.22)' : 'rgba(37, 99, 235, 0.15)',
     borderRadius: 22,
     paddingVertical: 20,
     paddingHorizontal: 18,
     marginBottom: 22,
     ...Platform.select({
-      web: { boxShadow: '0 8px 24px rgba(37, 99, 235, 0.12)' } as any,
+      web: { boxShadow: isDark ? '0 8px 24px rgba(37, 99, 235, 0.12)' : '0 4px 16px rgba(0, 0, 0, 0.05)' } as any,
       default: { elevation: 3 },
     }),
   },
@@ -347,18 +361,18 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: 'rgba(37, 99, 235, 0.15)',
+    backgroundColor: colors.accentSoft,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.28)',
+    borderColor: isDark ? 'rgba(59, 130, 246, 0.28)' : 'rgba(37, 99, 235, 0.2)',
     marginBottom: 12,
   },
 
   bannerTitle: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     letterSpacing: -0.3,
     textAlign: 'center',
     marginBottom: 10,
@@ -368,9 +382,9 @@ const styles = StyleSheet.create({
   bannerLiveTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(37, 99, 235, 0.12)',
+    backgroundColor: colors.accentSoft,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.28)',
+    borderColor: isDark ? 'rgba(59, 130, 246, 0.28)' : 'rgba(37, 99, 235, 0.2)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 16,
@@ -382,20 +396,20 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.accent,
   },
 
   bannerLiveText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#60A5FA',
+    color: colors.accent,
     letterSpacing: 0.8,
   },
 
   bannerSubtitle: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#94A3B8',
+    color: colors.textSecondary,
     letterSpacing: 0.2,
     textAlign: 'center',
   },
@@ -411,14 +425,14 @@ const styles = StyleSheet.create({
   portalTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     letterSpacing: -0.3,
     textAlign: 'center',
   },
 
   portalSubtitle: {
     fontSize: 13,
-    color: '#9CA3AF',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 6,
     maxWidth: 320,
@@ -429,13 +443,13 @@ const styles = StyleSheet.create({
      CARD
   ====================================== */
   card: {
-    backgroundColor: '#181820',
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
-    borderColor: '#262632',
+    borderColor: colors.cardBorder,
     borderRadius: 22,
     padding: 22,
     ...Platform.select({
-      web: { boxShadow: '0 12px 32px rgba(0, 0, 0, 0.4)' } as any,
+      web: { boxShadow: isDark ? '0 12px 32px rgba(0, 0, 0, 0.4)' : '0 6px 20px rgba(0, 0, 0, 0.06)' } as any,
       default: { elevation: 4 },
     }),
   },
@@ -454,7 +468,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12.5,
     fontWeight: '600',
-    color: '#E2E8F0',
+    color: colors.textPrimary,
     marginBottom: 7,
     letterSpacing: 0.1,
   },
@@ -464,15 +478,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 48,
     borderWidth: 1.2,
-    borderColor: '#2A2A38',
+    borderColor: colors.inputBorder,
     borderRadius: 12,
-    backgroundColor: '#13131A',
+    backgroundColor: colors.inputBg,
     paddingHorizontal: 13,
   },
 
   inputWrapperFocused: {
-    borderColor: '#3B82F6',
-    backgroundColor: '#161622',
+    borderColor: colors.accent,
+    backgroundColor: isDark ? '#161622' : '#FFFFFF',
     ...Platform.select({
       web: { boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.15)' } as any,
       default: {},
@@ -486,7 +500,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: '100%',
-    color: '#FFFFFF',
+    color: colors.inputText,
     fontSize: 14,
   },
 
@@ -504,7 +518,7 @@ const styles = StyleSheet.create({
   signInButton: {
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.accent,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 6,
@@ -541,7 +555,7 @@ const styles = StyleSheet.create({
   },
 
   forgotPasswordText: {
-    color: '#60A5FA',
+    color: colors.accent,
     fontSize: 12.5,
     fontWeight: '600',
   },
@@ -557,16 +571,16 @@ const styles = StyleSheet.create({
     marginTop: 18,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#22222D',
+    borderTopColor: colors.border,
   },
 
   registerPromptText: {
-    color: '#9CA3AF',
+    color: colors.textSecondary,
     fontSize: 12.5,
   },
 
   registerLink: {
-    color: '#60A5FA',
+    color: colors.accent,
     fontSize: 12.5,
     fontWeight: '700',
   },
@@ -583,7 +597,7 @@ const styles = StyleSheet.create({
   },
 
   footerText: {
-    color: '#8D8D98',
+    color: colors.textMuted,
     fontSize: 11,
     fontWeight: '500',
   },

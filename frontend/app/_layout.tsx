@@ -16,9 +16,46 @@ import {
   clearAuthToken,
 } from '@/utils/authStorage';
 
+import { ThemeProvider, useAppTheme } from '@/context/ThemeContext';
+
 export const unstable_settings = {
   anchor: '(tabs)',
 };
+
+function AppNavigator() {
+  const { isDark, colors } = useAppTheme();
+
+  return (
+    <>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.bgPrimary },
+        }}
+      >
+        <Stack.Screen name="profile" />
+        <Stack.Screen name="register" />
+        <Stack.Screen name="login" />
+        <Stack.Screen name="dashboard" />
+        <Stack.Screen name="myComplaints" />
+        <Stack.Screen name="addComplaint" />
+        <Stack.Screen name="admin/dashboard" />
+        <Stack.Screen name="admin/complaints" />
+        <Stack.Screen name="admin/complaintDetails" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="modal"
+          options={{
+            presentation: 'modal',
+            title: 'Modal',
+          }}
+        />
+      </Stack>
+
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+    </>
+  );
+}
 
 export default function RootLayout() {
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -133,32 +170,13 @@ export default function RootLayout() {
   // ==========================================
   return (
     <SafeAreaProvider>
-      <>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="profile" />
-          <Stack.Screen name="register" />
-          <Stack.Screen name="login" />
-          <Stack.Screen name="dashboard" />
-          <Stack.Screen name="myComplaints" />
-          <Stack.Screen name="addComplaint" />
-          <Stack.Screen name="admin/dashboard" />
-          <Stack.Screen name="admin/complaints" />
-          <Stack.Screen name="admin/complaintDetails" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="modal"
-            options={{
-              presentation: 'modal',
-              title: 'Modal',
-            }}
-          />
-        </Stack>
-
-        <StatusBar style="dark" />
-      </>
+      <ThemeProvider>
+        <AppNavigator />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
+
 
 const styles = StyleSheet.create({
   loadingContainer: {

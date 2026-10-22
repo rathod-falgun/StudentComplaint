@@ -15,13 +15,18 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-
 import { API_BASE_URL } from '@/constants/api';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { ThemeColors } from '@/constants/theme';
 
 const ALLOWED_COLLEGE_DOMAIN = 'scet.ac.in';
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@scet\.ac\.in$/;
 
 export default function ForgotPassword() {
+  const { colors, isDark } = useAppTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
+
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -160,7 +165,7 @@ export default function ForgotPassword() {
         style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <StatusBar style="light" />
+        <StatusBar style={isDark ? 'light' : 'dark'} />
 
         {/* TOP BAR */}
         <View style={styles.topBar}>
@@ -171,10 +176,10 @@ export default function ForgotPassword() {
             onPress={() => router.back()}
             activeOpacity={0.75}
           >
-            <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
+            <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.topBarTitle}>Reset Password</Text>
-          <View style={styles.topBarSpacer} />
+          <ThemeToggle compact />
         </View>
 
         <ScrollView
@@ -186,7 +191,7 @@ export default function ForgotPassword() {
             {/* HERO BADGE & TITLE */}
             <View style={styles.heroContainer}>
               <View style={styles.heroIconBadge}>
-                <Ionicons name="key-outline" size={28} color="#3B82F6" />
+                <Ionicons name="key-outline" size={28} color={colors.accent} />
               </View>
               <Text style={styles.heroTitle}>Forgot Password?</Text>
               <Text style={styles.heroSubtitle}>
@@ -212,13 +217,13 @@ export default function ForgotPassword() {
                   <Ionicons
                     name="mail-outline"
                     size={19}
-                    color={focusedField === 'email' ? '#3B82F6' : '#8D8D98'}
+                    color={focusedField === 'email' ? colors.accent : colors.textMuted}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.input}
                     placeholder={`your.name@${ALLOWED_COLLEGE_DOMAIN}`}
-                    placeholderTextColor="#6B7280"
+                    placeholderTextColor={colors.inputPlaceholder}
                     autoCapitalize="none"
                     autoCorrect={false}
                     keyboardType="email-address"
@@ -320,13 +325,13 @@ export default function ForgotPassword() {
                       <Ionicons
                         name="shield-outline"
                         size={19}
-                        color={otp.length === 6 ? '#10B981' : focusedField === 'otp' ? '#3B82F6' : '#8D8D98'}
+                        color={otp.length === 6 ? '#10B981' : focusedField === 'otp' ? colors.accent : colors.textMuted}
                         style={styles.inputIcon}
                       />
                       <TextInput
                         style={[styles.input, styles.otpInput]}
                         placeholder="000000"
-                        placeholderTextColor="#6B7280"
+                        placeholderTextColor={colors.inputPlaceholder}
                         keyboardType="number-pad"
                         maxLength={6}
                         value={otp}
@@ -352,13 +357,13 @@ export default function ForgotPassword() {
                       <Ionicons
                         name="lock-closed-outline"
                         size={19}
-                        color={focusedField === 'newPassword' ? '#3B82F6' : '#8D8D98'}
+                        color={focusedField === 'newPassword' ? colors.accent : colors.textMuted}
                         style={styles.inputIcon}
                       />
                       <TextInput
                         style={[styles.input, styles.passwordInput]}
                         placeholder="Enter new password"
-                        placeholderTextColor="#6B7280"
+                        placeholderTextColor={colors.inputPlaceholder}
                         secureTextEntry={!showPassword}
                         value={newPassword}
                         onChangeText={setNewPassword}
@@ -373,7 +378,7 @@ export default function ForgotPassword() {
                         <Ionicons
                           name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                           size={19}
-                          color="#8D8D98"
+                          color={colors.textMuted}
                         />
                       </TouchableOpacity>
                     </View>
@@ -400,15 +405,15 @@ export default function ForgotPassword() {
                           confirmPassword.length > 0 && newPassword === confirmPassword
                             ? '#10B981'
                             : focusedField === 'confirmPassword'
-                            ? '#3B82F6'
-                            : '#8D8D98'
+                            ? colors.accent
+                            : colors.textMuted
                         }
                         style={styles.inputIcon}
                       />
                       <TextInput
                         style={[styles.input, styles.passwordInput]}
                         placeholder="Re-enter new password"
-                        placeholderTextColor="#6B7280"
+                        placeholderTextColor={colors.inputPlaceholder}
                         secureTextEntry={!showConfirmPassword}
                         value={confirmPassword}
                         onChangeText={setConfirmPassword}
@@ -423,7 +428,7 @@ export default function ForgotPassword() {
                         <Ionicons
                           name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
                           size={19}
-                          color="#8D8D98"
+                          color={colors.textMuted}
                         />
                       </TouchableOpacity>
                     </View>
@@ -499,10 +504,10 @@ export default function ForgotPassword() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#121216',
+    backgroundColor: colors.bgPrimary,
   },
 
   keyboardContainer: {
@@ -516,24 +521,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#22222D',
+    borderBottomColor: colors.headerBorder,
+    backgroundColor: colors.headerBg,
   },
 
   backButton: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#1E1E24',
+    backgroundColor: colors.cardBg,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#303038',
+    borderColor: colors.cardBorder,
   },
 
   topBarTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     letterSpacing: 0.2,
   },
 
@@ -564,25 +570,25 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+    backgroundColor: isDark ? 'rgba(59, 130, 246, 0.12)' : colors.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.28)',
+    borderColor: isDark ? 'rgba(59, 130, 246, 0.28)' : '#BFDBFE',
   },
 
   heroTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     letterSpacing: 0.2,
     marginBottom: 6,
   },
 
   heroSubtitle: {
     fontSize: 13,
-    color: '#9CA3AF',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 19,
     paddingHorizontal: 12,
@@ -590,14 +596,14 @@ const styles = StyleSheet.create({
 
   /* FORM CARD */
   formCard: {
-    backgroundColor: '#1A1A22',
+    backgroundColor: colors.cardBg,
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#262632',
+    borderColor: colors.cardBorder,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: isDark ? 0.35 : 0.05,
     shadowRadius: 10,
     elevation: 3,
   },
@@ -616,29 +622,29 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#E8E8ED',
+    color: colors.textPrimary,
   },
 
   helperTag: {
     fontSize: 11,
-    color: '#8D8D98',
+    color: colors.textMuted,
     fontWeight: '500',
   },
 
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#131318',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#2D2D38',
+    borderColor: colors.inputBorder,
     borderRadius: 11,
     paddingHorizontal: 13,
     height: 48,
   },
 
   inputWrapperFocused: {
-    borderColor: '#3B82F6',
-    backgroundColor: '#161620',
+    borderColor: colors.accent,
+    backgroundColor: colors.inputBg,
   },
 
   inputWrapperSuccess: {
@@ -652,7 +658,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 14,
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     height: '100%',
   },
 
@@ -694,7 +700,7 @@ const styles = StyleSheet.create({
   },
 
   sendOtpButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: colors.navy,
     height: 44,
     borderRadius: 11,
     alignItems: 'center',
@@ -734,13 +740,13 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#2A2A38',
+    backgroundColor: colors.divider,
   },
 
   dividerText: {
     fontSize: 10.5,
     fontWeight: '700',
-    color: '#71717A',
+    color: colors.textMuted,
     letterSpacing: 0.8,
   },
 
@@ -782,16 +788,16 @@ const styles = StyleSheet.create({
     marginTop: 18,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#242430',
+    borderTopColor: colors.divider,
   },
 
   backToLoginPrompt: {
-    color: '#9CA3AF',
+    color: colors.textSecondary,
     fontSize: 12.5,
   },
 
   backToLoginLink: {
-    color: '#60A5FA',
+    color: colors.accent,
     fontSize: 12.5,
     fontWeight: '700',
   },

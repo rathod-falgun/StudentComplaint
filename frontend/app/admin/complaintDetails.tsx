@@ -13,6 +13,10 @@ import {
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { ThemeColors } from '@/constants/theme';
+import { StatusBar } from 'expo-status-bar';
 
 type ComplaintDetail = {
   id: number;
@@ -33,6 +37,9 @@ type ComplaintDetail = {
 };
 
 export default function AdminComplaintDetails() {
+  const { colors, isDark } = useAppTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
+
   const { complaintId } = useLocalSearchParams();
 
   const [complaint, setComplaint] = useState<ComplaintDetail | null>(null);
@@ -174,35 +181,70 @@ const [totalComplaints, setTotalComplaints] = useState(0);
   const statusColor = (status: string) => {
     switch (status) {
       case 'SUBMITTED':
-        return { bg: '#FFF7ED', text: '#C2410C', border: '#FED7AA' }; // Amber
-
+        return {
+          bg: isDark ? 'rgba(194, 65, 12, 0.2)' : '#FFF7ED',
+          text: isDark ? '#FB923C' : '#C2410C',
+          border: isDark ? '#7C2D12' : '#FED7AA',
+        };
       case 'ASSIGNED':
-        return { bg: '#FAF5FF', text: '#7E22CE', border: '#E9D5FF' }; // Purple
-
+        return {
+          bg: isDark ? 'rgba(126, 34, 206, 0.2)' : '#FAF5FF',
+          text: isDark ? '#C084FC' : '#7E22CE',
+          border: isDark ? '#581C87' : '#E9D5FF',
+        };
       case 'IN_PROGRESS':
-        return { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' }; // Blue
-
+        return {
+          bg: isDark ? 'rgba(29, 78, 216, 0.2)' : '#EFF6FF',
+          text: isDark ? '#60A5FA' : '#1D4ED8',
+          border: isDark ? '#1E3A8A' : '#BFDBFE',
+        };
       case 'RESOLVED':
-        return { bg: '#ECFDF5', text: '#047857', border: '#A7F3D0' }; // Emerald Green
-
+        return {
+          bg: isDark ? 'rgba(4, 120, 87, 0.2)' : '#ECFDF5',
+          text: isDark ? '#34D399' : '#047857',
+          border: isDark ? '#064E3B' : '#A7F3D0',
+        };
       case 'REJECTED':
-        return { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA' }; // Red
-
+        return {
+          bg: isDark ? 'rgba(220, 38, 38, 0.2)' : '#FEF2F2',
+          text: isDark ? '#F87171' : '#DC2626',
+          border: isDark ? '#7F1D1D' : '#FECACA',
+        };
       default:
-        return { bg: '#F8FAFC', text: '#475569', border: '#CBD5E1' };
+        return {
+          bg: isDark ? '#262632' : '#F8FAFC',
+          text: colors.textSecondary,
+          border: colors.cardBorder,
+        };
     }
   };
 
   const priorityColor = (priority: string) => {
     switch (priority) {
       case 'LOW':
-        return { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' };
+        return {
+          bg: isDark ? 'rgba(29, 78, 216, 0.2)' : '#EFF6FF',
+          text: isDark ? '#60A5FA' : '#1D4ED8',
+          border: isDark ? '#1E3A8A' : '#BFDBFE',
+        };
       case 'MEDIUM':
-        return { bg: '#FFFBEB', text: '#B45309', border: '#FDE68A' };
+        return {
+          bg: isDark ? 'rgba(180, 83, 9, 0.2)' : '#FFFBEB',
+          text: isDark ? '#FBBF24' : '#B45309',
+          border: isDark ? '#78350F' : '#FDE68A',
+        };
       case 'HIGH':
-        return { bg: '#FEF2F2', text: '#B91C1C', border: '#FECACA' };
+        return {
+          bg: isDark ? 'rgba(185, 28, 28, 0.2)' : '#FEF2F2',
+          text: isDark ? '#F87171' : '#B91C1C',
+          border: isDark ? '#7F1D1D' : '#FECACA',
+        };
       default:
-        return { bg: '#F8FAFC', text: '#475569', border: '#CBD5E1' };
+        return {
+          bg: isDark ? '#262632' : '#F8FAFC',
+          text: colors.textSecondary,
+          border: colors.cardBorder,
+        };
     }
   };
 
@@ -221,8 +263,9 @@ const [totalComplaints, setTotalComplaints] = useState(0);
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.centerScreen}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Loading details...</Text>
         </View>
       </SafeAreaView>
@@ -232,6 +275,7 @@ const [totalComplaints, setTotalComplaints] = useState(0);
   if (error || !complaint) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.centerScreen}>
           <Text style={styles.errorIcon}>⚠️</Text>
           <Text style={styles.errorTitle}>Complaint Not Found</Text>
@@ -252,6 +296,7 @@ const [totalComplaints, setTotalComplaints] = useState(0);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView style={styles.screen}>
       {/* Header */}
       <View style={styles.header}>
@@ -260,7 +305,7 @@ const [totalComplaints, setTotalComplaints] = useState(0);
             <Text style={styles.backBtnText}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Complaint Details</Text>
-          <View style={styles.headerSpacer} />
+          <ThemeToggle compact />
         </View>
         <Text style={styles.complaintIdHeader}>Complaint ID: #{complaint.id}</Text>
       </View>
@@ -451,7 +496,7 @@ const [totalComplaints, setTotalComplaints] = useState(0);
                         ? 'e.g., Duplicate of ticket #12, invalid photo, or outside college scope...'
                         : 'e.g., Assigned to electrical team, repaired on-site, or tested...'
                     }
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor={colors.inputPlaceholder}
                     value={adminRemarks}
                     onChangeText={setAdminRemarks}
                     multiline
@@ -498,75 +543,75 @@ const [totalComplaints, setTotalComplaints] = useState(0);
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#1E293B' },
-  screen: { flex: 1, backgroundColor: '#F4F6F9' },
-  centerScreen: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 25 },
-  loadingText: { marginTop: 12, fontSize: 16, color: '#64748B' },
+const getStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: colors.headerBg },
+  screen: { flex: 1, backgroundColor: colors.bgPrimary },
+  centerScreen: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 25, backgroundColor: colors.bgPrimary },
+  loadingText: { marginTop: 12, fontSize: 16, color: colors.textSecondary },
   errorIcon: { fontSize: 40, marginBottom: 10 },
-  errorTitle: { fontSize: 18, fontWeight: 'bold', color: '#1E293B' },
-  backButton: { marginTop: 15, backgroundColor: '#007AFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
+  errorTitle: { fontSize: 18, fontWeight: 'bold', color: colors.textPrimary },
+  backButton: { marginTop: 15, backgroundColor: colors.accent, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
   backButtonText: { color: '#FFFFFF', fontWeight: 'bold' },
-  header: { backgroundColor: '#1E293B', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 18 },
+  header: { backgroundColor: colors.headerBg, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 18, borderBottomWidth: 1, borderBottomColor: colors.headerBorder },
   headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
   backBtn: { paddingVertical: 4, minWidth: 50 },
-  backBtnText: { color: '#38BDF8', fontSize: 14, fontWeight: 'bold' },
-  headerTitle: { flex: 1, fontSize: 20, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center' },
+  backBtnText: { color: colors.accent, fontSize: 14, fontWeight: 'bold' },
+  headerTitle: { flex: 1, fontSize: 20, fontWeight: 'bold', color: colors.textPrimary, textAlign: 'center' },
   headerSpacer: { minWidth: 50 },
-  complaintIdHeader: { fontSize: 13, color: '#94A3B8', marginTop: 2, textAlign: 'center' },
+  complaintIdHeader: { fontSize: 13, color: colors.textMuted, marginTop: 2, textAlign: 'center' },
   container: { padding: 16 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#E2E8F0', elevation: 2 },
-  cardSectionHeader: { fontSize: 16, fontWeight: 'bold', color: '#0F172A', marginBottom: 12 },
+  card: { backgroundColor: colors.cardBg, borderRadius: 14, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: colors.cardBorder, elevation: 2 },
+  cardSectionHeader: { fontSize: 16, fontWeight: 'bold', color: colors.textPrimary, marginBottom: 12 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  infoLabel: { fontSize: 14, color: '#64748B', fontWeight: '600' },
-  infoValue: { fontSize: 14, color: '#1E293B', fontWeight: '700' },
+  infoLabel: { fontSize: 14, color: colors.textSecondary, fontWeight: '600' },
+  infoValue: { fontSize: 14, color: colors.textPrimary, fontWeight: '700' },
   badgeRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  categoryPill: { backgroundColor: '#EFF6FF', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  categoryPillText: { fontSize: 12, fontWeight: '700', color: '#2563EB' },
+  categoryPill: { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.18)' : '#EFF6FF', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  categoryPillText: { fontSize: 12, fontWeight: '700', color: colors.accent },
   priorityPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   priorityPillText: { fontSize: 11, fontWeight: '800' },
-  complaintTitle: { fontSize: 18, fontWeight: 'bold', color: '#0F172A', marginBottom: 8 },
-  descriptionLabel: { fontSize: 13, color: '#94A3B8', fontWeight: '700', marginTop: 4 },
-  descriptionText: { fontSize: 14, color: '#334155', lineHeight: 22, marginTop: 4, marginBottom: 12 },
-  divider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 12 },
+  complaintTitle: { fontSize: 18, fontWeight: 'bold', color: colors.textPrimary, marginBottom: 8 },
+  descriptionLabel: { fontSize: 13, color: colors.textMuted, fontWeight: '700', marginTop: 4 },
+  descriptionText: { fontSize: 14, color: colors.textSecondary, lineHeight: 22, marginTop: 4, marginBottom: 12 },
+  divider: { height: 1, backgroundColor: colors.divider, marginVertical: 12 },
   imageContainer: { alignItems: 'center' },
-  imageToggleButton: { backgroundColor: '#0F172A', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, width: '100%', alignItems: 'center' },
+  imageToggleButton: { backgroundColor: isDark ? '#262632' : '#0F172A', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, width: '100%', alignItems: 'center' },
   imageToggleButtonText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 },
   attachedImage: { width: '100%', height: 250, borderRadius: 12, marginTop: 12 },
   imageErrorBox: {
     width: '100%',
     padding: 16,
     borderRadius: 12,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: isDark ? '#2E1515' : '#FEF2F2',
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: isDark ? '#7F1D1D' : '#FECACA',
     alignItems: 'center',
     marginTop: 12,
   },
   imageErrorText: { color: '#DC2626', fontWeight: '700', fontSize: 14 },
-  imageErrorSubText: { color: '#991B1B', fontSize: 12, marginTop: 4 },
-  noImageText: { color: '#94A3B8', fontStyle: 'italic', fontSize: 14 },
+  imageErrorSubText: { color: isDark ? '#FCA5A5' : '#991B1B', fontSize: 12, marginTop: 4 },
+  noImageText: { color: colors.textMuted, fontStyle: 'italic', fontSize: 14 },
   currentStatusRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   statusDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
   statusPillText: { fontSize: 12, fontWeight: '800' },
-  selectStatusLabel: { fontSize: 13, fontWeight: '700', color: '#64748B', marginBottom: 10 },
+  selectStatusLabel: { fontSize: 13, fontWeight: '700', color: colors.textSecondary, marginBottom: 10 },
   actionButtonsRow: { flexDirection: 'column', gap: 10, marginBottom: 14 },
-  statusOptionBtn: { backgroundColor: '#F1F5F9', paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#CBD5E1' },
-  statusOptionText: { fontSize: 14, fontWeight: 'bold', color: '#475569' },
-  activeStatusOptionText: { color: '#2563EB' },
+  statusOptionBtn: { backgroundColor: isDark ? '#1C1C24' : '#F1F5F9', paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: colors.cardBorder },
+  statusOptionText: { fontSize: 14, fontWeight: 'bold', color: colors.textSecondary },
+  activeStatusOptionText: { color: colors.accent },
   activeStatusOptionBtn: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#2563EB',
+    backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF',
+    borderColor: colors.accent,
     borderWidth: 1.5,
   },
   rejectOptionBtn: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: isDark ? '#221417' : '#FEF2F2',
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: isDark ? '#7F1D1D' : '#FECACA',
   },
   rejectOptionText: {
     fontSize: 14,
@@ -574,12 +619,12 @@ const styles = StyleSheet.create({
     color: '#DC2626',
   },
   activeRejectOptionBtn: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: isDark ? '#35191C' : '#FEE2E2',
     borderColor: '#DC2626',
     borderWidth: 1.5,
   },
   activeRejectOptionText: {
-    color: '#B91C1C',
+    color: '#F87171',
   },
   remarksInputContainer: {
     marginBottom: 14,
@@ -587,23 +632,23 @@ const styles = StyleSheet.create({
   remarksInputLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#334155',
+    color: colors.textPrimary,
     marginBottom: 6,
   },
   remarksInput: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: colors.inputBorder,
     borderRadius: 10,
     padding: 12,
     fontSize: 14,
-    color: '#0F172A',
+    color: colors.textPrimary,
     minHeight: 80,
     textAlignVertical: 'top',
   },
   remarksInputReject: {
     borderColor: '#F87171',
-    backgroundColor: '#FFF5F5',
+    backgroundColor: isDark ? '#201315' : '#FFF5F5',
   },
   existingRemarksBox: {
     padding: 12,
@@ -612,11 +657,11 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
   },
   existingRemarksBoxResolved: {
-    backgroundColor: '#F0FDF4',
+    backgroundColor: isDark ? 'rgba(16, 185, 129, 0.12)' : '#F0FDF4',
     borderLeftColor: '#10B981',
   },
   existingRemarksBoxRejected: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: isDark ? 'rgba(239, 68, 68, 0.12)' : '#FEF2F2',
     borderLeftColor: '#EF4444',
   },
   existingRemarksLabel: {
@@ -625,18 +670,18 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   existingRemarksLabelResolved: {
-    color: '#065F46',
+    color: isDark ? '#34D399' : '#065F46',
   },
   existingRemarksLabelRejected: {
-    color: '#991B1B',
+    color: isDark ? '#F87171' : '#991B1B',
   },
   existingRemarksText: {
     fontSize: 13,
-    color: '#1E293B',
+    color: colors.textPrimary,
     lineHeight: 18,
   },
   updateStatusButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.accent,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
@@ -646,7 +691,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#DC2626',
   },
   disabledUpdateButton: {
-    backgroundColor: '#94A3B8',
+    backgroundColor: isDark ? '#262632' : '#94A3B8',
     opacity: 0.6,
   },
   updateStatusButtonText: {
@@ -655,16 +700,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   workflowCompleteBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: isDark ? '#1C1C24' : '#F8FAFC',
     padding: 16,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.cardBorder,
     alignItems: 'center',
     marginVertical: 6,
   },
   workflowCompleteText: {
-    color: '#475569',
+    color: colors.textSecondary,
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',

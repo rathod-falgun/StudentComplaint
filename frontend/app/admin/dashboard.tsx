@@ -14,6 +14,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { clearAuthToken, getToken } from '@/utils/authStorage';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { ThemeColors } from '@/constants/theme';
+import { StatusBar } from 'expo-status-bar';
 
 type Stats = {
   totalComplaints: number;
@@ -38,6 +42,9 @@ type Complaint = {
 
 const API_URL = process.env.EXPO_PUBLIC_API_BASE;
 export default function AdminDashboard() {
+  const { colors, isDark } = useAppTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
+
   const { name, userId, email, role } = useLocalSearchParams();
 
   const [stats, setStats] = useState<Stats>({
@@ -128,26 +135,28 @@ export default function AdminDashboard() {
   const statusColor = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return { bg: '#FFF4E5', text: '#B8710A' };
+      case 'SUBMITTED':
+        return { bg: isDark ? 'rgba(217, 119, 6, 0.18)' : '#FFF4E5', text: isDark ? '#FBBF24' : '#B8710A' };
       case 'IN_PROGRESS':
-        return { bg: '#E8F0FF', text: '#2563EB' };
+      case 'ASSIGNED':
+        return { bg: isDark ? 'rgba(59, 130, 246, 0.18)' : '#E8F0FF', text: isDark ? '#60A5FA' : '#2563EB' };
       case 'RESOLVED':
-        return { bg: '#E7F8EE', text: '#1D9A5C' };
+        return { bg: isDark ? 'rgba(16, 185, 129, 0.18)' : '#E7F8EE', text: isDark ? '#34D399' : '#1D9A5C' };
       default:
-        return { bg: '#F0F2F6', text: '#465267' };
+        return { bg: isDark ? '#262632' : '#F0F2F6', text: colors.textSecondary };
     }
   };
 
   const priorityColor = (priority: string) => {
     switch (priority) {
       case 'LOW':
-        return { bg: '#EEF6FF', text: '#3B82F6' };
+        return { bg: isDark ? 'rgba(59, 130, 246, 0.18)' : '#EEF6FF', text: isDark ? '#60A5FA' : '#3B82F6' };
       case 'MEDIUM':
-        return { bg: '#FFF7E5', text: '#D97706' };
+        return { bg: isDark ? 'rgba(245, 158, 11, 0.18)' : '#FFF7E5', text: isDark ? '#FBBF24' : '#D97706' };
       case 'HIGH':
-        return { bg: '#FDECEC', text: '#DC2626' };
+        return { bg: isDark ? 'rgba(239, 68, 68, 0.18)' : '#FDECEC', text: isDark ? '#F87171' : '#DC2626' };
       default:
-        return { bg: '#F0F2F6', text: '#465267' };
+        return { bg: isDark ? '#262632' : '#F0F2F6', text: colors.textSecondary };
     }
   };
 
@@ -164,8 +173,9 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.centerScreen}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Loading Admin Dashboard...</Text>
         </View>
       </SafeAreaView>
@@ -174,16 +184,22 @@ export default function AdminDashboard() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView
         style={styles.screen}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>ADMIN DASHBOARD</Text>
-        <Text style={styles.welcomeText}>
-          Welcome, {name ? String(name) : 'Admin'}
-        </Text>
+        <View style={styles.headerTopRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.headerTitle}>ADMIN DASHBOARD</Text>
+            <Text style={styles.welcomeText}>
+              Welcome, {name ? String(name) : 'Admin'}
+            </Text>
+          </View>
+          <ThemeToggle compact />
+        </View>
       </View>
 
       <View style={styles.content}>
@@ -329,44 +345,53 @@ export default function AdminDashboard() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#1E293B' },
-  screen: { flex: 1, backgroundColor: '#F4F6F9' },
-  centerScreen: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF' },
-  loadingText: { marginTop: 12, fontSize: 16, color: '#555555' },
+const getStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: colors.headerBg },
+  screen: { flex: 1, backgroundColor: colors.bgPrimary },
+  centerScreen: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bgPrimary },
+  loadingText: { marginTop: 12, fontSize: 16, color: colors.textSecondary },
   header: {
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.headerBg,
     paddingHorizontal: 22,
-    paddingTop: 30,
-    paddingBottom: 25,
+    paddingTop: 20,
+    paddingBottom: 22,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.headerBorder,
   },
-  headerTitle: { fontSize: 13, fontWeight: '800', color: '#94A3B8', letterSpacing: 1.2, textAlign: 'center' },
-  welcomeText: { fontSize: 24, fontWeight: 'bold', color: '#FFFFFF', marginTop: 4, textAlign: 'center' },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  headerTitle: { fontSize: 12, fontWeight: '800', color: colors.textMuted, letterSpacing: 1.2 },
+  welcomeText: { fontSize: 22, fontWeight: 'bold', color: colors.textPrimary, marginTop: 4 },
   content: { padding: 18 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, marginBottom: 12 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#0F172A', marginBottom: 12 },
-  seeAllText: { fontSize: 14, fontWeight: '700', color: '#007AFF' },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: colors.textPrimary, marginBottom: 12 },
+  seeAllText: { fontSize: 14, fontWeight: '700', color: colors.accent },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   statCard: {
     width: '48%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.cardBg,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 5,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: isDark ? 0.3 : 0.05,
     shadowRadius: 5,
   },
-  statLabel: { fontSize: 13, color: '#64748B', fontWeight: '600' },
+  statLabel: { fontSize: 13, color: colors.textSecondary, fontWeight: '600' },
   statNumber: { fontSize: 26, fontWeight: 'bold', marginTop: 6 },
   allComplaintsButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.accent,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
@@ -375,33 +400,33 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   allComplaintsButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
-  emptyContainer: { backgroundColor: '#FFFFFF', padding: 20, borderRadius: 12, alignItems: 'center' },
-  emptyText: { color: '#64748B', fontSize: 15 },
+  emptyContainer: { backgroundColor: colors.cardBg, padding: 20, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: colors.cardBorder },
+  emptyText: { color: colors.textSecondary, fontSize: 15 },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.cardBg,
     borderRadius: 14,
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.cardBorder,
     elevation: 2,
   },
   cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  categoryPill: { backgroundColor: '#EFF6FF', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  categoryPillText: { fontSize: 11, fontWeight: '700', color: '#2563EB' },
+  categoryPill: { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.18)' : '#EFF6FF', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  categoryPillText: { fontSize: 11, fontWeight: '700', color: colors.accent },
   priorityPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
   priorityPillText: { fontSize: 10.5, fontWeight: '800' },
-  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#1E293B', marginBottom: 4 },
-  studentInfo: { fontSize: 13, color: '#64748B', marginBottom: 10 },
-  studentName: { fontWeight: '700', color: '#0F172A' },
-  divider: { height: 1, backgroundColor: '#F1F5F9', marginBottom: 10 },
+  cardTitle: { fontSize: 16, fontWeight: 'bold', color: colors.textPrimary, marginBottom: 4 },
+  studentInfo: { fontSize: 13, color: colors.textSecondary, marginBottom: 10 },
+  studentName: { fontWeight: '700', color: colors.textPrimary },
+  divider: { height: 1, backgroundColor: colors.divider, marginBottom: 10 },
   cardBottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dateLabel: { fontSize: 10, color: '#94A3B8' },
-  dateValue: { fontSize: 12, fontWeight: '700', color: '#475569' },
+  dateLabel: { fontSize: 10, color: colors.textMuted },
+  dateValue: { fontSize: 12, fontWeight: '700', color: colors.textSecondary },
   statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
   statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   statusPillText: { fontSize: 11, fontWeight: '800' },
-  detailsButton: { backgroundColor: '#0F172A', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  detailsButton: { backgroundColor: isDark ? '#262632' : '#0F172A', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   detailsButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: 'bold' },
   logoutButton: {
     backgroundColor: '#EF4444',

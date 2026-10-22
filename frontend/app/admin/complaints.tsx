@@ -13,6 +13,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { ThemeColors } from '@/constants/theme';
+import { StatusBar } from 'expo-status-bar';
 
 type Complaint = {
   id: number;
@@ -25,9 +29,6 @@ type Complaint = {
   updatedAt: string;
   imageUrl: string;
   adminRemarks?: string;
-  // userId?: number;
-  // studentName?: string;
-  // studentEmail?: string;
   studentDepartment?: string;
   studentDivision?: string;
   deadline?: string;
@@ -36,6 +37,9 @@ type Complaint = {
 };
 
 export default function AdminComplaints() {
+  const { colors, isDark } = useAppTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
+
   const { name, userId, email, role } = useLocalSearchParams();
 
   const [complaints, setComplaints] = useState<Complaint[]>([]);
@@ -172,30 +176,30 @@ export default function AdminComplaints() {
   const statusColor = (status: string) => {
     switch (status) {
       case 'SUBMITTED':
-        return { bg: '#FFF4E5', text: '#B8710A' };
+        return { bg: isDark ? 'rgba(217, 119, 6, 0.18)' : '#FFF4E5', text: isDark ? '#FBBF24' : '#B8710A' };
       case 'ASSIGNED':
-        return { bg: '#FAF5FF', text: '#7E22CE' };
+        return { bg: isDark ? 'rgba(126, 34, 206, 0.18)' : '#FAF5FF', text: isDark ? '#C084FC' : '#7E22CE' };
       case 'IN_PROGRESS':
-        return { bg: '#E8F0FF', text: '#2563EB' };
+        return { bg: isDark ? 'rgba(59, 130, 246, 0.18)' : '#E8F0FF', text: isDark ? '#60A5FA' : '#2563EB' };
       case 'RESOLVED':
-        return { bg: '#E7F8EE', text: '#1D9A5C' };
+        return { bg: isDark ? 'rgba(16, 185, 129, 0.18)' : '#E7F8EE', text: isDark ? '#34D399' : '#1D9A5C' };
       case 'REJECTED':
-        return { bg: '#FDECEC', text: '#DC2626' };
+        return { bg: isDark ? 'rgba(239, 68, 68, 0.18)' : '#FDECEC', text: isDark ? '#F87171' : '#DC2626' };
       default:
-        return { bg: '#F0F2F6', text: '#465267' };
+        return { bg: isDark ? '#262632' : '#F0F2F6', text: colors.textSecondary };
     }
   };
 
   const priorityColor = (priority: string) => {
     switch (priority) {
       case 'LOW':
-        return { bg: '#EEF6FF', text: '#3B82F6' };
+        return { bg: isDark ? 'rgba(59, 130, 246, 0.18)' : '#EEF6FF', text: isDark ? '#60A5FA' : '#3B82F6' };
       case 'MEDIUM':
-        return { bg: '#FFF7E5', text: '#D97706' };
+        return { bg: isDark ? 'rgba(245, 158, 11, 0.18)' : '#FFF7E5', text: isDark ? '#FBBF24' : '#D97706' };
       case 'HIGH':
-        return { bg: '#FDECEC', text: '#DC2626' };
+        return { bg: isDark ? 'rgba(239, 68, 68, 0.18)' : '#FDECEC', text: isDark ? '#F87171' : '#DC2626' };
       default:
-        return { bg: '#F0F2F6', text: '#465267' };
+        return { bg: isDark ? '#262632' : '#F0F2F6', text: colors.textSecondary };
     }
   };
 
@@ -212,8 +216,9 @@ export default function AdminComplaints() {
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.centerScreen}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Loading complaints...</Text>
         </View>
       </SafeAreaView>
@@ -223,6 +228,7 @@ export default function AdminComplaints() {
   if (error) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.centerScreen}>
           <Text style={styles.errorIcon}>⚠️</Text>
           <Text style={styles.errorTitle}>Failed to load complaints</Text>
@@ -242,6 +248,7 @@ export default function AdminComplaints() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <View style={styles.screen}>
       {/* Header */}
       <View style={styles.header}>
@@ -250,7 +257,7 @@ export default function AdminComplaints() {
             <Text style={styles.backBtnText}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>All Complaints</Text>
-          <View style={styles.headerSpacer} />
+          <ThemeToggle compact />
         </View>
         <Text style={styles.headerSubtitle}>
           Showing {filteredComplaints.length} of {complaints.length} total
@@ -262,7 +269,7 @@ export default function AdminComplaints() {
         <TextInput
           style={styles.searchInput}
           placeholder="Search by title, student name, or category..."
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={colors.inputPlaceholder}
           value={searchText}
           onChangeText={setSearchText}
         />
@@ -561,63 +568,63 @@ export default function AdminComplaints() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#1E293B' },
-  screen: { flex: 1, backgroundColor: '#F4F6F9' },
-  centerScreen: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 25 },
-  loadingText: { marginTop: 12, fontSize: 16, color: '#64748B' },
+const getStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: colors.headerBg },
+  screen: { flex: 1, backgroundColor: colors.bgPrimary },
+  centerScreen: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 25, backgroundColor: colors.bgPrimary },
+  loadingText: { marginTop: 12, fontSize: 16, color: colors.textSecondary },
   errorIcon: { fontSize: 40, marginBottom: 10 },
-  errorTitle: { fontSize: 18, fontWeight: 'bold', color: '#1E293B' },
-  errorSubtitle: { fontSize: 14, color: '#64748B', textAlign: 'center', marginTop: 4 },
-  retryButton: { marginTop: 15, backgroundColor: '#007AFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
+  errorTitle: { fontSize: 18, fontWeight: 'bold', color: colors.textPrimary },
+  errorSubtitle: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', marginTop: 4 },
+  retryButton: { marginTop: 15, backgroundColor: colors.accent, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
   retryButtonText: { color: '#FFFFFF', fontWeight: 'bold' },
   emptyIcon: { fontSize: 40, marginBottom: 10 },
-  emptyTitle: { fontSize: 18, fontWeight: 'bold', color: '#1E293B' },
-  emptySubtitle: { fontSize: 13, color: '#64748B', textAlign: 'center', marginTop: 4 },
-  header: { backgroundColor: '#1E293B', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 18 },
+  emptyTitle: { fontSize: 18, fontWeight: 'bold', color: colors.textPrimary },
+  emptySubtitle: { fontSize: 13, color: colors.textSecondary, textAlign: 'center', marginTop: 4 },
+  header: { backgroundColor: colors.headerBg, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 18, borderBottomWidth: 1, borderBottomColor: colors.headerBorder },
   headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
   backBtn: { paddingVertical: 4, minWidth: 50 },
-  backBtnText: { color: '#38BDF8', fontSize: 14, fontWeight: 'bold' },
-  headerTitle: { flex: 1, fontSize: 20, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center' },
+  backBtnText: { color: colors.accent, fontSize: 14, fontWeight: 'bold' },
+  headerTitle: { flex: 1, fontSize: 20, fontWeight: 'bold', color: colors.textPrimary, textAlign: 'center' },
   headerSpacer: { minWidth: 50 },
-  headerSubtitle: { fontSize: 13, color: '#94A3B8', marginTop: 2, textAlign: 'center' },
-  searchContainer: { paddingHorizontal: 15, paddingTop: 12, paddingBottom: 6, backgroundColor: '#FFFFFF', flexDirection: 'row', alignItems: 'center' },
-  searchInput: { flex: 1, height: 44, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 10, paddingHorizontal: 15, fontSize: 14, color: '#0F172A', backgroundColor: '#F8FAFC' },
+  headerSubtitle: { fontSize: 13, color: colors.textMuted, marginTop: 2, textAlign: 'center' },
+  searchContainer: { paddingHorizontal: 15, paddingTop: 12, paddingBottom: 6, backgroundColor: colors.cardBg, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  searchInput: { flex: 1, height: 44, borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 10, paddingHorizontal: 15, fontSize: 14, color: colors.textPrimary, backgroundColor: colors.inputBg },
   clearSearchBtn: { position: 'absolute', right: 25 },
-  clearSearchText: { fontSize: 16, color: '#64748B', fontWeight: 'bold' },
-  filterSection: { backgroundColor: '#FFFFFF', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
+  clearSearchText: { fontSize: 16, color: colors.textSecondary, fontWeight: 'bold' },
+  filterSection: { backgroundColor: colors.cardBg, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
   filterScroll: { paddingHorizontal: 15 },
-  filterLabel: { fontSize: 12, fontWeight: 'bold', color: '#64748B', alignSelf: 'center', marginRight: 6 },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: '#F1F5F9', marginRight: 8 },
-  activeStatusChip: { backgroundColor: '#007AFF' },
+  filterLabel: { fontSize: 12, fontWeight: 'bold', color: colors.textSecondary, alignSelf: 'center', marginRight: 6 },
+  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: isDark ? '#262632' : '#F1F5F9', marginRight: 8 },
+  activeStatusChip: { backgroundColor: colors.accent },
   activePriorityChip: { backgroundColor: '#D97706' },
-  activeCategoryChip: { backgroundColor: '#0F172A' },
-  chipText: { fontSize: 12, fontWeight: '600', color: '#475569' },
+  activeCategoryChip: { backgroundColor: isDark ? '#3B82F6' : '#0F172A' },
+  chipText: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
   activeChipText: { color: '#FFFFFF', fontWeight: 'bold' },
-  filterDivider: { width: 1, height: 20, backgroundColor: '#CBD5E1', marginHorizontal: 8, alignSelf: 'center' },
+  filterDivider: { width: 1, height: 20, backgroundColor: colors.divider, marginHorizontal: 8, alignSelf: 'center' },
   listContent: { padding: 16, paddingBottom: 30 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: '#E2E8F0', elevation: 2 },
+  card: { backgroundColor: colors.cardBg, borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: colors.cardBorder, elevation: 2 },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  complaintIdText: { fontSize: 12, fontWeight: 'bold', color: '#64748B' },
+  complaintIdText: { fontSize: 12, fontWeight: 'bold', color: colors.textMuted },
   pillsRow: { flexDirection: 'row', gap: 6 },
-  categoryPill: { backgroundColor: '#EFF6FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
-  categoryPillText: { fontSize: 11, fontWeight: '700', color: '#2563EB' },
+  categoryPill: { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.18)' : '#EFF6FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
+  categoryPillText: { fontSize: 11, fontWeight: '700', color: colors.accent },
   priorityPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
   priorityPillText: { fontSize: 10.5, fontWeight: '800' },
-  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#0F172A', marginBottom: 4 },
-  cardDescription: { fontSize: 13, color: '#475569', marginBottom: 10, lineHeight: 18 },
-  studentBox: { backgroundColor: '#F8FAFC', padding: 10, borderRadius: 8, marginBottom: 10 },
-  studentLabel: { fontSize: 11, color: '#94A3B8', fontWeight: '700' },
-  studentValue: { fontSize: 13, fontWeight: '700', color: '#1E293B' },
-  deptText: { fontSize: 12, color: '#64748B', marginTop: 2 },
-  divider: { height: 1, backgroundColor: '#F1F5F9', marginBottom: 10 },
+  cardTitle: { fontSize: 16, fontWeight: 'bold', color: colors.textPrimary, marginBottom: 4 },
+  cardDescription: { fontSize: 13, color: colors.textSecondary, marginBottom: 10, lineHeight: 18 },
+  studentBox: { backgroundColor: colors.inputBg, padding: 10, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: colors.cardBorder },
+  studentLabel: { fontSize: 11, color: colors.textMuted, fontWeight: '700' },
+  studentValue: { fontSize: 13, fontWeight: '700', color: colors.textPrimary },
+  deptText: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  divider: { height: 1, backgroundColor: colors.divider, marginBottom: 10 },
   cardBottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
   statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   statusPillText: { fontSize: 11, fontWeight: '800' },
-  imageBadge: { backgroundColor: '#F3E8FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
-  imageBadgeText: { fontSize: 11, fontWeight: '700', color: '#7E22CE' },
-  detailsBtn: { backgroundColor: '#007AFF', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
+  imageBadge: { backgroundColor: isDark ? 'rgba(168, 85, 247, 0.18)' : '#F3E8FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
+  imageBadgeText: { fontSize: 11, fontWeight: '700', color: '#A855F7' },
+  detailsBtn: { backgroundColor: colors.accent, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
   detailsBtnText: { color: '#FFFFFF', fontSize: 12, fontWeight: 'bold' },
   emptyContainer: {
     flex: 1,
@@ -630,12 +637,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   pageInfoContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.cardBg,
     alignItems: 'center',
     paddingBottom: 8,
   },
   pageInfoText: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 11,
     fontWeight: '600',
   },
@@ -647,58 +654,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.cardBg,
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: colors.cardBorder,
   },
-
   pageButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.accent,
     paddingHorizontal: 12,
     paddingVertical: 9,
     borderRadius: 8,
   },
-
   disabledPageButton: {
-    backgroundColor: '#CBD5E1',
+    backgroundColor: isDark ? '#262632' : '#CBD5E1',
+    opacity: 0.5,
   },
-
   pageButtonText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 11,
   },
-
   pageNumbers: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 8,
   },
-
   numberButton: {
     minWidth: 34,
     height: 34,
     borderRadius: 8,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: isDark ? '#262632' : '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 3,
   },
-
   activeNumberButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.accent,
   },
-
   numberButtonText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#475569',
+    color: colors.textSecondary,
   },
-
   activeNumberButtonText: {
     color: '#FFFFFF',
   },
-   detailsButton: { backgroundColor: '#0F172A', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  detailsButton: { backgroundColor: isDark ? '#262632' : '#0F172A', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   detailsButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: 'bold' }
 });

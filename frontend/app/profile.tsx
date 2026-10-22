@@ -3,7 +3,7 @@ import { getUserId, getToken } from "@/utils/authStorage";
 import { router } from "expo-router";
 import { File } from 'expo-file-system';
 import { fetch as expoFetch } from "expo/fetch";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
     View,
     Text,
@@ -21,6 +21,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
+import { useAppTheme } from "@/context/ThemeContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { ThemeColors } from "@/constants/theme";
 
 type UserProfile = {
     id: number;
@@ -35,6 +38,8 @@ type UserProfile = {
 };
 
 export default function Profile() {
+    const { colors, isDark } = useAppTheme();
+    const styles = useMemo(() => getStyles(colors, isDark), [colors, isDark]);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [imageError, setImageError] = useState(false);
@@ -236,12 +241,14 @@ export default function Profile() {
                     accessibilityRole="button"
                     accessibilityLabel="Back to dashboard"
                 >
-                    <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
+                    <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
                 </TouchableOpacity>
 
                 <Text style={styles.navTitle}>Student Profile</Text>
 
-                <View style={styles.navSpacer} />
+                <View style={styles.navSpacer}>
+                    <ThemeToggle compact />
+                </View>
             </View>
 
             <ScrollView
@@ -465,24 +472,24 @@ export default function Profile() {
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#121216',
+        backgroundColor: colors.bgPrimary,
     },
     screen: {
         flex: 1,
-        backgroundColor: '#121216',
+        backgroundColor: colors.bgPrimary,
     },
     center: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#121216',
+        backgroundColor: colors.bgPrimary,
         padding: 24,
     },
     loadingText: {
-        color: '#9CA3AF',
+        color: colors.textSecondary,
         fontSize: 14,
         marginTop: 12,
         fontWeight: '500',
@@ -491,19 +498,19 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: 'rgba(239, 68, 68, 0.12)',
+        backgroundColor: isDark ? 'rgba(239, 68, 68, 0.12)' : 'rgba(239, 68, 68, 0.08)',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 16,
     },
     errorTitle: {
-        color: '#FFFFFF',
+        color: colors.textPrimary,
         fontSize: 18,
         fontWeight: '700',
         marginBottom: 6,
     },
     errorSubtitle: {
-        color: '#9CA3AF',
+        color: colors.textSecondary,
         fontSize: 13,
         textAlign: 'center',
         maxWidth: 280,
@@ -513,7 +520,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         paddingVertical: 11,
         borderRadius: 10,
-        backgroundColor: '#2563EB',
+        backgroundColor: colors.accent,
     },
     retryButtonText: {
         color: '#FFFFFF',
@@ -529,27 +536,29 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 20,
         borderBottomWidth: 1,
-        borderBottomColor: '#1E1E26',
-        backgroundColor: '#121216',
+        borderBottomColor: colors.border,
+        backgroundColor: colors.bgPrimary,
     },
     navBackButton: {
         width: 38,
         height: 38,
         borderRadius: 12,
-        backgroundColor: '#1E1E24',
+        backgroundColor: colors.cardBg,
         borderWidth: 1,
-        borderColor: '#2A2A34',
+        borderColor: colors.cardBorder,
         justifyContent: 'center',
         alignItems: 'center',
     },
     navTitle: {
-        color: '#FFFFFF',
+        color: colors.textPrimary,
         fontSize: 17,
         fontWeight: '700',
         letterSpacing: 0.2,
     },
     navSpacer: {
         width: 38,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 
     /* Scrollable Container */
@@ -569,16 +578,16 @@ const styles = StyleSheet.create({
 
     /* Hero Card */
     heroCard: {
-        backgroundColor: '#181820',
+        backgroundColor: colors.cardBg,
         borderRadius: 20,
         paddingVertical: 24,
         paddingHorizontal: 20,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#262632',
+        borderColor: colors.cardBorder,
         marginBottom: 16,
         ...Platform.select({
-            web: { boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)' } as any,
+            web: { boxShadow: isDark ? '0 8px 24px rgba(0, 0, 0, 0.35)' : '0 4px 16px rgba(0, 0, 0, 0.06)' } as any,
             default: { elevation: 3 },
         }),
     },
@@ -594,9 +603,9 @@ const styles = StyleSheet.create({
         width: 104,
         height: 104,
         borderRadius: 52,
-        backgroundColor: '#1E1E28',
+        backgroundColor: colors.bgSecondary,
         borderWidth: 2.5,
-        borderColor: '#2563EB',
+        borderColor: colors.accent,
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
@@ -608,7 +617,7 @@ const styles = StyleSheet.create({
     avatarFallback: {
         width: '100%',
         height: '100%',
-        backgroundColor: '#2563EB',
+        backgroundColor: colors.accent,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -634,9 +643,9 @@ const styles = StyleSheet.create({
         width: 34,
         height: 34,
         borderRadius: 17,
-        backgroundColor: '#2563EB',
+        backgroundColor: colors.accent,
         borderWidth: 2.5,
-        borderColor: '#181820',
+        borderColor: colors.cardBg,
         justifyContent: 'center',
         alignItems: 'center',
         ...Platform.select({
@@ -645,7 +654,7 @@ const styles = StyleSheet.create({
         }),
     },
     heroName: {
-        color: '#FFFFFF',
+        color: colors.textPrimary,
         fontSize: 22,
         fontWeight: '800',
         letterSpacing: 0.2,
@@ -658,15 +667,15 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     roleBadge: {
-        backgroundColor: 'rgba(37, 99, 235, 0.15)',
+        backgroundColor: colors.accentSoft,
         paddingHorizontal: 11,
         paddingVertical: 4,
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(59, 130, 246, 0.3)',
+        borderColor: isDark ? 'rgba(59, 130, 246, 0.3)' : 'rgba(37, 99, 235, 0.2)',
     },
     roleBadgeText: {
-        color: '#60A5FA',
+        color: colors.accent,
         fontSize: 11,
         fontWeight: '800',
         letterSpacing: 0.6,
@@ -675,12 +684,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+        backgroundColor: isDark ? 'rgba(16, 185, 129, 0.12)' : '#ECFDF5',
         paddingHorizontal: 9,
         paddingVertical: 4,
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(16, 185, 129, 0.25)',
+        borderColor: isDark ? 'rgba(16, 185, 129, 0.25)' : '#A7F3D0',
     },
     verifiedBadgeText: {
         color: '#10B981',
@@ -688,7 +697,7 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     avatarHint: {
-        color: '#6B7280',
+        color: colors.textMuted,
         fontSize: 11,
         marginTop: 10,
         fontWeight: '500',
@@ -696,14 +705,14 @@ const styles = StyleSheet.create({
 
     /* Section Cards */
     sectionCard: {
-        backgroundColor: '#181820',
+        backgroundColor: colors.cardBg,
         borderRadius: 16,
         padding: 18,
         borderWidth: 1,
-        borderColor: '#262632',
+        borderColor: colors.cardBorder,
         marginBottom: 14,
         ...Platform.select({
-            web: { boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)' } as any,
+            web: { boxShadow: isDark ? '0 4px 16px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(0, 0, 0, 0.04)' } as any,
             default: { elevation: 2 },
         }),
     },
@@ -714,10 +723,10 @@ const styles = StyleSheet.create({
         marginBottom: 14,
         paddingBottom: 10,
         borderBottomWidth: 1,
-        borderBottomColor: '#22222D',
+        borderBottomColor: colors.border,
     },
     sectionTitle: {
-        color: '#E5E7EB',
+        color: colors.textPrimary,
         fontSize: 14,
         fontWeight: '700',
         letterSpacing: 0.2,
@@ -731,7 +740,7 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 10,
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        backgroundColor: colors.accentSoft,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 14,
@@ -740,19 +749,19 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     infoLabel: {
-        color: '#8D8D98',
+        color: colors.textMuted,
         fontSize: 11,
         fontWeight: '600',
         marginBottom: 2,
     },
     infoValue: {
-        color: '#F3F4F6',
+        color: colors.textPrimary,
         fontSize: 14,
         fontWeight: '600',
     },
     rowDivider: {
         height: 1,
-        backgroundColor: '#22222D',
+        backgroundColor: colors.border,
         marginVertical: 2,
     },
 
@@ -762,23 +771,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        backgroundColor: '#1E1E28',
+        backgroundColor: colors.cardBg,
         borderRadius: 14,
         height: 48,
         marginTop: 6,
         borderWidth: 1,
-        borderColor: '#2D2D3C',
+        borderColor: colors.cardBorder,
     },
     backDashboardBtnText: {
-        color: '#FFFFFF',
+        color: colors.textPrimary,
         fontSize: 14,
         fontWeight: '700',
     },
 
-    /* Modal - Premium Dark Sheet */
+    /* Modal */
     modalBackdrop: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.72)',
+        backgroundColor: colors.overlay,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
@@ -786,13 +795,13 @@ const styles = StyleSheet.create({
     modalSheet: {
         width: '100%',
         maxWidth: 390,
-        backgroundColor: '#1A1A24',
+        backgroundColor: colors.cardBg,
         borderRadius: 22,
         padding: 22,
         borderWidth: 1,
-        borderColor: '#2E2E3E',
+        borderColor: colors.cardBorder,
         ...Platform.select({
-            web: { boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6)' } as any,
+            web: { boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)' } as any,
             default: { elevation: 8 },
         }),
     },
@@ -800,7 +809,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 4,
         borderRadius: 2,
-        backgroundColor: '#353546',
+        backgroundColor: colors.border,
         alignSelf: 'center',
         marginBottom: 16,
     },
@@ -808,24 +817,24 @@ const styles = StyleSheet.create({
         marginBottom: 18,
     },
     modalSheetTitle: {
-        color: '#FFFFFF',
+        color: colors.textPrimary,
         fontSize: 17,
         fontWeight: '800',
     },
     modalSheetSubtitle: {
-        color: '#9CA3AF',
+        color: colors.textSecondary,
         fontSize: 12,
         marginTop: 4,
     },
     modalOption: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#22222E',
+        backgroundColor: colors.bgSecondary,
         borderRadius: 14,
         padding: 13,
         marginBottom: 10,
         borderWidth: 1,
-        borderColor: '#2C2C3C',
+        borderColor: colors.border,
     },
     modalOptionIconBox: {
         width: 40,
@@ -839,27 +848,27 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     modalOptionHeading: {
-        color: '#FFFFFF',
+        color: colors.textPrimary,
         fontSize: 14,
         fontWeight: '700',
     },
     modalOptionCaption: {
-        color: '#8D8D98',
+        color: colors.textSecondary,
         fontSize: 11,
         marginTop: 2,
     },
     modalDismissBtn: {
         height: 46,
         borderRadius: 12,
-        backgroundColor: '#22222E',
+        backgroundColor: colors.bgTertiary,
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 6,
         borderWidth: 1,
-        borderColor: '#2E2E3E',
+        borderColor: colors.border,
     },
     modalDismissBtnText: {
-        color: '#9CA3AF',
+        color: colors.textSecondary,
         fontSize: 13,
         fontWeight: '700',
     },

@@ -21,6 +21,9 @@ import { fetch as expoFetch } from 'expo/fetch';
 import { Dropdown } from 'react-native-element-dropdown';
 import { Ionicons } from '@expo/vector-icons';
 import { API_BASE_URL } from '@/constants/api';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { ThemeColors } from '@/constants/theme';
 
 const COLORS = {
   background: '#F7F9FC',
@@ -85,6 +88,9 @@ function readServerMessage(raw: string, fallback: string) {
 }
 
 export default function RegisterScreen() {
+  const { colors, isDark } = useAppTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -349,13 +355,13 @@ export default function RegisterScreen() {
     <View style={styles.fieldGroup}>
       <Text style={styles.label}>{label}</Text>
       <View style={[styles.inputShell, focusedField === field && styles.inputShellFocused]}>
-        <Ionicons name={options.icon} size={18} color={focusedField === field ? COLORS.blue : COLORS.muted} />
+        <Ionicons name={options.icon} size={18} color={focusedField === field ? colors.accent : colors.textMuted} />
         <TextInput
           style={styles.input}
           value={value}
           onChangeText={onChangeText}
           placeholder={options.placeholder}
-          placeholderTextColor={COLORS.muted}
+          placeholderTextColor={colors.inputPlaceholder}
           secureTextEntry={options.secureTextEntry}
           keyboardType={options.keyboardType || 'default'}
           autoCapitalize={options.autoCapitalize || 'none'}
@@ -363,7 +369,7 @@ export default function RegisterScreen() {
           maxLength={options.maxLength}
           onFocus={() => setFocusedField(field)}
           onBlur={() => setFocusedField(null)}
-          selectionColor={COLORS.blue}
+          selectionColor={colors.accent}
         />
         {options.rightAction}
       </View>
@@ -376,7 +382,7 @@ export default function RegisterScreen() {
         style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-      <StatusBar style="dark" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <View style={styles.topBar}>
         <TouchableOpacity
           accessibilityRole="button"
@@ -385,10 +391,10 @@ export default function RegisterScreen() {
           onPress={() => router.back()}
           activeOpacity={0.75}
         >
-          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+          <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.topBarTitle}>Create account</Text>
-        <View style={styles.topBarBalance} />
+        <ThemeToggle compact />
       </View>
 
       <ScrollView
@@ -629,72 +635,72 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: COLORS.surface },
-  keyboardContainer: { flex: 1, backgroundColor: COLORS.background },
+const getStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: colors.bgPrimary },
+  keyboardContainer: { flex: 1, backgroundColor: colors.bgPrimary },
   topBar: {
     minHeight: 58, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', backgroundColor: COLORS.surface, borderBottomWidth: 1, borderBottomColor: '#EEF0F4',
+    justifyContent: 'space-between', backgroundColor: colors.headerBg, borderBottomWidth: 1, borderBottomColor: colors.headerBorder,
   },
-  backButton: { width: 38, height: 38, borderRadius: 12, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center' },
-  topBarTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text },
+  backButton: { width: 38, height: 38, borderRadius: 12, borderWidth: 1, borderColor: colors.cardBorder, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardBg },
+  topBarTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
   topBarBalance: { width: 38 },
   scrollContent: { flexGrow: 1, paddingHorizontal: 18, paddingTop: 26, paddingBottom: 32, alignItems: 'center' },
   pageHeader: { width: '100%', maxWidth: 520, alignItems: 'center', marginBottom: 22 },
-  brandMark: { width: 52, height: 52, borderRadius: 16, backgroundColor: '#EAF0FA', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  eyebrow: { color: COLORS.navy, fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 8 },
-  pageTitle: { color: COLORS.text, fontSize: 27, lineHeight: 34, fontWeight: '800', letterSpacing: -0.7, textAlign: 'center' },
-  pageSubtitle: { maxWidth: 360, marginTop: 8, color: COLORS.secondary, fontSize: 14, lineHeight: 21, textAlign: 'center' },
+  brandMark: { width: 52, height: 52, borderRadius: 16, backgroundColor: isDark ? '#1E2433' : '#EAF0FA', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  eyebrow: { color: colors.navy, fontSize: 10, fontWeight: '800', letterSpacing: 1.5, marginBottom: 8 },
+  pageTitle: { color: colors.textPrimary, fontSize: 27, lineHeight: 34, fontWeight: '800', letterSpacing: -0.7, textAlign: 'center' },
+  pageSubtitle: { maxWidth: 360, marginTop: 8, color: colors.textSecondary, fontSize: 14, lineHeight: 21, textAlign: 'center' },
   formCard: {
-    width: '100%', maxWidth: 520, padding: 22, borderRadius: 20, backgroundColor: COLORS.surface,
-    borderWidth: 1, borderColor: '#E9EDF3',
-    ...Platform.select({ web: { boxShadow: '0px 8px 30px rgba(16, 24, 40, 0.04)' } as any, default: { elevation: 1 } }),
+    width: '100%', maxWidth: 520, padding: 22, borderRadius: 20, backgroundColor: colors.cardBg,
+    borderWidth: 1, borderColor: colors.cardBorder,
+    ...Platform.select({ web: { boxShadow: isDark ? '0px 8px 30px rgba(0, 0, 0, 0.4)' : '0px 8px 30px rgba(16, 24, 40, 0.04)' } as any, default: { elevation: 1 } }),
   },
   sectionHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  sectionTitle: { color: COLORS.text, fontSize: 15, fontWeight: '800' },
-  optionalText: { color: COLORS.secondary, fontSize: 11, fontWeight: '500' },
-  photoRow: { flexDirection: 'row', alignItems: 'center', padding: 12, borderWidth: 1, borderColor: COLORS.border, borderRadius: 14, marginBottom: 20, backgroundColor: '#FCFCFD' },
-  photoAvatar: { width: 46, height: 46, borderRadius: 14, backgroundColor: COLORS.blueSoft, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  sectionTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '800' },
+  optionalText: { color: colors.textSecondary, fontSize: 11, fontWeight: '500' },
+  photoRow: { flexDirection: 'row', alignItems: 'center', padding: 12, borderWidth: 1, borderColor: colors.cardBorder, borderRadius: 14, marginBottom: 20, backgroundColor: colors.inputBg },
+  photoAvatar: { width: 46, height: 46, borderRadius: 14, backgroundColor: isDark ? '#262632' : colors.accentSoft, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   photoImage: { width: '100%', height: '100%' },
   photoCopy: { flex: 1, marginLeft: 12 },
-  photoTitle: { color: COLORS.text, fontSize: 13, fontWeight: '700' },
-  photoSubtitle: { marginTop: 4, color: COLORS.secondary, fontSize: 11 },
+  photoTitle: { color: colors.textPrimary, fontSize: 13, fontWeight: '700' },
+  photoSubtitle: { marginTop: 4, color: colors.textSecondary, fontSize: 11 },
   fieldGroup: { marginBottom: 16 },
-  label: { color: '#344054', fontSize: 12, fontWeight: '700', marginBottom: 8 },
+  label: { color: colors.textPrimary, fontSize: 12, fontWeight: '700', marginBottom: 8 },
   inputShell: {
     minHeight: 49, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 13,
-    borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, backgroundColor: COLORS.surface,
+    borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 12, backgroundColor: colors.inputBg,
   },
-  inputShellFocused: { borderColor: COLORS.blue, backgroundColor: '#FCFDFF', ...Platform.select({ web: { boxShadow: '0px 0px 0px 3px rgba(36, 87, 197, 0.08)' } as any, default: {} }) },
-  input: { flex: 1, minWidth: 0, minHeight: 46, paddingVertical: 10, color: COLORS.text, fontSize: 14 },
-  dropdown: { height: 49, paddingHorizontal: 13, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, backgroundColor: COLORS.surface },
-  dropdownSelected: { borderColor: '#C8D5EC' },
-  dropdownFocused: { borderColor: COLORS.blue },
-  dropdownPlaceholder: { color: COLORS.muted, fontSize: 13 },
-  dropdownSelectedText: { color: COLORS.text, fontSize: 13 },
-  dropdownItemText: { color: COLORS.text, fontSize: 13 },
-  dropdownMenu: { borderRadius: 12, borderColor: COLORS.border, overflow: 'hidden' },
+  inputShellFocused: { borderColor: colors.accent, backgroundColor: colors.inputBg, ...Platform.select({ web: { boxShadow: '0px 0px 0px 3px rgba(36, 87, 197, 0.08)' } as any, default: {} }) },
+  input: { flex: 1, minWidth: 0, minHeight: 46, paddingVertical: 10, color: colors.textPrimary, fontSize: 14 },
+  dropdown: { height: 49, paddingHorizontal: 13, borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 12, backgroundColor: colors.inputBg },
+  dropdownSelected: { borderColor: colors.cardBorder },
+  dropdownFocused: { borderColor: colors.accent },
+  dropdownPlaceholder: { color: colors.inputPlaceholder, fontSize: 13 },
+  dropdownSelectedText: { color: colors.textPrimary, fontSize: 13 },
+  dropdownItemText: { color: colors.textPrimary, fontSize: 13 },
+  dropdownMenu: { borderRadius: 12, borderColor: colors.cardBorder, backgroundColor: colors.cardBg, overflow: 'hidden' },
   dropdownIcon: { marginRight: 10 },
-  sectionDivider: { height: 1, backgroundColor: '#EEF0F4', marginTop: 2, marginBottom: 20 },
+  sectionDivider: { height: 1, backgroundColor: colors.divider, marginTop: 2, marginBottom: 20 },
   inlineNotice: { flexDirection: 'row', alignItems: 'flex-start', gap: 7, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, marginTop: -7, marginBottom: 13 },
   noticeSuccess: { backgroundColor: COLORS.successSoft },
   noticeError: { backgroundColor: COLORS.dangerSoft },
   inlineNoticeText: { flex: 1, fontSize: 11, lineHeight: 16, fontWeight: '600' },
-  otpButton: { minHeight: 43, borderWidth: 1, borderColor: '#C8D7F2', borderRadius: 11, backgroundColor: '#F8FAFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 },
+  otpButton: { minHeight: 43, borderWidth: 1, borderColor: colors.cardBorder, borderRadius: 11, backgroundColor: isDark ? '#1C1C24' : '#F8FAFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 },
   otpButtonDisabled: { opacity: 0.55 },
-  otpButtonText: { color: COLORS.blue, fontSize: 12, fontWeight: '700' },
-  otpPanel: { borderWidth: 1, borderColor: '#DCE6F8', borderRadius: 13, padding: 13, backgroundColor: '#FAFCFF', marginBottom: 17 },
+  otpButtonText: { color: colors.accent, fontSize: 12, fontWeight: '700' },
+  otpPanel: { borderWidth: 1, borderColor: colors.cardBorder, borderRadius: 13, padding: 13, backgroundColor: isDark ? '#14141B' : '#FAFCFF', marginBottom: 17 },
   otpPanelHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  otpIconBox: { width: 34, height: 34, borderRadius: 10, backgroundColor: COLORS.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  otpIconBox: { width: 34, height: 34, borderRadius: 10, backgroundColor: isDark ? '#262632' : colors.accentSoft, alignItems: 'center', justifyContent: 'center' },
   otpPanelCopy: { flex: 1, marginLeft: 10 },
-  otpTitle: { color: COLORS.text, fontSize: 12, fontWeight: '800' },
-  otpSubtitle: { color: COLORS.secondary, fontSize: 11, marginTop: 3 },
-  otpInput: { minHeight: 48, borderWidth: 1, borderColor: COLORS.border, borderRadius: 10, backgroundColor: COLORS.surface, textAlign: 'center', letterSpacing: 7, fontSize: 20, fontWeight: '800', color: COLORS.text, paddingHorizontal: 12 },
-  otpInputFilled: { borderColor: COLORS.blue },
+  otpTitle: { color: colors.textPrimary, fontSize: 12, fontWeight: '800' },
+  otpSubtitle: { color: colors.textSecondary, fontSize: 11, marginTop: 3 },
+  otpInput: { minHeight: 48, borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 10, backgroundColor: colors.inputBg, textAlign: 'center', letterSpacing: 7, fontSize: 20, fontWeight: '800', color: colors.textPrimary, paddingHorizontal: 12 },
+  otpInputFilled: { borderColor: colors.accent },
   otpInputExpired: { borderColor: '#FCA5A5', backgroundColor: '#FEF2F2', color: '#991B1B' },
-  otpFootnote: { marginTop: 8, color: COLORS.secondary, fontSize: 11 },
-  timerBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#EFF6FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#BFDBFE' },
-  timerBadgeText: { fontSize: 12, fontWeight: '800', color: COLORS.blue },
+  otpFootnote: { marginTop: 8, color: colors.textSecondary, fontSize: 11 },
+  timerBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: isDark ? '#1E2433' : '#EFF6FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#2E3A59' : '#BFDBFE' },
+  timerBadgeText: { fontSize: 12, fontWeight: '800', color: colors.accent },
   timerBadgeExpired: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FEF2F2', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' },
   timerBadgeExpiredText: { fontSize: 11, fontWeight: '800', color: COLORS.danger },
   expiredNoticeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA', borderRadius: 8, padding: 8, marginTop: 10 },
@@ -702,12 +708,12 @@ const styles = StyleSheet.create({
   visibilityButton: { width: 30, height: 38, alignItems: 'center', justifyContent: 'center' },
   passwordMatchRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -7, marginBottom: 14 },
   passwordMatchText: { fontSize: 11, fontWeight: '600' },
-  submitButton: { minHeight: 51, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 3, backgroundColor: COLORS.navy, borderRadius: 12, paddingHorizontal: 16 },
+  submitButton: { minHeight: 51, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 3, backgroundColor: colors.navy, borderRadius: 12, paddingHorizontal: 16 },
   submitButtonDisabled: { opacity: 0.7 },
-  submitButtonText: { color: COLORS.surface, fontSize: 14, fontWeight: '800' },
+  submitButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
   signInRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 19 },
-  signInPrompt: { color: COLORS.secondary, fontSize: 12 },
-  signInLink: { color: COLORS.blue, fontSize: 12, fontWeight: '800' },
+  signInPrompt: { color: colors.textSecondary, fontSize: 12 },
+  signInLink: { color: colors.accent, fontSize: 12, fontWeight: '800' },
   footer: { maxWidth: 500, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 18, paddingHorizontal: 10 },
-  footerText: { color: COLORS.muted, fontSize: 10, textAlign: 'center' },
+  footerText: { color: colors.textMuted, fontSize: 10, textAlign: 'center' },
 });
