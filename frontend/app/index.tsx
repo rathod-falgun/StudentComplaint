@@ -5,31 +5,34 @@ import {
   StyleSheet,
   Animated,
   Easing,
-  Dimensions,
   Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SplashScreen from 'expo-splash-screen';
+import Svg, { Circle } from 'react-native-svg';
 
 import { getToken, getUserData, clearAuthToken } from '@/utils/authStorage';
+
+// Create animated SVG Circle component
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 // Prevent native splash screen from hiding prematurely
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-const { width } = Dimensions.get('window');
+const TOTAL_ANIMATION_DURATION = 6000; // 6 seconds
+const CIRCLE_RADIUS = 115;
+const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS; // ~722.56
 
 export default function SplashScreenComponent() {
   const [progressPercent, setProgressPercent] = useState(0);
 
-  // Animations
+  // Core Animations
   const glowAnim = useRef(new Animated.Value(0)).current;
-  const ringRotate = useRef(new Animated.Value(0)).current;
-  const ringOpacity = useRef(new Animated.Value(0)).current;
   const logoScale = useRef(new Animated.Value(0.6)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
 
-  // Words animations
+  // Staggered Typography Animations
   const word1Anim = useRef(new Animated.Value(0)).current; // College
   const word2Anim = useRef(new Animated.Value(0)).current; // Complaint
   const word3Anim = useRef(new Animated.Value(0)).current; // Management
@@ -37,7 +40,7 @@ export default function SplashScreenComponent() {
   const underline1Anim = useRef(new Animated.Value(0)).current; // Underline for Complaint
   const underline2Anim = useRef(new Animated.Value(0)).current; // Underline for System
 
-  // Progress bar animation
+  // Progress Bar & Circle Drawing Animation (0 to 1 over 7000ms)
   const progressBarAnim = useRef(new Animated.Value(0)).current;
   const screenFadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -51,63 +54,45 @@ export default function SplashScreenComponent() {
     // Start auth verification in background
     checkAuthStatus();
 
-    // 1. Continuous ring rotation
-    Animated.loop(
-      Animated.timing(ringRotate, {
-        toValue: 1,
-        duration: 2500,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    ).start();
-
-    // 2. Ambient glow pulse
+    // 1. Ambient glow pulse
     Animated.timing(glowAnim, {
       toValue: 1,
-      duration: 1000,
+      duration: 1800,
       easing: Easing.out(Easing.ease),
       useNativeDriver: true,
     }).start();
 
-    // 3. Ring fade in
-    Animated.timing(ringOpacity, {
-      toValue: 1,
-      duration: 600,
-      easing: Easing.ease,
-      useNativeDriver: true,
-    }).start();
-
-    // 4. Logo entrance (scale 0.6 -> 1.04 -> 1.0)
+    // 2. Logo entrance (scale 0.6 -> 1.05 -> 1.0)
     Animated.parallel([
       Animated.timing(logoOpacity, {
         toValue: 1,
-        duration: 500,
+        duration: 900,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }),
       Animated.sequence([
         Animated.timing(logoScale, {
           toValue: 1.05,
-          duration: 600,
+          duration: 1000,
           easing: Easing.out(Easing.back(1.5)),
           useNativeDriver: true,
         }),
         Animated.timing(logoScale, {
           toValue: 1,
-          duration: 300,
+          duration: 500,
           easing: Easing.ease,
           useNativeDriver: true,
         }),
       ]),
     ]).start();
 
-    // 5. Staggered words entrance
+    // 3. Staggered words entrance spread nicely across the 7 seconds
     Animated.sequence([
-      Animated.delay(350),
+      Animated.delay(600),
       // College
       Animated.timing(word1Anim, {
         toValue: 1,
-        duration: 400,
+        duration: 600,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
@@ -115,21 +100,22 @@ export default function SplashScreenComponent() {
       Animated.parallel([
         Animated.timing(word2Anim, {
           toValue: 1,
-          duration: 400,
+          duration: 600,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
         Animated.timing(underline1Anim, {
           toValue: 1,
-          duration: 450,
+          duration: 700,
           easing: Easing.out(Easing.ease),
           useNativeDriver: false,
         }),
       ]),
+      Animated.delay(300),
       // Management
       Animated.timing(word3Anim, {
         toValue: 1,
-        duration: 400,
+        duration: 600,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
@@ -137,24 +123,23 @@ export default function SplashScreenComponent() {
       Animated.parallel([
         Animated.timing(word4Anim, {
           toValue: 1,
-          duration: 400,
+          duration: 600,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
         Animated.timing(underline2Anim, {
           toValue: 1,
-          duration: 450,
+          duration: 700,
           easing: Easing.out(Easing.ease),
           useNativeDriver: false,
         }),
       ]),
     ]).start();
 
-    // 6. Progress bar (0% -> 100% over 2.6s)
-    const totalDuration = 2600;
+    // 4. Draw Circle & Fill Progress Bar (starts from ONE point at 12 o'clock and completes full circle over 6 seconds)
     Animated.timing(progressBarAnim, {
       toValue: 1,
-      duration: totalDuration,
+      duration: TOTAL_ANIMATION_DURATION,
       easing: Easing.bezier(0.25, 0.1, 0.25, 1),
       useNativeDriver: false,
     }).start(({ finished }) => {
@@ -163,7 +148,7 @@ export default function SplashScreenComponent() {
       }
     });
 
-    // 7. Counter listener from 0% to 100%
+    // 5. Counter listener from 0% to 100%
     const progressListener = progressBarAnim.addListener(({ value }) => {
       setProgressPercent(Math.min(100, Math.floor(value * 100)));
     });
@@ -199,10 +184,10 @@ export default function SplashScreenComponent() {
   };
 
   const finishSplashAndNavigate = () => {
-    // Fade out and smoothly replace route
+    // Smooth 450ms fade-out transition to target screen
     Animated.timing(screenFadeAnim, {
       toValue: 0,
-      duration: 350,
+      duration: 450,
       easing: Easing.out(Easing.ease),
       useNativeDriver: true,
     }).start(() => {
@@ -210,15 +195,10 @@ export default function SplashScreenComponent() {
     });
   };
 
-  // Interpolations
-  const spinInterpolation = ringRotate.interpolate({
+  // Interpolate circle stroke offset from full circumference (0%) to 0 (100% completed circle)
+  const strokeDashoffset = progressBarAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  const reverseSpinInterpolation = ringRotate.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['360deg', '0deg'],
+    outputRange: [CIRCLE_CIRCUMFERENCE, 0],
   });
 
   const progressWidth = progressBarAnim.interpolate({
@@ -235,70 +215,73 @@ export default function SplashScreenComponent() {
         style={StyleSheet.absoluteFill}
       />
 
-      {/* 2. Ambient Radial Glow */}
-      <Animated.View
-        style={[
-          styles.ambientGlow,
-          {
-            opacity: glowAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, 0.9],
-            }),
-            transform: [
-              {
-                scale: glowAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.7, 1],
-                }),
-              },
-            ],
-          },
-        ]}
-      />
-
-      {/* 3. Orbiting Dual Ring */}
-      <Animated.View
-        style={[
-          styles.ringContainer,
-          {
-            opacity: ringOpacity,
-            transform: [{ rotate: spinInterpolation }],
-          },
-        ]}
-      >
-        <View style={styles.ringHalfTop} />
-      </Animated.View>
-
-      <Animated.View
-        style={[
-          styles.ringContainer,
-          {
-            opacity: ringOpacity,
-            transform: [{ rotate: reverseSpinInterpolation }],
-          },
-        ]}
-      >
-        <View style={styles.ringHalfBottom} />
-      </Animated.View>
-
-      {/* 4. App Logo */}
-      <Animated.View
-        style={[
-          styles.logoContainer,
-          {
-            opacity: logoOpacity,
-            transform: [{ scale: logoScale }],
-          },
-        ]}
-      >
-        <Image
-          source={require('@/assets/images/icon.png')}
-          style={styles.logoImage}
-          resizeMode="contain"
+      {/* 2. Unified Hero Area (keeps circle drawing and logo perfectly aligned with no text overlap) */}
+      <View style={styles.heroSection}>
+        {/* Ambient Radial Glow */}
+        <Animated.View
+          style={[
+            styles.ambientGlow,
+            {
+              opacity: glowAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 0.85],
+              }),
+              transform: [
+                {
+                  scale: glowAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.75, 1],
+                  }),
+                },
+              ],
+            },
+          ]}
         />
-      </Animated.View>
 
-      {/* 5. Typography */}
+        {/* Circular drawing: starts from ONE point (top) and draws progressively until completing the circle */}
+        <Svg width={250} height={250} style={styles.svgCircle}>
+          {/* Subtle guide background track */}
+          <Circle
+            cx={125}
+            cy={125}
+            r={CIRCLE_RADIUS}
+            stroke="rgba(27, 95, 196, 0.12)"
+            strokeWidth={2}
+            fill="transparent"
+          />
+          {/* Active drawing stroke from 1 single point to full 360 circle */}
+          <AnimatedCircle
+            cx={125}
+            cy={125}
+            r={CIRCLE_RADIUS}
+            stroke="#1B5FC4"
+            strokeWidth={3.5}
+            strokeDasharray={CIRCLE_CIRCUMFERENCE}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            fill="transparent"
+          />
+        </Svg>
+
+        {/* App Logo */}
+        <Animated.View
+          style={[
+            styles.logoContainer,
+            {
+              opacity: logoOpacity,
+              transform: [{ scale: logoScale }],
+            },
+          ]}
+        >
+          <Image
+            source={require('@/assets/images/icon.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+        </Animated.View>
+      </View>
+
+      {/* 3. Typography (shifted well below heroSection with marginTop: 56 to guarantee zero overlap) */}
       <View style={styles.titleContainer}>
         {/* Row 1: College Complaint */}
         <View style={styles.textRow}>
@@ -311,7 +294,7 @@ export default function SplashScreenComponent() {
                   {
                     translateY: word1Anim.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [14, 0],
+                      outputRange: [16, 0],
                     }),
                   },
                 ],
@@ -332,7 +315,7 @@ export default function SplashScreenComponent() {
                     {
                       translateY: word2Anim.interpolate({
                         inputRange: [0, 1],
-                        outputRange: [14, 0],
+                        outputRange: [16, 0],
                       }),
                     },
                   ],
@@ -367,7 +350,7 @@ export default function SplashScreenComponent() {
                   {
                     translateY: word3Anim.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [14, 0],
+                      outputRange: [16, 0],
                     }),
                   },
                 ],
@@ -388,7 +371,7 @@ export default function SplashScreenComponent() {
                     {
                       translateY: word4Anim.interpolate({
                         inputRange: [0, 1],
-                        outputRange: [14, 0],
+                        outputRange: [16, 0],
                       }),
                     },
                   ],
@@ -413,7 +396,7 @@ export default function SplashScreenComponent() {
         </View>
       </View>
 
-      {/* 6. Progress Loader & Counter */}
+      {/* 4. Progress Loader & Counter */}
       <View style={styles.loaderContainer}>
         {/* Progress Bar Track */}
         <View style={styles.progressBarTrack}>
@@ -435,68 +418,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#EEF5FF',
+    paddingVertical: 20,
+  },
+  // Hero section bounds the logo, ambient glow, and drawing circle
+  heroSection: {
+    width: 250,
+    height: 250,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
   ambientGlow: {
     position: 'absolute',
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    backgroundColor: 'rgba(27, 95, 196, 0.14)',
-    top: '22%',
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'rgba(27, 95, 196, 0.12)',
   },
-  ringContainer: {
+  // Rotated -90deg so the single drawing point starts precisely at 12 o'clock (the top)
+  svgCircle: {
     position: 'absolute',
-    width: 248,
-    height: 248,
-    borderRadius: 124,
-    top: '26%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ringHalfTop: {
-    position: 'absolute',
-    width: 248,
-    height: 248,
-    borderRadius: 124,
-    borderWidth: 3,
-    borderColor: 'transparent',
-    borderTopColor: '#1B5FC4',
-    borderRightColor: '#1B5FC4',
-  },
-  ringHalfBottom: {
-    position: 'absolute',
-    width: 248,
-    height: 248,
-    borderRadius: 124,
-    borderWidth: 3,
-    borderColor: 'transparent',
-    borderBottomColor: '#1B5FC4',
-    borderLeftColor: '#1B5FC4',
+    transform: [{ rotate: '-90deg' }],
   },
   logoContainer: {
-    width: 196,
-    height: 196,
-    borderRadius: 48,
+    width: 176,
+    height: 176,
+    borderRadius: 44,
     backgroundColor: '#FFFFFF',
     shadowColor: '#1B5FC4',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.16,
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
     elevation: 8,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    marginTop: -80,
   },
   logoImage: {
-    width: 190,
-    height: 190,
-    borderRadius: 44,
+    width: 170,
+    height: 170,
+    borderRadius: 40,
   },
+  // Shifted well below the heroSection (marginTop: 56) to guarantee zero overlap with the circular line
   titleContainer: {
-    marginTop: 36,
+    marginTop: 56,
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   textRow: {
     flexDirection: 'row',
@@ -521,12 +488,12 @@ const styles = StyleSheet.create({
   underline: {
     height: 3,
     borderRadius: 2,
-    marginTop: 2,
+    marginTop: 3,
   },
   loaderContainer: {
-    marginTop: 48,
+    marginTop: 54,
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   progressBarTrack: {
     width: 140,
