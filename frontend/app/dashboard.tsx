@@ -257,12 +257,13 @@ export default function Dashboard() {
               >
                 {photoUrl && !imageError ? (
                   <Image
+                    key={photoUrl}
                     source={{
                       uri: photoUrl,
                     }}
                     style={styles.headerAvatarImage}
                     contentFit="cover"
-                    cachePolicy="memory-disk"
+                    cachePolicy="disk"
                     onError={(e) => {
                       console.log("Failed to load dashboard profile photo:", e);
                       setImageError(true);

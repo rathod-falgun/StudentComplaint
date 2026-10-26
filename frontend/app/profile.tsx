@@ -166,12 +166,12 @@ export default function Profile() {
             const data: UserProfile = await response.json();
             console.log("Updated profile photo response:", data);
 
-            // Append timestamp cache-buster so React Native and Web immediately reload and render the new image
-            const freshUrl = (data.profilePhoto || data.profilePhotoPath || imageUri) + `?t=${Date.now()}`;
+            const freshUrl = data.profilePhoto || data.profilePhotoPath || imageUri;
             setProfile((prev) =>
                 prev
                     ? {
                         ...prev,
+                        ...data,
                         profilePhoto: freshUrl,
                         profilePhotoPath: freshUrl,
                     }
@@ -272,10 +272,12 @@ export default function Profile() {
                             >
                                 {photoFileName && !imageError ? (
                                     <Image
+                                        key={photoFileName}
                                         source={{ uri: photoFileName }}
                                         style={styles.avatarImage}
                                         contentFit="cover"
                                         transition={200}
+                                        cachePolicy="disk"
                                         onError={(e) => {
                                             console.log("Failed to load profile photo:", e);
                                             setImageError(true);

@@ -59,7 +59,29 @@ public class UserContoller {
 
         return userRepository.findById(userId).map(user -> {
             String ext = SupabaseStorageService.getExtension(uploadFile.getOriginalFilename());
-            String objectPath = "user_" + user.getId() + "." + ext;
+            // Use timestamp to ensure each upload produces a unique URL, busting CDN and device cache
+            String objectPath = "user_" + user.getId() + "_" + System.currentTimeMillis() + "." + ext;
+
+            // Delete previous photo from Supabase bucket if one exists
+            String oldPhotoUrl = user.getProfilePhotoPath();
+            if (oldPhotoUrl != null && !oldPhotoUrl.isBlank()) {
+                try {
+                    String bucket = supabaseProps.getBuckets().getProfiles();
+                    String marker = "/storage/v1/object/public/" + bucket + "/";
+                    int idx = oldPhotoUrl.indexOf(marker);
+                    if (idx != -1) {
+                        String oldPath = oldPhotoUrl.substring(idx + marker.length());
+                        // Strip any query params if present
+                        if (oldPath.contains("?")) {
+                            oldPath = oldPath.substring(0, oldPath.indexOf("?"));
+                        }
+                        supabaseStorageService.deleteFile(bucket, oldPath);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Could not delete old profile photo: " + e.getMessage());
+                }
+            }
+
             String publicUrl = supabaseStorageService.uploadFile(
                     supabaseProps.getBuckets().getProfiles(), objectPath, uploadFile);
 

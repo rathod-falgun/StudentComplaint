@@ -192,8 +192,7 @@ public class AuthService {
             // Save user first to get the generated ID, then upload with user ID in path
             User savedUser = userRepository.save(user);
             String ext = SupabaseStorageService.getExtension(profilePhoto.getOriginalFilename());
-            // Path inside bucket: user_<id>.<ext> — overwrites old photo on re-upload
-            String objectPath = "user_" + savedUser.getId() + "." + ext;
+            String objectPath = "user_" + savedUser.getId() + "_" + System.currentTimeMillis() + "." + ext;
             String publicUrl = supabaseStorageService.uploadFile(
                     supabaseProps.getBuckets().getProfiles(), objectPath, profilePhoto);
             savedUser.setProfilePhotoPath(publicUrl);
