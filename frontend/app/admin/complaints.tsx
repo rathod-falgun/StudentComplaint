@@ -268,7 +268,7 @@ export default function AdminComplaints() {
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by title, student name, or category..."
+          placeholder="Search by title, department, or category..."
           placeholderTextColor={colors.inputPlaceholder}
           value={searchText}
           onChangeText={setSearchText}
@@ -427,18 +427,11 @@ export default function AdminComplaints() {
                   </Text>
 
                   <View style={styles.studentBox}>
-                    <Text style={styles.studentLabel}>DEPARTMENT</Text>
-                    {/* <Text style={styles.studentValue}>
-                      {item.studentName || 'Unknown student'}
-                    </Text> */}
-                    {/* {item.studentEmail ? (
-                      <Text style={styles.deptText}>
-                        {item.studentEmail}
-                      </Text>
-                    ) : null} */}
+                    <Text style={styles.studentLabel}>SUBMITTER</Text>
+                    <Text style={styles.studentValue}>Anonymous Student</Text>
                     {item.studentDepartment ? (
                       <Text style={styles.deptText}>
-                        {item.studentDepartment}
+                        Department: {item.studentDepartment}
                       </Text>
                     ) : null}
                   </View>

@@ -41,7 +41,7 @@ public class AdminService {
 
         List<ComplaintResponse> finalComplaints = new ArrayList<>();
         for (Complaint c : recentComplaints) {
-            finalComplaints.add(ComplaintResponse.fromEntity(c));
+            finalComplaints.add(ComplaintResponse.fromEntityForAdmin(c));
         }
 
         return new AdminDashboardResponse(total, submitted, assigned, inProgress, resolved, rejected, finalComplaints);
@@ -49,18 +49,18 @@ public class AdminService {
 
     public PagedModel<ComplaintResponse> getComplaints(Pageable pageable) {
         Page<Complaint> complaints = complaintRepository.findAll(pageable);
-        return new PagedModel<>(complaints.map(ComplaintResponse::fromEntity));
+        return new PagedModel<>(complaints.map(ComplaintResponse::fromEntityForAdmin));
     }
 
     public List<ComplaintResponse> getAllComplaints() {
         List<Complaint> complaints = complaintRepository.findAll();
-        return complaints.stream().map(ComplaintResponse::fromEntity).collect(Collectors.toList());
+        return complaints.stream().map(ComplaintResponse::fromEntityForAdmin).collect(Collectors.toList());
     }
 
     public ComplaintResponse getComplaintById(Long id) {
         Complaint complaint = complaintRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Complaint not found with id: " + id));
-        return ComplaintResponse.fromEntity(complaint);
+        return ComplaintResponse.fromEntityForAdmin(complaint);
     }
 
     @Transactional
@@ -131,6 +131,6 @@ public class AdminService {
 
         System.out.println("New Status After Save: " + updated.getStatus());
 
-        return ComplaintResponse.fromEntity(updated);
+        return ComplaintResponse.fromEntityForAdmin(updated);
     }
 }

@@ -74,4 +74,14 @@ public class ComplaintResponse {
         }
         return res;
     }
+
+    public static ComplaintResponse fromEntityForAdmin(Complaint complaint) {
+        ComplaintResponse res = fromEntity(complaint);
+        // Anonymize submitter identity completely for Admin view
+        res.setUserId(null);
+        res.setStudentName("Anonymous Student");
+        res.setStudentEmail(null);
+        res.setStudentDivision(null);
+        return res;
+    }
 }

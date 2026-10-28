@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -24,9 +25,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-protected boolean shouldNotFilter(HttpServletRequest request) {
-    return request.getServletPath().startsWith("/uploads/");
-}
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return request.getServletPath().startsWith("/uploads/");
+    }
 
     @Override
     protected void doFilterInternal(
@@ -36,10 +37,6 @@ protected boolean shouldNotFilter(HttpServletRequest request) {
 
         final String authHeader = request.getHeader("Authorization");
 
-        System.out.println("========== JWT FILTER ==========");
-        System.out.println("Request: " + request.getMethod() + " " + request.getRequestURI());
-        System.out.println("Authorization Header Present: " + (authHeader != null));
-
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -47,56 +44,34 @@ protected boolean shouldNotFilter(HttpServletRequest request) {
 
         try {
             String jwt = authHeader.substring(7);
-
-            System.out.println("Bearer token received.");
-
             var claims = jwtUtil.extractClaims(jwt);
 
-            System.out.println("JWT Claims: " + claims);
+            if (claims.get("userId") != null && claims.get("role") != null) {
+                String userId = claims.get("userId").toString();
+                String userRole = claims.get("role").toString();
+                SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + userRole);
 
-            String userId = claims.get("userId").toString();
+                if (jwtUtil.isTokenValid(jwt)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userId,
+                            null,
+                            List.of(authority));
 
-            String userRole = claims.get("role").toString();
-
-            System.out.println("User ID from JWT: " + userId);
-
-            SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + userRole);
-
-            if (jwtUtil.isTokenValid(jwt)) {
-
-                System.out.println("JWT IS VALID");
-
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userId,
-                        null,
-                        List.of(authority));
-
-                SecurityContextHolder.getContext()
-                        .setAuthentication(authToken);
-
-                System.out.println("Authentication set successfully.");
-                System.out.println(
-                        "Authenticated User: "
-                                + SecurityContextHolder.getContext()
-                                        .getAuthentication().getAuthorities());
-
-            } else {
-                System.out.println("JWT IS INVALID");
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
 
         } catch (ExpiredJwtException e) {
-
-            System.out.println("JWT expired. Please login again.");
-
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-
-            response.getWriter().write(
-                    "{\"message\":\"JWT token has expired. Please login again.\"}");
+            response.getWriter().write("{\"message\":\"JWT token has expired. Please login again.\"}");
+            return;
+        } catch (JwtException | IllegalArgumentException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"message\":\"Invalid JWT authentication token.\"}");
             return;
         }
-
-        System.out.println("================================");
 
         filterChain.doFilter(request, response);
     }

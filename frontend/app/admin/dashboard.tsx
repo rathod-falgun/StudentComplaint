@@ -189,76 +189,62 @@ export default function AdminDashboard() {
         style={styles.screen}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTopRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.headerTitle}>ADMIN DASHBOARD</Text>
-            <Text style={styles.welcomeText}>
-              Welcome, {name ? String(name) : 'Admin'}
-            </Text>
-          </View>
-          <ThemeToggle compact />
-        </View>
-      </View>
-
-      <View style={styles.content}>
-        {/* Statistics Section */}
-        <Text style={styles.sectionTitle}>Overview Statistics</Text>
-        <View style={styles.statsGrid}>
-          <View style={[styles.statCard, { borderLeftColor: '#007AFF' }]}>
-            <Text style={styles.statLabel}>Total Complaints</Text>
-            <Text style={[styles.statNumber, { color: '#007AFF' }]}>
-              {stats.totalComplaints}
-            </Text>
-          </View>
-
-          <View style={[styles.statCard, { borderLeftColor: '#0ee2f5' }]}>
-            <Text style={styles.statLabel}>Submitted </Text>
-            <Text style={[styles.statNumber, { color: '#09cedc' }]}>
-              {stats.submittedComplaints}
-            </Text>
-          </View>
-
-          <View style={[styles.statCard, { borderLeftColor: '#360fd4' }]}>
-            <Text style={styles.statLabel}>Assigned</Text>
-            <Text style={[styles.statNumber, { color: '#1806d9' }]}>
-              {stats.assignedComplaints}
-            </Text>
-          </View>
-
-          <View style={[styles.statCard, { borderLeftColor: '#2563EB' }]}>
-            <Text style={styles.statLabel}>In Progress</Text>
-            <Text style={[styles.statNumber, { color: '#2563EB' }]}>
-              {stats.inProgressComplaints}
-            </Text>
-          </View>
-
-          <View style={[styles.statCard, { borderLeftColor: '#0af129' }]}>
-            <Text style={styles.statLabel}>Resolved</Text>
-            <Text style={[styles.statNumber, { color: '#0cf508' }]}>
-              {stats.resolvedComplaints}
-            </Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerTopRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.headerTitle}>ADMIN DASHBOARD</Text>
+              <Text style={styles.welcomeText}>
+                Welcome, {name ? String(name) : 'Admin'}
+              </Text>
+            </View>
+            <ThemeToggle compact />
           </View>
         </View>
 
-        {/* Action Button */}
-        <TouchableOpacity
-          style={styles.allComplaintsButton}
-          onPress={() =>
-            router.push({
-              pathname: '/admin/complaints' as any,
-              params: { name, userId, email, role },
-            })
-          }
-        >
-          <Text style={styles.allComplaintsButtonText}>📋 View All Complaints ({stats.totalComplaints})</Text>
-        </TouchableOpacity>
+        <View style={styles.content}>
+          {/* Statistics Section */}
+          <Text style={styles.sectionTitle}>Overview Statistics</Text>
+          <View style={styles.statsGrid}>
+            <View style={[styles.statCard, { borderLeftColor: '#007AFF' }]}>
+              <Text style={styles.statLabel}>Total Complaints</Text>
+              <Text style={[styles.statNumber, { color: '#007AFF' }]}>
+                {stats.totalComplaints}
+              </Text>
+            </View>
 
-        {/* Recent Complaints Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Complaints</Text>
+            <View style={[styles.statCard, { borderLeftColor: '#0ee2f5' }]}>
+              <Text style={styles.statLabel}>Submitted </Text>
+              <Text style={[styles.statNumber, { color: '#09cedc' }]}>
+                {stats.submittedComplaints}
+              </Text>
+            </View>
+
+            <View style={[styles.statCard, { borderLeftColor: '#360fd4' }]}>
+              <Text style={styles.statLabel}>Assigned</Text>
+              <Text style={[styles.statNumber, { color: '#1806d9' }]}>
+                {stats.assignedComplaints}
+              </Text>
+            </View>
+
+            <View style={[styles.statCard, { borderLeftColor: '#2563EB' }]}>
+              <Text style={styles.statLabel}>In Progress</Text>
+              <Text style={[styles.statNumber, { color: '#2563EB' }]}>
+                {stats.inProgressComplaints}
+              </Text>
+            </View>
+
+            <View style={[styles.statCard, { borderLeftColor: '#0af129' }]}>
+              <Text style={styles.statLabel}>Resolved</Text>
+              <Text style={[styles.statNumber, { color: '#0cf508' }]}>
+                {stats.resolvedComplaints}
+              </Text>
+            </View>
+          </View>
+
+          {/* Action Button */}
           <TouchableOpacity
+            style={styles.allComplaintsButton}
             onPress={() =>
               router.push({
                 pathname: '/admin/complaints' as any,
@@ -266,81 +252,92 @@ export default function AdminDashboard() {
               })
             }
           >
-            <Text style={styles.seeAllText}>See All →</Text>
+            <Text style={styles.allComplaintsButtonText}>📋 View All Complaints ({stats.totalComplaints})</Text>
+          </TouchableOpacity>
+
+          {/* Recent Complaints Section */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recent Complaints</Text>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: '/admin/complaints' as any,
+                  params: { name, userId, email, role },
+                })
+              }
+            >
+              <Text style={styles.seeAllText}>See All →</Text>
+            </TouchableOpacity>
+          </View>
+
+          {recentComplaints.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No complaints recorded yet.</Text>
+            </View>
+          ) : (
+            recentComplaints.slice(0, 5).map((item) => {
+              const status = statusColor(item.status);
+              const priority = priorityColor(item.priority);
+
+              return (
+                <View key={item.id} style={styles.card}>
+                  <View style={styles.cardTopRow}>
+                    <View style={styles.categoryPill}>
+                      <Text style={styles.categoryPillText}>{item.category || 'General'}</Text>
+                    </View>
+                    <View style={[styles.priorityPill, { backgroundColor: priority.bg }]}>
+                      <Text style={[styles.priorityPillText, { color: priority.text }]}>
+                        {item.priority}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.cardTitle}>{item.title}</Text>
+
+                  <View style={styles.divider} />
+
+                  <View style={styles.cardBottomRow}>
+                    <View>
+                      <Text style={styles.dateLabel}>Date</Text>
+                      <Text style={styles.dateValue}>{formatDate(item.createdAt)}</Text>
+                    </View>
+
+                    <View style={[styles.statusPill, { backgroundColor: status.bg }]}>
+                      <View style={[styles.statusDot, { backgroundColor: status.text }]} />
+                      <Text style={[styles.statusPillText, { color: status.text }]}>
+                        {item.status.replace('_', ' ')}
+                      </Text>
+                    </View>
+
+                    <TouchableOpacity
+                      style={styles.detailsButton}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/admin/complaintDetails' as any,
+                          params: { complaintId: String(item.id), name, userId, email, role },
+                        })
+                      }
+                    >
+                      <Text style={styles.detailsButtonText}>View Details</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })
+          )}
+
+          {/* Logout Button */}
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={() => {
+              console.log("LOGOUT BUTTON PRESSED");
+              handleLogout();
+            }}
+          >
+            <Text style={styles.logoutButtonText}>Logout</Text>
           </TouchableOpacity>
         </View>
-
-        {recentComplaints.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No complaints recorded yet.</Text>
-          </View>
-        ) : (
-          recentComplaints.slice(0, 5).map((item) => {
-            const status = statusColor(item.status);
-            const priority = priorityColor(item.priority);
-
-            return (
-              <View key={item.id} style={styles.card}>
-                <View style={styles.cardTopRow}>
-                  <View style={styles.categoryPill}>
-                    <Text style={styles.categoryPillText}>{item.category || 'General'}</Text>
-                  </View>
-                  <View style={[styles.priorityPill, { backgroundColor: priority.bg }]}>
-                    <Text style={[styles.priorityPillText, { color: priority.text }]}>
-                      {item.priority}
-                    </Text>
-                  </View>
-                </View>
-
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                {/* <Text style={styles.studentInfo}>
-                  Submitted by: <Text style={styles.studentName}>{item.studentName || 'Student'}</Text>
-                </Text> */}
-
-                <View style={styles.divider} />
-
-                <View style={styles.cardBottomRow}>
-                  <View>
-                    <Text style={styles.dateLabel}>Date</Text>
-                    <Text style={styles.dateValue}>{formatDate(item.createdAt)}</Text>
-                  </View>
-
-                  <View style={[styles.statusPill, { backgroundColor: status.bg }]}>
-                    <View style={[styles.statusDot, { backgroundColor: status.text }]} />
-                    <Text style={[styles.statusPillText, { color: status.text }]}>
-                      {item.status.replace('_', ' ')}
-                    </Text>
-                  </View>
-
-                  <TouchableOpacity
-                    style={styles.detailsButton}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/admin/complaintDetails' as any,
-                        params: { complaintId: String(item.id), name, userId, email, role },
-                      })
-                    }
-                  >
-                    <Text style={styles.detailsButtonText}>View Details</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            );
-          })
-        )}
-
-        {/* Logout Button */}
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={() => {
-            console.log("LOGOUT BUTTON PRESSED");
-            handleLogout();
-          }}
-        >
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

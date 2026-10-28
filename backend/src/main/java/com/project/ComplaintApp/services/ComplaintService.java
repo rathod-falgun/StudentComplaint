@@ -49,13 +49,21 @@ public class ComplaintService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Category category = categoryRepository.findById(req.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Invalid Category"));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Category"));
+
+        if (req.getTitle() == null || req.getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("Complaint title is required.");
+        }
+        if (req.getDescription() == null || req.getDescription().trim().isEmpty()) {
+            throw new IllegalArgumentException("Complaint description is required.");
+        }
 
         Complaint complaint = new Complaint();
         complaint.setUser(user);
-        complaint.setDescription(req.getDescription());
-        complaint.setTitle(req.getTitle());
+        complaint.setTitle(req.getTitle().trim());
+        complaint.setDescription(req.getDescription().trim());
         complaint.setCategory(category);
+        complaint.setStatus(com.project.ComplaintApp.Enums.ComplaintStatus.SUBMITTED);
 
         ComplaintPriority priority = req.getPriority() != null ? req.getPriority() : ComplaintPriority.MEDIUM;
         complaint.setPriority(priority);

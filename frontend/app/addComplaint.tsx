@@ -21,7 +21,7 @@ import { useResponsive } from '@/constants/responsive';
 import { apiFetch, API_BASE_URL } from '@/constants/api';
 import { fetch as expoFetch } from "expo/fetch";
 import { File } from 'expo-file-system';
-import { getToken, getUserId } from '@/utils/authStorage';
+import { getToken, getUserId, getUserData } from '@/utils/authStorage';
 import { useAppTheme } from '@/context/ThemeContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ThemeColors } from '@/constants/theme';
@@ -58,12 +58,13 @@ export default function AddComplaint() {
 
     useEffect(() => {
         const loadUser = async () => {
-            const userId = await getUserId();
+            const uid = await getUserId();
+            const userData = await getUserData();
 
-            console.log("Global User ID:", userId);
-
-            setuserId(userId);
-            setname(name);
+            setuserId(uid);
+            if (userData?.name) {
+                setname(userData.name);
+            }
         };
         loadUser();
     }, []);
@@ -392,19 +393,18 @@ export default function AddComplaint() {
 
                         <View style={styles.infoIconContainer}>
                             <Text style={styles.infoIcon}>
-                                ✓
+                                🛡️
                             </Text>
                         </View>
 
                         <View style={styles.infoContent}>
 
                             <Text style={styles.infoTitle}>
-                                Your voice matters
+                                100% Anonymous Grievance
                             </Text>
 
                             <Text style={styles.infoText}>
-                                Share the issue clearly and our team
-                                will route it to the right department.
+                                Your identity, name, and email are completely hidden from college administrators. Feel safe reporting any campus or classroom issue.
                             </Text>
 
                         </View>

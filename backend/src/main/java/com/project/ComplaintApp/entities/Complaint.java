@@ -85,7 +85,7 @@ public class Complaint {
         if (priority == null)
             priority = ComplaintPriority.MEDIUM;
         if (status == null)
-            status = ComplaintStatus.ASSIGNED;
+            status = ComplaintStatus.SUBMITTED;
         if (deadlineMissedEmailSent == null)
             deadlineMissedEmailSent = false;
     }

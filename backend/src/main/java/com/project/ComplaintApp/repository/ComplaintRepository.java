@@ -22,10 +22,10 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
         """
            SELECT c from Complaint c where c.user.id = :userId Order by c.createdAt desc, 
            case c.status
-                when "submitted" then 4
-                when "assigned" then 3
-                when "in_progress" then 2
-                when "resolved" then 1
+                when com.project.ComplaintApp.Enums.ComplaintStatus.SUBMITTED then 4
+                when com.project.ComplaintApp.Enums.ComplaintStatus.ASSIGNED then 3
+                when com.project.ComplaintApp.Enums.ComplaintStatus.IN_PROGRESS then 2
+                when com.project.ComplaintApp.Enums.ComplaintStatus.RESOLVED then 1
             else 5
         End Asc     
                 """)

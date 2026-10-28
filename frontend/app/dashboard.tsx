@@ -39,7 +39,7 @@ type Complaint = {
   description: string;
   category: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  status: 'SUBMITTED' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED';
+  status: 'SUBMITTED' | 'ASSIGNED' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
   createdAt: string;
   updatedAt: string;
 };
@@ -192,6 +192,12 @@ export default function Dashboard() {
           label: 'Resolved',
           textColor: '#34D399',
           bgColor: 'rgba(16, 185, 129, 0.15)',
+        };
+      case 'REJECTED':
+        return {
+          label: 'Rejected',
+          textColor: '#F87171',
+          bgColor: 'rgba(239, 68, 68, 0.15)',
         };
       case 'SUBMITTED':
       case 'ASSIGNED':

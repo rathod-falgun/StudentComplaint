@@ -52,8 +52,8 @@ export default function AdminComplaintDetails() {
   const [imageLoadError, setImageLoadError] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(0);
-const [totalPages, setTotalPages] = useState(0);
-const [totalComplaints, setTotalComplaints] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalComplaints, setTotalComplaints] = useState(0);
 
   const API_BASE = `${API_BASE_URL}`;
 
@@ -152,7 +152,7 @@ const [totalComplaints, setTotalComplaints] = useState(0);
           if (parsed.message) {
             displayMsg = parsed.message;
           }
-        } catch (_) {}
+        } catch (_) { }
         throw new Error(displayMsg || 'Failed to update status on server');
       }
 
@@ -298,247 +298,233 @@ const [totalComplaints, setTotalComplaints] = useState(0);
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView style={styles.screen}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTopRow}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <Text style={styles.backBtnText}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Complaint Details</Text>
-          <ThemeToggle compact />
-        </View>
-        <Text style={styles.complaintIdHeader}>Complaint ID: #{complaint.id}</Text>
-      </View>
-
-      <View style={styles.container}>
-        {/* Student Information Section */}
-        {/* <View style={styles.card}>
-          <Text style={styles.cardSectionHeader}>👤 Student Information</Text>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Name:</Text>
-            <Text style={styles.infoValue}>{complaint.studentName || 'N/A'}</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+              <Text style={styles.backBtnText}>← Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Complaint Details</Text>
+            <ThemeToggle compact />
           </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Email:</Text>
-            <Text style={styles.infoValue}>{complaint.studentEmail || 'N/A'}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Department:</Text>
-            <Text style={styles.infoValue}>{complaint.studentDepartment || 'N/A'}</Text>
-          </View>
-        </View> */}
-
-        {/* Complaint Information Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardSectionHeader}>📌 Complaint Information</Text>
-
-          <View style={styles.badgeRow}>
-            <View style={styles.categoryPill}>
-              <Text style={styles.categoryPillText}>{complaint.category || 'General'}</Text>
-            </View>
-            <View style={[styles.priorityPill, { backgroundColor: priority.bg, borderColor: priority.border, borderWidth: 1 }]}>
-              <Text style={[styles.priorityPillText, { color: priority.text }]}>
-                {complaint.priority} PRIORITY
-              </Text>
-            </View>
-          </View>
-
-          <Text style={styles.complaintTitle}>{complaint.title}</Text>
-          <Text style={styles.descriptionLabel}>Description:</Text>
-          <Text style={styles.descriptionText}>{complaint.description}</Text>
-
-          <View style={styles.divider} />
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Submitted Date:</Text>
-            <Text style={styles.infoValue}>{formatDate(complaint.createdAt)}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Last Updated:</Text>
-            <Text style={styles.infoValue}>{formatDate(complaint.updatedAt)}</Text>
-          </View>
+          <Text style={styles.complaintIdHeader}>Complaint ID: #{complaint.id}</Text>
         </View>
 
-        {/* Image Attachment Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardSectionHeader}>🖼️ Attached Image</Text>
-          {complaint.imageUrl ? (
-            <View style={styles.imageContainer}>
-              <TouchableOpacity
-                style={styles.imageToggleButton}
-                onPress={() => setShowImage(!showImage)}
-              >
-                <Text style={styles.imageToggleButtonText}>
-                  {showImage ? 'Hide Attached Image' : 'View Attached Image'}
+        <View style={styles.container}>
+          {/* Submitter Privacy Information */}
+
+
+          {/* Complaint Information Section */}
+          <View style={styles.card}>
+            <Text style={styles.cardSectionHeader}>📌 Complaint Information</Text>
+
+            <View style={styles.badgeRow}>
+              <View style={styles.categoryPill}>
+                <Text style={styles.categoryPillText}>{complaint.category || 'General'}</Text>
+              </View>
+              <View style={[styles.priorityPill, { backgroundColor: priority.bg, borderColor: priority.border, borderWidth: 1 }]}>
+                <Text style={[styles.priorityPillText, { color: priority.text }]}>
+                  {complaint.priority} PRIORITY
                 </Text>
-              </TouchableOpacity>
-
-              {showImage && (
-                imageLoadError ? (
-                  <View style={styles.imageErrorBox}>
-                    <Text style={styles.imageErrorText}>⚠️ Could not load image from server</Text>
-                    <Text style={styles.imageErrorSubText}>File: {complaint.imageUrl}</Text>
-                  </View>
-                ) : (
-                  <Image
-                    source={{ uri: complaint.imageUrl }} // full Supabase public URL stored in DB
-                    style={styles.attachedImage}
-                    resizeMode="cover"
-                    onError={(e) => {
-                      console.log("Error loading complaint image:", e.nativeEvent);
-                      setImageLoadError(true);
-                    }}
-                  />
-                )
-              )}
+              </View>
             </View>
-          ) : (
-            <Text style={styles.noImageText}>No image attached</Text>
-          )}
-        </View>
 
-        {/* Status Control Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardSectionHeader}>⚙️ Status & Remarks</Text>
+            <Text style={styles.complaintTitle}>{complaint.title}</Text>
+            <Text style={styles.descriptionLabel}>Description:</Text>
+            <Text style={styles.descriptionText}>{complaint.description}</Text>
 
-          <View style={styles.currentStatusRow}>
-            <Text style={styles.infoLabel}>Current Status:</Text>
-            <View style={[styles.statusPill, { backgroundColor: status.bg, borderColor: status.border, borderWidth: 1 }]}>
-              <View style={[styles.statusDot, { backgroundColor: status.text }]} />
-              <Text style={[styles.statusPillText, { color: status.text }]}>
-                {complaint.status.replace('_', ' ')}
-              </Text>
+            <View style={styles.divider} />
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Submitted Date:</Text>
+              <Text style={styles.infoValue}>{formatDate(complaint.createdAt)}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Last Updated:</Text>
+              <Text style={styles.infoValue}>{formatDate(complaint.updatedAt)}</Text>
             </View>
           </View>
 
-          {/* Existing Official Admin Remarks */}
-          {complaint.adminRemarks ? (
-            <View style={[
-              styles.existingRemarksBox,
-              complaint.status === 'REJECTED' ? styles.existingRemarksBoxRejected : styles.existingRemarksBoxResolved
-            ]}>
-              <Text style={[
-                styles.existingRemarksLabel,
-                complaint.status === 'REJECTED' ? styles.existingRemarksLabelRejected : styles.existingRemarksLabelResolved
-              ]}>
-                📋 Official Admin Remarks:
-              </Text>
-              <Text style={styles.existingRemarksText}>{complaint.adminRemarks}</Text>
+          {/* Image Attachment Section */}
+          <View style={styles.card}>
+            <Text style={styles.cardSectionHeader}>🖼️ Attached Image</Text>
+            {complaint.imageUrl ? (
+              <View style={styles.imageContainer}>
+                <TouchableOpacity
+                  style={styles.imageToggleButton}
+                  onPress={() => setShowImage(!showImage)}
+                >
+                  <Text style={styles.imageToggleButtonText}>
+                    {showImage ? 'Hide Attached Image' : 'View Attached Image'}
+                  </Text>
+                </TouchableOpacity>
+
+                {showImage && (
+                  imageLoadError ? (
+                    <View style={styles.imageErrorBox}>
+                      <Text style={styles.imageErrorText}>⚠️ Could not load image from server</Text>
+                      <Text style={styles.imageErrorSubText}>File: {complaint.imageUrl}</Text>
+                    </View>
+                  ) : (
+                    <Image
+                      source={{ uri: complaint.imageUrl }} // full Supabase public URL stored in DB
+                      style={styles.attachedImage}
+                      resizeMode="cover"
+                      onError={(e) => {
+                        console.log("Error loading complaint image:", e.nativeEvent);
+                        setImageLoadError(true);
+                      }}
+                    />
+                  )
+                )}
+              </View>
+            ) : (
+              <Text style={styles.noImageText}>No image attached</Text>
+            )}
+          </View>
+
+          {/* Status Control Section */}
+          <View style={styles.card}>
+            <Text style={styles.cardSectionHeader}>⚙️ Status & Remarks</Text>
+
+            <View style={styles.currentStatusRow}>
+              <Text style={styles.infoLabel}>Current Status:</Text>
+              <View style={[styles.statusPill, { backgroundColor: status.bg, borderColor: status.border, borderWidth: 1 }]}>
+                <View style={[styles.statusDot, { backgroundColor: status.text }]} />
+                <Text style={[styles.statusPillText, { color: status.text }]}>
+                  {complaint.status.replace('_', ' ')}
+                </Text>
+              </View>
             </View>
-          ) : null}
 
-          {/* Workflow Actions */}
-          {complaint.status !== 'RESOLVED' && complaint.status !== 'REJECTED' ? (
-            <>
-              <Text style={styles.selectStatusLabel}>Choose Next Action:</Text>
+            {/* Existing Official Admin Remarks */}
+            {complaint.adminRemarks ? (
+              <View style={[
+                styles.existingRemarksBox,
+                complaint.status === 'REJECTED' ? styles.existingRemarksBoxRejected : styles.existingRemarksBoxResolved
+              ]}>
+                <Text style={[
+                  styles.existingRemarksLabel,
+                  complaint.status === 'REJECTED' ? styles.existingRemarksLabelRejected : styles.existingRemarksLabelResolved
+                ]}>
+                  📋 Official Admin Remarks:
+                </Text>
+                <Text style={styles.existingRemarksText}>{complaint.adminRemarks}</Text>
+              </View>
+            ) : null}
 
-              <View style={styles.actionButtonsRow}>
-                {next && (
+            {/* Workflow Actions */}
+            {complaint.status !== 'RESOLVED' && complaint.status !== 'REJECTED' ? (
+              <>
+                <Text style={styles.selectStatusLabel}>Choose Next Action:</Text>
+
+                <View style={styles.actionButtonsRow}>
+                  {next && (
+                    <TouchableOpacity
+                      style={[
+                        styles.statusOptionBtn,
+                        selectedStatus === next && styles.activeStatusOptionBtn,
+                      ]}
+                      disabled={updating}
+                      onPress={() =>
+                        setSelectedStatus((prev) => (prev === next ? null : next))
+                      }
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.statusOptionText,
+                          selectedStatus === next && styles.activeStatusOptionText,
+                        ]}
+                      >
+                        {selectedStatus === next ? '✓ ' : ''}Move to {next.replace('_', ' ')}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+
                   <TouchableOpacity
                     style={[
-                      styles.statusOptionBtn,
-                      selectedStatus === next && styles.activeStatusOptionBtn,
+                      styles.rejectOptionBtn,
+                      selectedStatus === 'REJECTED' && styles.activeRejectOptionBtn,
                     ]}
                     disabled={updating}
                     onPress={() =>
-                      setSelectedStatus((prev) => (prev === next ? null : next))
+                      setSelectedStatus((prev) => (prev === 'REJECTED' ? null : 'REJECTED'))
                     }
                     activeOpacity={0.7}
                   >
                     <Text
                       style={[
-                        styles.statusOptionText,
-                        selectedStatus === next && styles.activeStatusOptionText,
+                        styles.rejectOptionText,
+                        selectedStatus === 'REJECTED' && styles.activeRejectOptionText,
                       ]}
                     >
-                      {selectedStatus === next ? '✓ ' : ''}Move to {next.replace('_', ' ')}
+                      {selectedStatus === 'REJECTED' ? '✓ ' : '✕ '}Reject Complaint
                     </Text>
                   </TouchableOpacity>
+                </View>
+
+                {/* Remarks Text Input (Shown when a status action is selected) */}
+                {selectedStatus && (
+                  <View style={styles.remarksInputContainer}>
+                    <Text style={styles.remarksInputLabel}>
+                      {selectedStatus === 'REJECTED'
+                        ? 'Rejection Reason * (Required for student email)'
+                        : 'Admin Remarks / Resolution Note (Optional)'}
+                    </Text>
+                    <TextInput
+                      style={[
+                        styles.remarksInput,
+                        selectedStatus === 'REJECTED' && styles.remarksInputReject
+                      ]}
+                      placeholder={
+                        selectedStatus === 'REJECTED'
+                          ? 'e.g., Duplicate of ticket #12, invalid photo, or outside college scope...'
+                          : 'e.g., Assigned to electrical team, repaired on-site, or tested...'
+                      }
+                      placeholderTextColor={colors.inputPlaceholder}
+                      value={adminRemarks}
+                      onChangeText={setAdminRemarks}
+                      multiline
+                      numberOfLines={3}
+                    />
+                  </View>
                 )}
 
                 <TouchableOpacity
                   style={[
-                    styles.rejectOptionBtn,
-                    selectedStatus === 'REJECTED' && styles.activeRejectOptionBtn,
+                    styles.updateStatusButton,
+                    selectedStatus === 'REJECTED' && styles.rejectStatusButton,
+                    (!isStatusChanged || updating) && styles.disabledUpdateButton,
                   ]}
-                  disabled={updating}
-                  onPress={() =>
-                    setSelectedStatus((prev) => (prev === 'REJECTED' ? null : 'REJECTED'))
-                  }
-                  activeOpacity={0.7}
+                  disabled={!isStatusChanged || updating}
+                  onPress={handleUpdateStatus}
                 >
-                  <Text
-                    style={[
-                      styles.rejectOptionText,
-                      selectedStatus === 'REJECTED' && styles.activeRejectOptionText,
-                    ]}
-                  >
-                    {selectedStatus === 'REJECTED' ? '✓ ' : '✕ '}Reject Complaint
-                  </Text>
+                  {updating ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.updateStatusButtonText}>
+                      {selectedStatus === 'REJECTED'
+                        ? 'Confirm Rejection & Send Email'
+                        : isStatusChanged
+                          ? `Update to ${selectedStatus?.replace('_', ' ')} & Notify`
+                          : 'Select an Action Above'}
+                    </Text>
+                  )}
                 </TouchableOpacity>
+              </>
+            ) : (
+              <View style={styles.workflowCompleteBox}>
+                <Text style={styles.workflowCompleteText}>
+                  {complaint.status === 'RESOLVED'
+                    ? '✅ This complaint has been successfully resolved.'
+                    : '⛔ This complaint was rejected by the administration.'}
+                </Text>
               </View>
-
-              {/* Remarks Text Input (Shown when a status action is selected) */}
-              {selectedStatus && (
-                <View style={styles.remarksInputContainer}>
-                  <Text style={styles.remarksInputLabel}>
-                    {selectedStatus === 'REJECTED'
-                      ? 'Rejection Reason * (Required for student email)'
-                      : 'Admin Remarks / Resolution Note (Optional)'}
-                  </Text>
-                  <TextInput
-                    style={[
-                      styles.remarksInput,
-                      selectedStatus === 'REJECTED' && styles.remarksInputReject
-                    ]}
-                    placeholder={
-                      selectedStatus === 'REJECTED'
-                        ? 'e.g., Duplicate of ticket #12, invalid photo, or outside college scope...'
-                        : 'e.g., Assigned to electrical team, repaired on-site, or tested...'
-                    }
-                    placeholderTextColor={colors.inputPlaceholder}
-                    value={adminRemarks}
-                    onChangeText={setAdminRemarks}
-                    multiline
-                    numberOfLines={3}
-                  />
-                </View>
-              )}
-
-              <TouchableOpacity
-                style={[
-                  styles.updateStatusButton,
-                  selectedStatus === 'REJECTED' && styles.rejectStatusButton,
-                  (!isStatusChanged || updating) && styles.disabledUpdateButton,
-                ]}
-                disabled={!isStatusChanged || updating}
-                onPress={handleUpdateStatus}
-              >
-                {updating ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.updateStatusButtonText}>
-                    {selectedStatus === 'REJECTED'
-                      ? 'Confirm Rejection & Send Email'
-                      : isStatusChanged
-                      ? `Update to ${selectedStatus?.replace('_', ' ')} & Notify`
-                      : 'Select an Action Above'}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            </>
-          ) : (
-            <View style={styles.workflowCompleteBox}>
-              <Text style={styles.workflowCompleteText}>
-                {complaint.status === 'RESOLVED'
-                  ? '✅ This complaint has been successfully resolved.'
-                  : '⛔ This complaint was rejected by the administration.'}
-              </Text>
-            </View>
-          )}
+            )}
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
