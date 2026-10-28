@@ -1,6 +1,7 @@
 package com.project.ComplaintApp.services;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,7 +69,7 @@ public class ComplaintService {
         ComplaintPriority priority = req.getPriority() != null ? req.getPriority() : ComplaintPriority.MEDIUM;
         complaint.setPriority(priority);
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
         complaint.setCreatedAt(now);
         complaint.setUpdatedAt(now);
 

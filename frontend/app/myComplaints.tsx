@@ -19,6 +19,7 @@ import { getUserId } from "@/utils/authStorage";
 import { useAppTheme } from "@/context/ThemeContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ThemeColors } from "@/constants/theme";
+import { formatDate, formatTime } from "@/utils/dateUtils";
 
 type Complaint = {
     id: number;
@@ -64,16 +65,6 @@ const priorityColor = (priority: string, isDark: boolean = false) => {
         default:
             return { bg: isDark ? "rgba(255, 255, 255, 0.08)" : "#F0F2F6", text: isDark ? "#9CA3AF" : "#465267" };
     }
-};
-
-const formatDate = (dateStr: string) => {
-    if (!dateStr) return "-";
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-    });
 };
 
 type ComplaintCardProps = {
@@ -206,12 +197,18 @@ const ComplaintCard = React.memo(function ComplaintCard({
                     <Text style={styles.dateValue}>
                         {formatDate(item.createdAt)}
                     </Text>
+                    <Text style={styles.timeValue}>
+                        {formatTime(item.createdAt)}
+                    </Text>
                 </View>
 
                 <View style={styles.dateBlock}>
                     <Text style={styles.dateLabel}>Last updated</Text>
                     <Text style={styles.dateValue}>
                         {formatDate(item.updatedAt)}
+                    </Text>
+                    <Text style={styles.timeValue}>
+                        {formatTime(item.updatedAt)}
                     </Text>
                 </View>
 
@@ -998,6 +995,13 @@ const getStyles = (colors: ThemeColors, isDark: boolean) => StyleSheet.create({
         fontSize: 12,
         fontWeight: "700",
         color: colors.textPrimary,
+    },
+
+    timeValue: {
+        fontSize: 10.5,
+        fontWeight: "500",
+        color: colors.textMuted,
+        marginTop: 1,
     },
 
     statusPill: {

@@ -18,6 +18,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ThemeColors } from '@/constants/theme';
 import { StatusBar } from 'expo-status-bar';
+import { formatDate } from '@/utils/dateUtils';
 
 type Stats = {
   totalComplaints: number;
@@ -158,16 +159,6 @@ export default function AdminDashboard() {
       default:
         return { bg: isDark ? '#262632' : '#F0F2F6', text: colors.textSecondary };
     }
-  };
-
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
   };
 
   if (loading) {

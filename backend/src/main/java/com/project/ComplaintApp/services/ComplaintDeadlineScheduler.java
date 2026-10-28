@@ -1,6 +1,7 @@
 package com.project.ComplaintApp.services;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.springframework.scheduling.annotation.Scheduled;
@@ -35,7 +36,7 @@ public class ComplaintDeadlineScheduler {
     @Scheduled(fixedDelay = 60000, initialDelay = 15000)
     @Transactional
     public void checkOverdueComplaints() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
         List<Complaint> overdueComplaints = complaintRepository.findOverdueUnresolvedComplaints(now);
 
         if (overdueComplaints.isEmpty()) {

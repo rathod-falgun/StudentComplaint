@@ -223,7 +223,7 @@ public class EmailService {
         System.out.println("============================================================");
 
         String formattedDeadline = deadline != null
-                ? deadline.format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a"))
+                ? deadline.format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a")) + " IST"
                 : "Not specified";
 
         String greetingName = (studentName != null && !studentName.trim().isEmpty()) ? studentName : "Student";

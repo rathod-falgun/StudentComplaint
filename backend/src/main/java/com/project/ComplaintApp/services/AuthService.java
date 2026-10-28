@@ -1,6 +1,8 @@
 package com.project.ComplaintApp.services;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -77,7 +79,7 @@ public class AuthService {
         EmailOtp emailOtp = new EmailOtp();
         emailOtp.setEmail(normalizedEmail);
         emailOtp.setOtp(otp);
-        emailOtp.setExpiresAt(java.time.LocalDateTime.now().plusMinutes(5));
+        emailOtp.setExpiresAt(LocalDateTime.now(ZoneId.of("Asia/Kolkata")).plusMinutes(5));
         emailOtp.setVerified(false);
         emailOtpRepository.save(emailOtp);
 
@@ -166,7 +168,7 @@ public class AuthService {
                         "No pending verification code found for '" + normalizedEmail
                                 + "'. Please tap 'Send OTP' first."));
 
-        if (otpRecord.getExpiresAt().isBefore(java.time.LocalDateTime.now())) {
+        if (otpRecord.getExpiresAt().isBefore(LocalDateTime.now(ZoneId.of("Asia/Kolkata")))) {
             emailOtpRepository.delete(otpRecord);
             throw new IllegalArgumentException("The verification code has expired. Please try again for a new one.");
         }
@@ -239,13 +241,15 @@ public class AuthService {
     }
 
     /**
-     * Sends a 6-digit password reset verification code to the student's registered college email address.
+     * Sends a 6-digit password reset verification code to the student's registered
+     * college email address.
      */
     public String sendPasswordResetOtp(String email) {
         String normalizedEmail = normalizeAndValidateCollegeEmail(email);
 
         if (!userRepository.existsByEmail(normalizedEmail)) {
-            throw new RuntimeException("No account registered with email '" + normalizedEmail + "'. Please check the email address or register first.");
+            throw new RuntimeException("No account registered with email '" + normalizedEmail
+                    + "'. Please check the email address or register first.");
         }
 
         // Generate secure 6-digit OTP
@@ -259,7 +263,7 @@ public class AuthService {
         EmailOtp emailOtp = new EmailOtp();
         emailOtp.setEmail(normalizedEmail);
         emailOtp.setOtp(otp);
-        emailOtp.setExpiresAt(java.time.LocalDateTime.now().plusMinutes(5));
+        emailOtp.setExpiresAt(LocalDateTime.now(ZoneId.of("Asia/Kolkata")).plusMinutes(5));
         emailOtp.setVerified(false);
         emailOtpRepository.save(emailOtp);
 
@@ -300,7 +304,7 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "No pending reset code found for '" + normalizedEmail + "'. Please request an OTP first."));
 
-        if (otpRecord.getExpiresAt().isBefore(java.time.LocalDateTime.now())) {
+        if (otpRecord.getExpiresAt().isBefore(LocalDateTime.now(ZoneId.of("Asia/Kolkata")))) {
             emailOtpRepository.delete(otpRecord);
             throw new IllegalArgumentException("The verification code has expired. Please request a new code.");
         }

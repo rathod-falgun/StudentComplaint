@@ -16,9 +16,11 @@ spring:
           timeout: 5000
           writetimeout: 5000
   datasource:
-    url: jdbc:mysql://${AIVEN_HOST}:${AIVEN_PORT}/${AIVEN_DB}?sslmode=required
+    url: jdbc:mysql://${AIVEN_HOST}:${AIVEN_PORT}/${AIVEN_DB}?sslmode=required&serverTimezone=Asia/Kolkata
     username: ${AIVEN_USERNAME}
     password: ${AIVEN_PASSWORD}
+  jackson:
+    time-zone: Asia/Kolkata
   jpa:
     hibernate:
       ddl-auto: update

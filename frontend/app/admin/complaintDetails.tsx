@@ -17,6 +17,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ThemeColors } from '@/constants/theme';
 import { StatusBar } from 'expo-status-bar';
+import { formatDateTime } from '@/utils/dateUtils';
 
 type ComplaintDetail = {
   id: number;
@@ -248,17 +249,7 @@ export default function AdminComplaintDetails() {
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr);
-    return d.toLocaleString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  const formatDate = (dateStr?: string) => formatDateTime(dateStr);
 
   if (loading) {
     return (
@@ -337,12 +328,20 @@ export default function AdminComplaintDetails() {
 
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Submitted Date:</Text>
-              <Text style={styles.infoValue}>{formatDate(complaint.createdAt)}</Text>
+              <Text style={styles.infoValue}>{formatDate(complaint.createdAt)} IST</Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Last Updated:</Text>
-              <Text style={styles.infoValue}>{formatDate(complaint.updatedAt)}</Text>
+              <Text style={styles.infoValue}>{formatDate(complaint.updatedAt)} IST</Text>
             </View>
+            {complaint.deadline ? (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>SLA Deadline:</Text>
+                <Text style={[styles.infoValue, complaint.isOverdue && { color: '#EF4444', fontWeight: '700' }]}>
+                  {formatDate(complaint.deadline)} IST {complaint.isOverdue ? '(Breached)' : ''}
+                </Text>
+              </View>
+            ) : null}
           </View>
 
           {/* Image Attachment Section */}

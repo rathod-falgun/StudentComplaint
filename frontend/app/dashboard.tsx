@@ -20,6 +20,7 @@ import { apiFetch, API_BASE_URL } from '@/constants/api';
 import { useAppTheme } from '@/context/ThemeContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ThemeColors } from '@/constants/theme';
+import { formatDate } from '@/utils/dateUtils';
 
 type UserProfile = {
   id: number;
@@ -143,16 +144,6 @@ export default function Dashboard() {
         },
       ]
     );
-  };
-
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
   };
 
   const rawPhoto = profile?.profilePhoto || profile?.profilePhotoPath;

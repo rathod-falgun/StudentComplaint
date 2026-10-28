@@ -1,6 +1,7 @@
 package com.project.ComplaintApp.entities;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import com.project.ComplaintApp.Enums.ComplaintPriority;
 import com.project.ComplaintApp.Enums.ComplaintStatus;
@@ -78,10 +79,12 @@ public class Complaint {
     @Column(name = "admin_remarks", columnDefinition = "TEXT")
     private String adminRemarks;
 
+    public static final ZoneId IST_ZONE = ZoneId.of("Asia/Kolkata");
+
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now(IST_ZONE);
+        updatedAt = LocalDateTime.now(IST_ZONE);
         if (priority == null)
             priority = ComplaintPriority.MEDIUM;
         if (status == null)
@@ -92,6 +95,6 @@ public class Complaint {
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now(IST_ZONE);
     }
 }

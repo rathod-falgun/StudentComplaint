@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +59,7 @@ public class AuthServiceTest {
         EmailOtp otp = new EmailOtp();
         otp.setEmail(email);
         otp.setOtp(code);
-        otp.setExpiresAt(LocalDateTime.now().plusMinutes(5));
+        otp.setExpiresAt(LocalDateTime.now(ZoneId.of("Asia/Kolkata")).plusMinutes(5));
         otp.setVerified(false);
         return otp;
     }
@@ -174,7 +175,7 @@ public class AuthServiceTest {
         EmailOtp expiredOtp = new EmailOtp();
         expiredOtp.setEmail(email);
         expiredOtp.setOtp("123456");
-        expiredOtp.setExpiresAt(LocalDateTime.now().minusMinutes(1)); // Expired
+        expiredOtp.setExpiresAt(LocalDateTime.now(ZoneId.of("Asia/Kolkata")).minusMinutes(1)); // Expired
         expiredOtp.setVerified(false);
 
         when(userRepository.existsByEmail(email)).thenReturn(false);

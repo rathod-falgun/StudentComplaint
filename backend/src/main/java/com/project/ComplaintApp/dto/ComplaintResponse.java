@@ -1,7 +1,9 @@
 package com.project.ComplaintApp.dto;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.ComplaintApp.entities.Complaint;
 
 import lombok.AllArgsConstructor;
@@ -23,9 +25,16 @@ public class ComplaintResponse {
     private String priority;
     private String status;
     private String imageUrl;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime deadline;
+
     private Boolean isOverdue;
     private Integer slaHours;
     private String adminRemarks;
@@ -54,7 +63,7 @@ public class ComplaintResponse {
         boolean overdue = complaint.getDeadline() != null
                 && complaint.getStatus() != com.project.ComplaintApp.Enums.ComplaintStatus.RESOLVED
                 && complaint.getStatus() != com.project.ComplaintApp.Enums.ComplaintStatus.REJECTED
-                && LocalDateTime.now().isAfter(complaint.getDeadline());
+                && LocalDateTime.now(ZoneId.of("Asia/Kolkata")).isAfter(complaint.getDeadline());
         res.setIsOverdue(overdue);
 
         if (complaint.getPriority() != null) {

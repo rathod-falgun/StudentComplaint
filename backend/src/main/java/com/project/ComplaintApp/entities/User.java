@@ -1,6 +1,7 @@
 package com.project.ComplaintApp.entities;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import com.project.ComplaintApp.Enums.Role;
 
@@ -53,7 +54,7 @@ public class User {
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
         }
     }
-} 
+}

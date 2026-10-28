@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -15,7 +16,9 @@ import com.project.ComplaintApp.Enums.ComplaintPriority;
 @Service
 public class WorkingHoursDeadlineService {
 
-    // College working hours: 09:00 AM to 05:00 PM (8 working hours per day)
+    public static final ZoneId IST_ZONE = ZoneId.of("Asia/Kolkata");
+
+    // College working hours: 09:00 AM to 05:00 PM (8 working hours per day IST)
     public static final LocalTime WORK_START = LocalTime.of(9, 0);
     public static final LocalTime WORK_END = LocalTime.of(17, 0);
 
@@ -50,7 +53,7 @@ public class WorkingHoursDeadlineService {
      */
     public LocalDateTime calculateDeadline(LocalDateTime startDateTime, ComplaintPriority priority) {
         if (startDateTime == null) {
-            startDateTime = LocalDateTime.now();
+            startDateTime = LocalDateTime.now(IST_ZONE);
         }
 
         int targetWorkingHours = getSlaWorkingHours(priority);

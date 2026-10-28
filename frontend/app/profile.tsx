@@ -23,6 +23,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppTheme } from "@/context/ThemeContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { formatDate } from "@/utils/dateUtils";
 import { ThemeColors } from "@/constants/theme";
 
 type UserProfile = {
@@ -222,254 +223,251 @@ export default function Profile() {
         );
     }
 
-    const formatDate = (d: string) =>
-        new Date(d).toLocaleDateString('en-IN', { day: "2-digit", month: "short", year: "numeric" });
-
     const photoFileName = profile.profilePhoto || profile.profilePhotoPath;
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top']}>
             <View style={styles.screen}>
-            <StatusBar barStyle="light-content" backgroundColor="#121216" />
+                <StatusBar barStyle="light-content" backgroundColor="#121216" />
 
-            {/* Top Navigation Bar */}
-            <View style={styles.navBar}>
-                <TouchableOpacity
-                    style={styles.navBackButton}
-                    onPress={() => router.back()}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel="Back to dashboard"
-                >
-                    <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
-                </TouchableOpacity>
-
-                <Text style={styles.navTitle}>Student Profile</Text>
-
-                <View style={styles.navSpacer}>
-                    <ThemeToggle compact />
-                </View>
-            </View>
-
-            <ScrollView
-                style={styles.scrollArea}
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-            >
-                <View style={styles.containerMax}>
-
-                    {/* Hero Card */}
-                    <View style={styles.heroCard}>
-                        {/* Avatar with Glow and Update Badge */}
-                        <View style={styles.avatarWrapper}>
-                            <TouchableOpacity
-                                style={styles.avatarTouch}
-                                activeOpacity={0.85}
-                                onPress={() => setShowPickerModal(true)}
-                                disabled={uploadingPhoto}
-                                accessibilityRole="button"
-                                accessibilityLabel="Change profile photo"
-                            >
-                                {photoFileName && !imageError ? (
-                                    <Image
-                                        key={photoFileName}
-                                        source={{ uri: photoFileName }}
-                                        style={styles.avatarImage}
-                                        contentFit="cover"
-                                        transition={200}
-                                        cachePolicy="disk"
-                                        onError={(e) => {
-                                            console.log("Failed to load profile photo:", e);
-                                            setImageError(true);
-                                        }}
-                                    />
-                                ) : (
-                                    <View style={styles.avatarFallback}>
-                                        <Text style={styles.avatarInitial}>
-                                            {profile?.name ? profile.name.charAt(0).toUpperCase() : "?"}
-                                        </Text>
-                                    </View>
-                                )}
-
-                                {uploadingPhoto && (
-                                    <View style={styles.avatarUploadingOverlay}>
-                                        <ActivityIndicator size="small" color="#FFFFFF" />
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-
-                            {/* Badge Icon on Border */}
-                            <TouchableOpacity
-                                style={styles.cameraBadge}
-                                activeOpacity={0.8}
-                                onPress={() => setShowPickerModal(true)}
-                                disabled={uploadingPhoto}
-                                accessibilityRole="button"
-                                accessibilityLabel="Update photo"
-                            >
-                                <Ionicons name="camera" size={15} color="#FFFFFF" />
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* Name & Role */}
-                        <Text style={styles.heroName}>{profile.name}</Text>
-
-                        <View style={styles.roleBadgeRow}>
-                            <View style={styles.roleBadge}>
-                                <Text style={styles.roleBadgeText}>{profile.role || "STUDENT"}</Text>
-                            </View>
-                            <View style={styles.verifiedBadge}>
-                                <Ionicons name="shield-checkmark" size={12} color="#10B981" />
-                                <Text style={styles.verifiedBadgeText}>Verified</Text>
-                            </View>
-                        </View>
-
-                        <Text style={styles.avatarHint}>Tap avatar to update picture</Text>
-                    </View>
-
-                    {/* Academic Details Card */}
-                    <View style={styles.sectionCard}>
-                        <View style={styles.sectionHeader}>
-                            <Ionicons name="school-outline" size={18} color="#3B82F6" />
-                            <Text style={styles.sectionTitle}>Academic Information</Text>
-                        </View>
-
-                        <View style={styles.infoRow}>
-                            <View style={styles.iconCircle}>
-                                <Ionicons name="business-outline" size={16} color="#60A5FA" />
-                            </View>
-                            <View style={styles.infoContent}>
-                                <Text style={styles.infoLabel}>Department</Text>
-                                <Text style={styles.infoValue}>{profile.department || "General Engineering"}</Text>
-                            </View>
-                        </View>
-
-                        {profile.division && (
-                            <>
-                                <View style={styles.rowDivider} />
-                                <View style={styles.infoRow}>
-                                    <View style={styles.iconCircle}>
-                                        <Ionicons name="people-outline" size={16} color="#60A5FA" />
-                                    </View>
-                                    <View style={styles.infoContent}>
-                                        <Text style={styles.infoLabel}>Division</Text>
-                                        <Text style={styles.infoValue}>Division {profile.division}</Text>
-                                    </View>
-                                </View>
-                            </>
-                        )}
-
-                        <View style={styles.rowDivider} />
-                        <View style={styles.infoRow}>
-                            <View style={styles.iconCircle}>
-                                <Ionicons name="location-outline" size={16} color="#60A5FA" />
-                            </View>
-                            <View style={styles.infoContent}>
-                                <Text style={styles.infoLabel}>Institution</Text>
-                                <Text style={styles.infoValue}>SCET College Campus</Text>
-                            </View>
-                        </View>
-                    </View>
-
-                    {/* Account Details Card */}
-                    <View style={styles.sectionCard}>
-                        <View style={styles.sectionHeader}>
-                            <Ionicons name="person-circle-outline" size={18} color="#3B82F6" />
-                            <Text style={styles.sectionTitle}>Account Credentials</Text>
-                        </View>
-
-                        <View style={styles.infoRow}>
-                            <View style={styles.iconCircle}>
-                                <Ionicons name="mail-outline" size={16} color="#60A5FA" />
-                            </View>
-                            <View style={styles.infoContent}>
-                                <Text style={styles.infoLabel}>Official College Email</Text>
-                                <Text style={styles.infoValue}>{profile.email}</Text>
-                            </View>
-                        </View>
-
-                        <View style={styles.rowDivider} />
-                        <View style={styles.infoRow}>
-                            <View style={styles.iconCircle}>
-                                <Ionicons name="calendar-outline" size={16} color="#60A5FA" />
-                            </View>
-                            <View style={styles.infoContent}>
-                                <Text style={styles.infoLabel}>Enrolled Since</Text>
-                                <Text style={styles.infoValue}>{formatDate(profile.createdAt)}</Text>
-                            </View>
-                        </View>
-                    </View>
-
-                    {/* Back to Dashboard Button */}
+                {/* Top Navigation Bar */}
+                <View style={styles.navBar}>
                     <TouchableOpacity
-                        style={styles.backDashboardBtn}
-                        activeOpacity={0.85}
-                        onPress={() => router.replace("/dashboard")}
+                        style={styles.navBackButton}
+                        onPress={() => router.back()}
+                        activeOpacity={0.7}
+                        accessibilityRole="button"
+                        accessibilityLabel="Back to dashboard"
                     >
-                        <Ionicons name="home-outline" size={18} color="#FFFFFF" />
-                        <Text style={styles.backDashboardBtnText}>Back to Dashboard</Text>
+                        <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
                     </TouchableOpacity>
 
+                    <Text style={styles.navTitle}>Student Profile</Text>
+
+                    <View style={styles.navSpacer}>
+                        <ThemeToggle compact />
+                    </View>
                 </View>
-            </ScrollView>
 
-            {/* Photo Selection Modal - Minimal Premium Dark Theme */}
-            <Modal
-                visible={showPickerModal}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setShowPickerModal(false)}
-            >
-                <Pressable style={styles.modalBackdrop} onPress={() => setShowPickerModal(false)}>
-                    <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
-                        <View style={styles.modalHandle} />
+                <ScrollView
+                    style={styles.scrollArea}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.containerMax}>
 
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalSheetTitle}>Change Profile Photo</Text>
-                            <Text style={styles.modalSheetSubtitle}>Upload a new photo for your student ID</Text>
+                        {/* Hero Card */}
+                        <View style={styles.heroCard}>
+                            {/* Avatar with Glow and Update Badge */}
+                            <View style={styles.avatarWrapper}>
+                                <TouchableOpacity
+                                    style={styles.avatarTouch}
+                                    activeOpacity={0.85}
+                                    onPress={() => setShowPickerModal(true)}
+                                    disabled={uploadingPhoto}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Change profile photo"
+                                >
+                                    {photoFileName && !imageError ? (
+                                        <Image
+                                            key={photoFileName}
+                                            source={{ uri: photoFileName }}
+                                            style={styles.avatarImage}
+                                            contentFit="cover"
+                                            transition={200}
+                                            cachePolicy="disk"
+                                            onError={(e) => {
+                                                console.log("Failed to load profile photo:", e);
+                                                setImageError(true);
+                                            }}
+                                        />
+                                    ) : (
+                                        <View style={styles.avatarFallback}>
+                                            <Text style={styles.avatarInitial}>
+                                                {profile?.name ? profile.name.charAt(0).toUpperCase() : "?"}
+                                            </Text>
+                                        </View>
+                                    )}
+
+                                    {uploadingPhoto && (
+                                        <View style={styles.avatarUploadingOverlay}>
+                                            <ActivityIndicator size="small" color="#FFFFFF" />
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+
+                                {/* Badge Icon on Border */}
+                                <TouchableOpacity
+                                    style={styles.cameraBadge}
+                                    activeOpacity={0.8}
+                                    onPress={() => setShowPickerModal(true)}
+                                    disabled={uploadingPhoto}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Update photo"
+                                >
+                                    <Ionicons name="camera" size={15} color="#FFFFFF" />
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Name & Role */}
+                            <Text style={styles.heroName}>{profile.name}</Text>
+
+                            <View style={styles.roleBadgeRow}>
+                                <View style={styles.roleBadge}>
+                                    <Text style={styles.roleBadgeText}>{profile.role || "STUDENT"}</Text>
+                                </View>
+                                <View style={styles.verifiedBadge}>
+                                    <Ionicons name="shield-checkmark" size={12} color="#10B981" />
+                                    <Text style={styles.verifiedBadgeText}>Verified</Text>
+                                </View>
+                            </View>
+
+                            <Text style={styles.avatarHint}>Tap avatar to update picture</Text>
                         </View>
 
+                        {/* Academic Details Card */}
+                        <View style={styles.sectionCard}>
+                            <View style={styles.sectionHeader}>
+                                <Ionicons name="school-outline" size={18} color="#3B82F6" />
+                                <Text style={styles.sectionTitle}>Academic Information</Text>
+                            </View>
+
+                            <View style={styles.infoRow}>
+                                <View style={styles.iconCircle}>
+                                    <Ionicons name="business-outline" size={16} color="#60A5FA" />
+                                </View>
+                                <View style={styles.infoContent}>
+                                    <Text style={styles.infoLabel}>Department</Text>
+                                    <Text style={styles.infoValue}>{profile.department || "General Engineering"}</Text>
+                                </View>
+                            </View>
+
+                            {profile.division && (
+                                <>
+                                    <View style={styles.rowDivider} />
+                                    <View style={styles.infoRow}>
+                                        <View style={styles.iconCircle}>
+                                            <Ionicons name="people-outline" size={16} color="#60A5FA" />
+                                        </View>
+                                        <View style={styles.infoContent}>
+                                            <Text style={styles.infoLabel}>Division</Text>
+                                            <Text style={styles.infoValue}>Division {profile.division}</Text>
+                                        </View>
+                                    </View>
+                                </>
+                            )}
+
+                            <View style={styles.rowDivider} />
+                            <View style={styles.infoRow}>
+                                <View style={styles.iconCircle}>
+                                    <Ionicons name="location-outline" size={16} color="#60A5FA" />
+                                </View>
+                                <View style={styles.infoContent}>
+                                    <Text style={styles.infoLabel}>Institution</Text>
+                                    <Text style={styles.infoValue}>SCET College Campus</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Account Details Card */}
+                        <View style={styles.sectionCard}>
+                            <View style={styles.sectionHeader}>
+                                <Ionicons name="person-circle-outline" size={18} color="#3B82F6" />
+                                <Text style={styles.sectionTitle}>Account Credentials</Text>
+                            </View>
+
+                            <View style={styles.infoRow}>
+                                <View style={styles.iconCircle}>
+                                    <Ionicons name="mail-outline" size={16} color="#60A5FA" />
+                                </View>
+                                <View style={styles.infoContent}>
+                                    <Text style={styles.infoLabel}>Official College Email</Text>
+                                    <Text style={styles.infoValue}>{profile.email}</Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.rowDivider} />
+                            <View style={styles.infoRow}>
+                                <View style={styles.iconCircle}>
+                                    <Ionicons name="calendar-outline" size={16} color="#60A5FA" />
+                                </View>
+                                <View style={styles.infoContent}>
+                                    <Text style={styles.infoLabel}>Enrolled Since</Text>
+                                    <Text style={styles.infoValue}>{formatDate(profile.createdAt)}</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Back to Dashboard Button */}
                         <TouchableOpacity
-                            style={styles.modalOption}
-                            activeOpacity={0.75}
-                            onPress={() => pickImage('camera')}
+                            style={styles.backDashboardBtn}
+                            activeOpacity={0.85}
+                            onPress={() => router.replace("/dashboard")}
                         >
-                            <View style={[styles.modalOptionIconBox, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
-                                <Ionicons name="camera" size={20} color="#3B82F6" />
-                            </View>
-                            <View style={styles.modalOptionCopy}>
-                                <Text style={styles.modalOptionHeading}>Take Photo</Text>
-                                <Text style={styles.modalOptionCaption}>Capture directly using your camera</Text>
-                            </View>
-                            <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+                            <Ionicons name="home-outline" size={18} color="#FFFFFF" />
+                            <Text style={styles.backDashboardBtnText}>Back to Dashboard</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.modalOption}
-                            activeOpacity={0.75}
-                            onPress={() => pickImage('library')}
-                        >
-                            <View style={[styles.modalOptionIconBox, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
-                                <Ionicons name="images" size={20} color="#10B981" />
-                            </View>
-                            <View style={styles.modalOptionCopy}>
-                                <Text style={styles.modalOptionHeading}>Choose from Gallery</Text>
-                                <Text style={styles.modalOptionCaption}>Select existing photo from device library</Text>
-                            </View>
-                            <Ionicons name="chevron-forward" size={18} color="#6B7280" />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.modalDismissBtn}
-                            activeOpacity={0.75}
-                            onPress={() => setShowPickerModal(false)}
-                        >
-                            <Text style={styles.modalDismissBtnText}>Cancel</Text>
-                        </TouchableOpacity>
                     </View>
-                </Pressable>
-            </Modal>
-        </View>
+                </ScrollView>
+
+                {/* Photo Selection Modal - Minimal Premium Dark Theme */}
+                <Modal
+                    visible={showPickerModal}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => setShowPickerModal(false)}
+                >
+                    <Pressable style={styles.modalBackdrop} onPress={() => setShowPickerModal(false)}>
+                        <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
+                            <View style={styles.modalHandle} />
+
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalSheetTitle}>Change Profile Photo</Text>
+                                <Text style={styles.modalSheetSubtitle}>Upload a new photo for your student ID</Text>
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.modalOption}
+                                activeOpacity={0.75}
+                                onPress={() => pickImage('camera')}
+                            >
+                                <View style={[styles.modalOptionIconBox, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
+                                    <Ionicons name="camera" size={20} color="#3B82F6" />
+                                </View>
+                                <View style={styles.modalOptionCopy}>
+                                    <Text style={styles.modalOptionHeading}>Take Photo</Text>
+                                    <Text style={styles.modalOptionCaption}>Capture directly using your camera</Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.modalOption}
+                                activeOpacity={0.75}
+                                onPress={() => pickImage('library')}
+                            >
+                                <View style={[styles.modalOptionIconBox, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
+                                    <Ionicons name="images" size={20} color="#10B981" />
+                                </View>
+                                <View style={styles.modalOptionCopy}>
+                                    <Text style={styles.modalOptionHeading}>Choose from Gallery</Text>
+                                    <Text style={styles.modalOptionCaption}>Select existing photo from device library</Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.modalDismissBtn}
+                                activeOpacity={0.75}
+                                onPress={() => setShowPickerModal(false)}
+                            >
+                                <Text style={styles.modalDismissBtnText}>Cancel</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Pressable>
+                </Modal>
+            </View>
         </SafeAreaView>
     );
 }

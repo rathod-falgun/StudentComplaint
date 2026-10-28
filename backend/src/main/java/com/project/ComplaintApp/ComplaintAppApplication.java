@@ -4,18 +4,28 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.nio.charset.StandardCharsets;
+import java.util.TimeZone;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import jakarta.annotation.PostConstruct;
+
 @SpringBootApplication
 @EnableScheduling
 @EnableAsync
 public class ComplaintAppApplication {
 
+	@PostConstruct
+	public void initTimezone() {
+		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata"));
+		System.out.println("⏰ Default JVM timezone set to: Asia/Kolkata (IST)");
+	}
+
 	public static void main(String[] args) {
+		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata"));
 		loadDotEnv();
 		SpringApplication.run(ComplaintAppApplication.class, args);
 	}
